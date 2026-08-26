@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@theme {
+  --color-forest: #006a4e;
+  --color-forest-deep: #004a37;
+  --color-forest-ink: #16211c;
+  --color-bengal-red: #f42a41;
+  --color-bengal-red-deep: #c71f33;
+  --color-cream: #faf7f0;
+  --color-cream-dim: #f3eee2;
+  --color-sand: #e4ddcc;
+  --color-sage: #8aa89b;
+
+  --font-sans: var(--font-grotesk), "Segoe UI", system-ui, sans-serif;
+  --font-bangla: var(--font-bengali), "Noto Sans Bengali", "Vrinda", sans-serif;
+  --font-bangla-serif: var(--font-bengali-serif), "Noto Serif Bengali", "Shonar Bangla", serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-forest-ink);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-forest);
+  color: var(--color-cream);
+}
+
+.font-bangla {
+  font-family: var(--font-bangla);
+}
+
+.font-bangla-serif {
+  font-family: var(--font-bangla-serif);
+}
+
+/* Glassmorphism surface */
+.glass {
+  background: rgba(250, 247, 240, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Infinite marquee */
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  animation: marquee-scroll 32s linear infinite;
+  will-change: transform;
+}
+
+/* Slow float for decorative alpona */
+@keyframes drift {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-18px) rotate(3deg); }
+}
+
+.drift {
+  animation: drift 9s ease-in-out infinite;
+}
+
+@keyframes drift-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(14px) rotate(-4deg); }
+}
+
+.drift-slow {
+  animation: drift-slow 12s ease-in-out infinite;
+}
+
+/* Scroll cue */
+@keyframes scroll-cue {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(10px); opacity: 0.2; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.scroll-cue-dot {
+  animation: scroll-cue 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .marquee-track,
+  .drift,
+  .drift-slow,
+  .scroll-cue-dot {
+    animation: none;
+  }
+}
