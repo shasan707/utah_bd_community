@@ -14,8 +14,8 @@ export default function Footer() {
       <div className="mx-auto max-w-6xl px-5 py-16">
         <div className="grid gap-10 md:grid-cols-3">
           <div>
-            <div className="font-bangla-serif text-5xl font-black text-cream">
-              উঠা
+            <div className="font-heading text-5xl font-black tracking-tight text-cream">
+              UTHA
             </div>
             <p className="mt-3 max-w-xs text-sm text-cream/70">
               Utha USA — the Bangladeshi community of Salt Lake City, Utah.

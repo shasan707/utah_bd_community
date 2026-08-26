@@ -1,28 +1,20 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Hind_Siliguri, Noto_Serif_Bengali } from "next/font/google";
+import { Montserrat, Open_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SmoothScroll from "@/components/SmoothScroll";
 import ScrollProgress from "@/components/ScrollProgress";
 
-const grotesk = Space_Grotesk({
+const montserrat = Montserrat({
   subsets: ["latin"],
-  variable: "--font-grotesk",
+  variable: "--font-mont",
   display: "swap",
 });
 
-const hindSiliguri = Hind_Siliguri({
-  weight: ["300", "400", "500", "600", "700"],
-  subsets: ["bengali"],
-  variable: "--font-bengali",
-  display: "swap",
-});
-
-const notoSerifBengali = Noto_Serif_Bengali({
-  weight: ["400", "600", "700", "900"],
-  subsets: ["bengali"],
-  variable: "--font-bengali-serif",
+const openSans = Open_Sans({
+  subsets: ["latin"],
+  variable: "--font-body",
   display: "swap",
 });
 
@@ -37,9 +29,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body
-        className={`${grotesk.variable} ${hindSiliguri.variable} ${notoSerifBengali.variable} antialiased`}
-      >
+      <body className={`${montserrat.variable} ${openSans.variable} antialiased`}>
         <SmoothScroll>
           <ScrollProgress />
           <Navbar />

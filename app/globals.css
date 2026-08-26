@@ -11,9 +11,17 @@
   --color-sand: #e4ddcc;
   --color-sage: #8aa89b;
 
-  --font-sans: var(--font-grotesk), "Segoe UI", system-ui, sans-serif;
-  --font-bangla: var(--font-bengali), "Noto Sans Bengali", "Vrinda", sans-serif;
-  --font-bangla-serif: var(--font-bengali-serif), "Noto Serif Bengali", "Shonar Bangla", serif;
+  --font-sans: var(--font-body), "Segoe UI", system-ui, sans-serif;
+  --font-heading: var(--font-mont), "Segoe UI", system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
 }
 
 html {
@@ -30,14 +38,6 @@ body {
 ::selection {
   background: var(--color-forest);
   color: var(--color-cream);
-}
-
-.font-bangla {
-  font-family: var(--font-bangla);
-}
-
-.font-bangla-serif {
-  font-family: var(--font-bangla-serif);
 }
 
 /* Glassmorphism surface */

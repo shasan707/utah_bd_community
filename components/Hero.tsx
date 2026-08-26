@@ -44,8 +44,8 @@ export default function Hero() {
         className="pointer-events-none absolute inset-0 flex items-center justify-center"
         aria-hidden="true"
       >
-        <span className="font-bangla-serif select-none text-[42vw] font-black leading-none text-forest/6 md:text-[34vw]">
-          উঠা
+        <span className="font-heading select-none text-[28vw] font-black leading-none tracking-tight text-forest/6 md:text-[22vw]">
+          UTHA
         </span>
       </motion.div>
 

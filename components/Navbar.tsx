@@ -40,11 +40,8 @@ export default function Navbar() {
         }`}
       >
         <Link href="/" className="flex items-baseline gap-2">
-          <span className="font-bangla-serif text-2xl font-black text-forest">
-            উঠা
-          </span>
-          <span className="text-lg font-bold tracking-tight text-forest-ink">
-            Utha <span className="text-bengal-red">USA</span>
+          <span className="font-heading text-2xl font-black tracking-tight text-forest">
+            UTHA <span className="text-bengal-red">USA</span>
           </span>
         </Link>
 
