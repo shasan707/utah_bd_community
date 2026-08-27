@@ -2,7 +2,7 @@ type AlponaProps = {
   className?: string;
 };
 
-/** Decorative alpona motif — a traditional Bengali floor-art flower. */
+/** Decorative alpona motif, a traditional Bengali floor-art flower. */
 export default function Alpona({ className = "" }: AlponaProps) {
   return (
     <svg

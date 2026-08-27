@@ -25,7 +25,7 @@ const centers: [number, number][] = [
   [80 - W / 2, 80 + R * 1.5],
 ];
 
-/** Honeycomb cluster — a nod to Utah, the Beehive State. */
+/** Honeycomb cluster, a nod to Utah, the Beehive State. */
 export default function Honeycomb({ className = "" }: HoneycombProps) {
   return (
     <svg

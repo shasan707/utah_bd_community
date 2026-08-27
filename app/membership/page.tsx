@@ -3,10 +3,11 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import Alpona from "@/components/Alpona";
+import Icon from "@/components/Icon";
 
 export const metadata: Metadata = {
-  title: "Membership — Utha USA",
-  description: "Join the Utha USA community — membership tiers and benefits.",
+  title: "Membership | Utha USA",
+  description: "Join the Utha USA community. Membership tiers and benefits.",
 };
 
 const tiers = [
@@ -36,11 +37,11 @@ const tiers = [
   },
 ];
 
-const benefits = [
-  { icon: "🎉", text: "Free or discounted entry to the year's biggest events" },
-  { icon: "🗳️", text: "A real voice — members shape what Utha USA becomes" },
-  { icon: "🤝", text: "A family of hundreds when you need help, advice, or adda" },
-  { icon: "🧒", text: "Bangla culture programs for children born in America" },
+const benefits: { icon: "ticket" | "check" | "users" | "heart"; text: string }[] = [
+  { icon: "ticket", text: "Free or discounted entry to the year's biggest events" },
+  { icon: "check", text: "A real voice. Members shape what Utha USA becomes" },
+  { icon: "users", text: "A family of hundreds when you need help, advice, or adda" },
+  { icon: "heart", text: "Bangla culture programs for children born in America" },
 ];
 
 export default function MembershipPage() {
@@ -50,7 +51,7 @@ export default function MembershipPage() {
         <SectionHeading
           bangla="Join Us"
           title="Become a Member"
-          subtitle="Sample tiers and prices — final membership details will be announced by the committee."
+          subtitle="Sample tiers and prices. Final membership details will be announced by the committee."
         />
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -123,7 +124,7 @@ export default function MembershipPage() {
 
         <Reveal delay={0.2}>
           <div className="mt-8 rounded-2xl border border-sand bg-cream-dim p-5 text-center text-sm text-forest-ink/70">
-            💳 Online membership payment with automatic confirmation is coming
+            Online membership payment with automatic confirmation is coming
             in the next version of this website. For now, joining works through
             the contact page.
           </div>
@@ -142,7 +143,7 @@ export default function MembershipPage() {
             {benefits.map((b, i) => (
               <Reveal key={b.text} delay={i * 0.1}>
                 <div className="flex items-start gap-4 rounded-2xl bg-cream/10 p-5">
-                  <span className="text-3xl">{b.icon}</span>
+                  <Icon name={b.icon} className="mt-0.5 h-7 w-7 shrink-0 text-bengal-red" />
                   <p className="text-cream/90">{b.text}</p>
                 </div>
               </Reveal>

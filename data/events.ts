@@ -25,10 +25,10 @@ export const events: CommunityEvent[] = [
     tag: "Festival",
     free: true,
     blurb:
-      "An evening of warm winter pithas, folk songs, and reunion — the sweetest night of the year.",
+      "An evening of warm winter pithas, folk songs, and reunion. The sweetest night of the year.",
     description: [
-      "Winter in Bangladesh means pitha — and Utha USA brings that warmth to America. Families bring their best bhapa, patishapta, chitoi, and dudh puli, and the community votes for the Pitha Champion of the year.",
-      "The evening features live folk music (baul and bhatiali), a children's recitation corner, and steaming cups of cha with adda late into the night. Entry is free and open to everyone — bring your family, bring a plate, bring your stories.",
+      "Winter in Bangladesh means pitha, and Utha USA brings that warmth to Utah. Families bring their best bhapa, patishapta, chitoi, and dudh puli, and the community votes for the Pitha Champion of the year.",
+      "The evening features live folk music (baul and bhatiali), a children's recitation corner, and steaming cups of cha with adda late into the night. Entry is free and open to everyone. Bring your family, bring a plate, bring your stories.",
     ],
     palette: "gold",
   },
@@ -43,7 +43,7 @@ export const events: CommunityEvent[] = [
     tag: "National Day",
     free: true,
     blurb:
-      "Honoring December 16, 1971 — songs of freedom, tributes, and the flag held high, together.",
+      "Honoring December 16, 1971 with songs of freedom, tributes, and the flag held high, together.",
     description: [
       "December 16 belongs to every Bangladeshi heart. Utha USA gathers to honor the martyrs and celebrate the birth of Bangladesh with patriotic songs, poetry, and a documentary screening for the new generation.",
       "The evening opens with the national anthem sung together, followed by children's performances of deshattobodhok gaan, a freedom-fighter tribute segment, and dinner. Wear red and green!",
@@ -52,7 +52,7 @@ export const events: CommunityEvent[] = [
   },
   {
     slug: "ekushey-february-2027",
-    title: "Ekushey February — Language Day",
+    title: "Ekushey February, Language Day",
     banglaTitle: "Ekushey February",
     date: "2027-02-21T10:00:00",
     endTime: "1:00 PM",
@@ -63,7 +63,7 @@ export const events: CommunityEvent[] = [
     blurb:
       "Probhat feri at dawn, flowers at the Shaheed Minar, and the songs that made a language immortal.",
     description: [
-      "Amar bhaiyer rokte rangano — the morning begins with a probhat feri procession, barefoot, flowers in hand, to our community Shaheed Minar. We remember Salam, Barkat, Rafiq, Jabbar, and all who gave their lives for the Bangla language in 1952.",
+      "The morning begins with a probhat feri procession, barefoot, flowers in hand, to our community Shaheed Minar. We remember Salam, Barkat, Rafiq, Jabbar, and all who gave their lives for the Bangla language in 1952.",
       "The program continues with Bangla poetry recitation by children, a calligraphy corner where kids write their first Bangla letters, and a discussion on keeping Bangla alive in our American-born generation.",
     ],
     palette: "green",
@@ -79,10 +79,10 @@ export const events: CommunityEvent[] = [
     tag: "Mela",
     free: true,
     blurb:
-      "Our biggest day of the year — Pohela Boishakh with stalls, panta-ilish, concerts, and thousands of us together.",
+      "Our biggest day of the year. Pohela Boishakh with stalls, panta-ilish, concerts, and thousands of us together.",
     description: [
-      "Shubho Noboborsho! The Utha USA Boishakhi Mela welcomes the Bangla New Year the way it deserves — a full day of celebration under the open sky. Food stalls with fuchka, chotpoti, and panta-ilish; clothing and jewelry vendors; a children's fair with nagordola; and alpona painting on the walkway.",
-      "The cultural stage runs all day: dance schools, bands, and a headline concert in the evening. The mela is free and open to the whole city — this is the day we show America the colors of Bangladesh.",
+      "Shubho Noboborsho! The Utha USA Boishakhi Mela welcomes the Bangla New Year the way it deserves: a full day of celebration under the open sky. Food stalls with fuchka, chotpoti, and panta-ilish; clothing and jewelry vendors; a children's fair; and alpona painting on the walkway.",
+      "The cultural stage runs all day: dance schools, bands, and a headline concert in the evening. The mela is free and open to the whole city. This is the day we show Utah the colors of Bangladesh.",
     ],
     palette: "red",
   },
@@ -97,10 +97,10 @@ export const events: CommunityEvent[] = [
     tag: "Reunion",
     free: false,
     blurb:
-      "Eid Mubarak — an evening of semai, new clothes, salami for the kids, and the whole community as one family.",
+      "Eid Mubarak! An evening of semai, new clothes, salami for the kids, and the whole community as one family.",
     description: [
-      "Away from home, Eid can feel quiet — so we celebrate it loudly, together. The Utha USA Eid Reunion brings hundreds of families into one hall for an evening of dinner, semai and desserts, and Eid salami for every child.",
-      "Expect a full Bangladeshi dinner, a nasheed and cultural segment, a best-dressed contest for kids, and long adda over cha. Seats are limited — reserve early.",
+      "Away from home, Eid can feel quiet, so we celebrate it loudly, together. The Utha USA Eid Reunion brings hundreds of families into one hall for an evening of dinner, semai and desserts, and Eid salami for every child.",
+      "Expect a full Bangladeshi dinner, a nasheed and cultural segment, a best-dressed contest for kids, and long adda over cha. Seats are limited, so reserve early.",
     ],
     palette: "teal",
   },
@@ -115,9 +115,9 @@ export const events: CommunityEvent[] = [
     tag: "Picnic",
     free: false,
     blurb:
-      "Buses, biryani, pillow-passing, tug-of-war, and the legendary hari bhanga — a full day of bonobhojon.",
+      "Buses, biryani, pillow-passing, tug-of-war, and the legendary hari bhanga. A full day of bonobhojon.",
     description: [
-      "The great Bangladeshi picnic tradition, American edition. Buses leave in the morning; the day is packed with games — musical chairs for the aunties, tug-of-war for the uncles, hari bhanga and sack races for the kids — with trophies for every champion.",
+      "The great Bangladeshi picnic tradition, Utah edition. Buses leave in the morning, and the day is packed with games: musical chairs for the aunties, tug-of-war for the uncles, hari bhanga and sack races for the kids, with trophies for every champion.",
       "Lunch is a proper picnic feast: khichuri or biryani, dim bhuna, salad, and cha from the flask. A raffle draw closes the day with prizes for the whole family.",
     ],
     palette: "green",

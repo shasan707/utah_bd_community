@@ -3,7 +3,7 @@ import SectionHeading from "@/components/SectionHeading";
 import GalleryGrid from "@/components/GalleryGrid";
 
 export const metadata: Metadata = {
-  title: "Gallery — Utha USA",
+  title: "Gallery | Utha USA",
   description: "Photo memories from Utha USA community celebrations.",
 };
 
@@ -14,7 +14,7 @@ export default function GalleryPage() {
         <SectionHeading
           bangla="Memories"
           title="Gallery"
-          subtitle="Placeholder tiles for now — your real event photos will live here. Click any tile to preview the lightbox."
+          subtitle="Placeholder tiles for now. Your real event photos will live here. Click any tile to preview the lightbox."
         />
         <div className="mt-12">
           <GalleryGrid />

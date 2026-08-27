@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import Countdown from "@/components/Countdown";
+import Icon from "@/components/Icon";
 import Alpona from "@/components/Alpona";
 import PlaceholderImage from "@/components/PlaceholderImage";
 import { events, getEvent } from "@/data/events";
@@ -44,14 +45,19 @@ export default async function EventDetailPage({
             <h1 className="mt-1 text-4xl font-black md:text-6xl">
               {event.title}
             </h1>
-            <div className="mt-5 flex flex-wrap gap-x-8 gap-y-2 text-sm text-white/85">
-              <span>📅 {formatDate(event.date)}</span>
-              <span>
-                🕐 {formatTime(event.date)}
-                {event.endTime ? ` – ${event.endTime}` : ""}
+            <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 text-sm text-white/85">
+              <span className="flex items-center gap-2">
+                <Icon name="calendar" />
+                {formatDate(event.date)}
               </span>
-              <span>
-                📍 {event.venue}, {event.city}
+              <span className="flex items-center gap-2">
+                <Icon name="clock" />
+                {formatTime(event.date)}
+                {event.endTime ? ` to ${event.endTime}` : ""}
+              </span>
+              <span className="flex items-center gap-2">
+                <Icon name="pin" />
+                {event.venue}, {event.city}
               </span>
               <span className="rounded-full bg-white/20 px-3 py-0.5 font-semibold">
                 {event.free ? "Free entry" : "Ticketed"}
@@ -77,7 +83,7 @@ export default async function EventDetailPage({
             <Reveal delay={0.25}>
               <div className="mt-8 rounded-2xl border border-sand bg-cream-dim p-5 text-sm text-forest-ink/70">
                 <strong className="text-forest">Note:</strong> this is a sample
-                event with placeholder details — real dates, venues, and
+                event with placeholder details. Real dates, venues, and
                 registration will appear here once Utha USA announces them.
               </div>
             </Reveal>

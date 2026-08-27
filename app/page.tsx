@@ -13,6 +13,7 @@ import PlaceholderImage from "@/components/PlaceholderImage";
 import EventCard from "@/components/EventCard";
 import SectionHeading from "@/components/SectionHeading";
 import Alpona from "@/components/Alpona";
+import Icon from "@/components/Icon";
 import Honeycomb from "@/components/Honeycomb";
 import Mountains from "@/components/Mountains";
 import { nextEvent, upcomingEvents } from "@/data/events";
@@ -23,7 +24,7 @@ const stats = [
   { value: 500, suffix: "+", label: "Community families" },
   { value: 12, suffix: "", label: "Events every year" },
   { value: 30, suffix: "+", label: "Volunteers" },
-  { value: 1, suffix: "", label: "Family — united as one" },
+  { value: 1, suffix: "", label: "Family, united as one" },
 ];
 
 export default function HomePage() {
@@ -71,14 +72,23 @@ export default function HomePage() {
           <div className="mt-8 grid items-center gap-10 md:grid-cols-2">
             <Reveal delay={0.1}>
               <p className="text-lg text-cream/85">{featured.blurb}</p>
-              <div className="mt-5 space-y-1 text-sm text-cream/70">
-                <div>📅 {formatDate(featured.date)}</div>
-                <div>
-                  🕐 {formatTime(featured.date)}
-                  {featured.endTime ? ` – ${featured.endTime}` : ""}
+              <div className="mt-5 space-y-2 text-sm text-cream/70">
+                <div className="flex items-center gap-2.5">
+                  <Icon name="calendar" />
+                  <span>{formatDate(featured.date)}</span>
                 </div>
-                <div>
-                  📍 {featured.venue}, {featured.city}
+                <div className="flex items-center gap-2.5">
+                  <Icon name="clock" />
+                  <span>
+                    {formatTime(featured.date)}
+                    {featured.endTime ? ` to ${featured.endTime}` : ""}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <Icon name="pin" />
+                  <span>
+                    {featured.venue}, {featured.city}
+                  </span>
                 </div>
               </div>
               <Link
@@ -127,7 +137,7 @@ export default function HomePage() {
             <p className="mt-4 text-forest-ink/70">
               Pohela Boishakh under an American sky, panta-ilish shared between
               neighbors, kids in red and white running past alpona-painted
-              walkways. We recreate the sounds, colors, and tastes of home —
+              walkways. We recreate the sounds, colors, and tastes of home,
               so no one has to miss Bangladesh alone.
             </p>
           </Reveal>
@@ -145,7 +155,7 @@ export default function HomePage() {
               Bangla poetry on Ekushey February, freedom songs on Victory Day,
               first Bangla letters written at our children&apos;s corner. Our
               American-born kids grow up knowing exactly where their story
-              began — and proud of it.
+              began, and proud of it.
             </p>
           </Reveal>
           <ParallaxBlock drift={40} className="md:order-2">
@@ -161,12 +171,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Bangladesh × Utah — two homes, one heart */}
+      {/* Bangladesh x Utah, two homes one heart */}
       <section className="mx-auto max-w-6xl px-5 pb-24">
         <SectionHeading
           bangla="Bangladesh × Utah"
           title="Two Homes, One Heart"
-          subtitle="Rooted in the delta, growing in the mountains — Utha carries both."
+          subtitle="Rooted in the delta, growing in the mountains. Utha carries both."
           align="center"
         />
         <div className="mt-10 grid gap-6 md:grid-cols-2">
@@ -178,7 +188,7 @@ export default function HomePage() {
               </div>
               <h3 className="mt-2 text-3xl font-black">Bangladesh</h3>
               <p className="mt-4 max-w-sm text-cream/85">
-                The rivers, the rain, the songs, the language of 1952 — the
+                The rivers, the rain, the songs, the language of 1952. The
                 green and red we carry in everything we do. Our festivals keep
                 the delta alive in every Utha family.
               </p>
@@ -201,9 +211,9 @@ export default function HomePage() {
               </div>
               <h3 className="mt-2 text-3xl font-black">Utah</h3>
               <p className="mt-4 max-w-sm text-white/90">
-                The Wasatch peaks, the Great Salt Lake, the Beehive State's
-                spirit of building together — Salt Lake City is home now, and
-                our children's stories begin here.
+                The Wasatch peaks, the Great Salt Lake, and the Beehive
+                State's spirit of building together. Salt Lake City is home
+                now, and our children's stories begin here.
               </p>
             </div>
           </Reveal>
@@ -217,7 +227,7 @@ export default function HomePage() {
             <SectionHeading
               bangla="What's Coming"
               title="Upcoming Events"
-              subtitle="Mark your calendar — the community is gathering."
+              subtitle="Mark your calendar. The community is gathering."
             />
             <Reveal delay={0.15}>
               <Link

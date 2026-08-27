@@ -2,17 +2,22 @@ import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import ContactForm from "@/components/ContactForm";
+import Icon from "@/components/Icon";
 
 export const metadata: Metadata = {
-  title: "Contact — Utha USA",
+  title: "Contact | Utha USA",
   description: "Get in touch with the Utha USA community.",
 };
 
-const channels = [
-  { icon: "📧", label: "Email", value: "hello@uthausa.org (placeholder)" },
-  { icon: "📱", label: "WhatsApp", value: "+1 (000) 000-0000 (placeholder)" },
-  { icon: "📘", label: "Facebook", value: "facebook.com/uthausa (placeholder)" },
-  { icon: "📍", label: "Based in", value: "Salt Lake City, Utah" },
+const channels: {
+  icon: "mail" | "phone" | "facebook" | "pin";
+  label: string;
+  value: string;
+}[] = [
+  { icon: "mail", label: "Email", value: "hello@uthausa.org (placeholder)" },
+  { icon: "phone", label: "WhatsApp", value: "+1 (000) 000-0000 (placeholder)" },
+  { icon: "facebook", label: "Facebook", value: "facebook.com/uthausa (placeholder)" },
+  { icon: "pin", label: "Based in", value: "Salt Lake City, Utah" },
 ];
 
 export default function ContactPage() {
@@ -22,7 +27,7 @@ export default function ContactPage() {
         <SectionHeading
           bangla="Get in Touch"
           title="Say Hello"
-          subtitle="Questions, ideas, volunteering, membership — the door is always open."
+          subtitle="Questions, ideas, volunteering, membership. The door is always open."
         />
         <div className="mt-12 grid gap-10 md:grid-cols-2">
           <Reveal>
@@ -32,7 +37,7 @@ export default function ContactPage() {
                   key={c.label}
                   className="flex items-center gap-4 rounded-2xl border border-sand bg-white p-5 shadow-sm"
                 >
-                  <span className="text-2xl">{c.icon}</span>
+                  <Icon name={c.icon} className="h-6 w-6 shrink-0 text-forest" />
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-widest text-forest-ink/50">
                       {c.label}
@@ -53,7 +58,7 @@ export default function ContactPage() {
           <SectionHeading
             bangla="Our Location"
             title="Find Us in Salt Lake City"
-            subtitle="Utha USA is the Bangladeshi community of Salt Lake City, Utah — events happen in and around the valley."
+            subtitle="Utha USA is the Bangladeshi community of Salt Lake City, Utah. Our events happen in and around the valley."
           />
           <Reveal delay={0.1}>
             <div className="mt-8 overflow-hidden rounded-3xl border border-sand shadow-sm">
@@ -63,11 +68,11 @@ export default function ContactPage() {
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 allowFullScreen
-                title="Utha USA — Salt Lake City, Utah"
+                title="Utha USA, Salt Lake City, Utah"
               />
             </div>
             <p className="mt-3 text-center text-xs text-forest-ink/50">
-              📍 Salt Lake City, Utah — exact venue addresses are shared with
+              Salt Lake City, Utah. Exact venue addresses are shared with
               each event announcement.
             </p>
           </Reveal>

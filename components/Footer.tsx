@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Alpona from "@/components/Alpona";
+import Logo from "@/components/Logo";
 import Mountains from "@/components/Mountains";
 
 export default function Footer() {
@@ -14,12 +15,15 @@ export default function Footer() {
       <div className="mx-auto max-w-6xl px-5 py-16">
         <div className="grid gap-10 md:grid-cols-3">
           <div>
-            <div className="font-heading text-5xl font-black tracking-tight text-cream">
-              UTHA
+            <div className="flex items-center gap-3">
+              <Logo uid="ft" className="h-14 w-14 rounded-full bg-cream p-1" />
+              <div className="font-heading text-4xl font-black tracking-tight text-cream">
+                UTHA
+              </div>
             </div>
-            <p className="mt-3 max-w-xs text-sm text-cream/70">
-              Utha USA — the Bangladeshi community of Salt Lake City, Utah.
-              Utha means to rise — rising together, celebrating together.
+            <p className="mt-4 max-w-xs text-sm text-cream/70">
+              Utha USA is the Bangladeshi community of Salt Lake City, Utah.
+              Utha means to rise. We rise together, and we celebrate together.
             </p>
           </div>
 
@@ -55,14 +59,14 @@ export default function Footer() {
               <br />
               hello@uthausa.org <span className="text-cream/40">(placeholder)</span>
               <br />
-              📍 Salt Lake City, Utah
+              Salt Lake City, Utah
             </p>
           </div>
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-cream/10 pt-6 text-xs text-cream/50 md:flex-row">
           <span>© {new Date().getFullYear()} Utha USA. All rights reserved.</span>
-          <span>From the Padma to the Great Salt Lake — one family</span>
+          <span>From the Padma to the Great Salt Lake, one family</span>
         </div>
       </div>
     </footer>

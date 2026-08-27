@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
+import Logo from "@/components/Logo";
 
 const links = [
   { href: "/", label: "Home" },
@@ -39,8 +40,9 @@ export default function Navbar() {
           scrolled ? "py-3" : "py-5"
         }`}
       >
-        <Link href="/" className="flex items-baseline gap-2">
-          <span className="font-heading text-2xl font-black tracking-tight text-forest">
+        <Link href="/" className="flex items-center gap-2.5">
+          <Logo uid="nav" className="h-10 w-10" />
+          <span className="font-heading text-xl font-black tracking-tight text-forest">
             UTHA <span className="text-bengal-red">USA</span>
           </span>
         </Link>

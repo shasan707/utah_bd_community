@@ -2,7 +2,7 @@ type MountainsProps = {
   className?: string;
 };
 
-/** Wasatch-style layered mountain silhouette — the Utah half of the brand. */
+/** Wasatch-style layered mountain silhouette, the Utah half of the brand. */
 export default function Mountains({ className = "" }: MountainsProps) {
   return (
     <svg

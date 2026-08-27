@@ -35,7 +35,7 @@ export default function Hero() {
       ref={ref}
       className="relative flex min-h-screen items-center overflow-hidden bg-cream"
     >
-      {/* Giant Bangla watermark — scales up and dissolves as you scroll away */}
+      {/* Giant watermark that scales up and dissolves as you scroll away */}
       <motion.div
         style={reduce ? undefined : { scale: wmScale, opacity: wmOpacity }}
         initial={reduce ? false : { opacity: 0 }}
@@ -73,7 +73,7 @@ export default function Hero() {
         <Alpona className="h-32 w-32 text-bengal-red/20 md:h-44 md:w-44" />
       </motion.div>
 
-      {/* Content — slides up and fades as the page scrolls past */}
+      {/* Content slides up and fades as the page scrolls past */}
       <motion.div
         style={reduce ? undefined : { y: contentY, opacity: contentOpacity }}
         className="relative z-10 mx-auto w-full max-w-6xl px-5 pt-24"
@@ -114,8 +114,8 @@ export default function Hero() {
           className="mt-6 max-w-xl text-lg text-forest-ink/70 md:text-xl"
         >
           From Boishakhi Mela to Victory Day, from pitha nights to summer
-          picnics — Utha USA brings Bangladeshi families together, wherever in
-          America we call home.
+          picnics, Utha USA brings Bangladeshi families together in the heart
+          of Utah.
         </motion.p>
 
         <motion.div
@@ -139,7 +139,7 @@ export default function Hero() {
         </motion.div>
       </motion.div>
 
-      {/* Wasatch mountain ridge — the Utah half of the brand */}
+      {/* Wasatch mountain ridge, the Utah half of the brand */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 text-forest/15">
         <Mountains className="h-28 w-full md:h-44" />
       </div>

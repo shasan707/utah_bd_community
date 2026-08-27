@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-/** Visible-version contact form — opens the visitor's email app via mailto. */
+/** Visible-version contact form that opens the visitor's email app via mailto. */
 export default function ContactForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -65,7 +65,7 @@ export default function ContactForm() {
         Send Message
       </button>
       <p className="mt-3 text-center text-xs text-forest-ink/50">
-        Opens your email app — a live inbox form arrives with the next version.
+        Opens your email app. A live inbox form arrives with the next version.
       </p>
     </form>
   );

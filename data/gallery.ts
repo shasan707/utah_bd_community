@@ -6,7 +6,7 @@ export type GalleryItem = {
   tall?: boolean;
 };
 
-// Placeholder gallery — swap with real event photos later.
+// Placeholder gallery. Swap with real event photos later.
 export const gallery: GalleryItem[] = [
   { id: 1, caption: "Boishakhi Mela", banglaCaption: "Mela Procession", palette: "red", tall: true },
   { id: 2, caption: "Winter festival", banglaCaption: "Pitha Spread", palette: "gold" },

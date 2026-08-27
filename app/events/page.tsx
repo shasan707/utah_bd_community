@@ -5,7 +5,7 @@ import SectionHeading from "@/components/SectionHeading";
 import { events } from "@/data/events";
 
 export const metadata: Metadata = {
-  title: "Events — Utha USA",
+  title: "Events | Utha USA",
   description: "Upcoming Utha USA community events: melas, reunions, national days, and picnics.",
 };
 
@@ -20,7 +20,7 @@ export default function EventsPage() {
         <SectionHeading
           bangla="Calendar"
           title="Community Events"
-          subtitle="Every gathering is open-hearted — come as a guest, leave as family. Dates and venues below are sample placeholders."
+          subtitle="Every gathering is open-hearted. Come as a guest, leave as family. Dates and venues below are sample placeholders."
         />
         <div className="mt-12 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((e, i) => (

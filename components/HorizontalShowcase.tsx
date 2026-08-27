@@ -87,7 +87,7 @@ export default function HorizontalShowcase() {
             One Year, All Our Festivals
           </h2>
           <p className="mt-2 text-sm text-cream/50">
-            Keep scrolling — the year moves with you ↓
+            Keep scrolling. The year moves with you.
           </p>
         </div>
         <motion.div style={{ x }} className="flex gap-6 pl-[6vw] md:gap-8">

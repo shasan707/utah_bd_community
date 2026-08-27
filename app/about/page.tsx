@@ -6,7 +6,7 @@ import { committee } from "@/data/committee";
 import { paletteGradient } from "@/lib/palette";
 
 export const metadata: Metadata = {
-  title: "About — Utha USA",
+  title: "About | Utha USA",
   description: "The story, mission, and people of Utha USA.",
 };
 
@@ -14,7 +14,7 @@ const values = [
   {
     bangla: "01",
     title: "Culture",
-    text: "Keeping Bangla language, festivals, food, and music alive in America — for us and for our children.",
+    text: "Keeping Bangla language, festivals, food, and music alive in America, for us and for our children.",
   },
   {
     bangla: "02",
@@ -35,21 +35,21 @@ export default function AboutPage() {
         <SectionHeading
           bangla="Our Story"
           title="Who We Are"
-          subtitle="Utha means to rise — a name we share with our home state, Utah."
+          subtitle="Utha means to rise, a name we share with our home state, Utah."
         />
         <div className="mt-8 grid gap-10 md:grid-cols-2">
           <Reveal>
             <p className="leading-relaxed text-forest-ink/75">
               Utha USA is the community organization of Bangladeshi families
-              living in Salt Lake City, Utah. We came to this country carrying two
-              treasures — our dreams, and our culture. Utha USA exists so that
+              living in Salt Lake City, Utah. We came to this country carrying
+              two treasures: our dreams, and our culture. Utha USA exists so that
               the second one never fades while we chase the first.
             </p>
             <p className="mt-4 leading-relaxed text-forest-ink/75">
               Through the year we gather for the moments that define us:
               Pohela Boishakh, Ekushey February, Victory Day, Eid reunions,
               pitha festivals, and the great summer picnic. (This paragraph is
-              placeholder text — replace it with Utha USA&apos;s real story.)
+              placeholder text. Replace it with Utha USA&apos;s real story.)
             </p>
           </Reveal>
           <Reveal delay={0.15}>
@@ -60,8 +60,8 @@ export default function AboutPage() {
               </div>
               <h3 className="mt-1 text-2xl font-bold">What We Stand For</h3>
               <p className="mt-4 text-cream/85">
-                To unite the Bangladeshi families of Salt Lake City and Utah in one open,
-                welcoming community — celebrating our heritage, raising our
+                To unite the Bangladeshi families of Salt Lake City and Utah
+                in one open, welcoming community: celebrating our heritage, raising our
                 children with pride in their roots, and helping one another
                 the way a family does.
               </p>
@@ -97,7 +97,7 @@ export default function AboutPage() {
           <SectionHeading
             bangla="Leadership"
             title="The Committee"
-            subtitle="Placeholder names — the real Utha USA committee goes here."
+            subtitle="Placeholder names for now. The real Utha USA committee goes here."
           />
           <div className="mt-12 grid grid-cols-2 gap-6 md:grid-cols-4">
             {committee.map((m, i) => (

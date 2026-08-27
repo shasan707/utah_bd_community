@@ -24,7 +24,7 @@ const words: { text: string; red?: boolean }[] = [
   { text: "it" },
   { text: "wakes" },
   { text: "up" },
-  { text: "—" },
+  { text: "in" },
   { text: "every" },
   { text: "mela," },
   { text: "every" },
