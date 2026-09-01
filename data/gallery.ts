@@ -4,6 +4,7 @@ export type GalleryItem = {
   banglaCaption: string; // display title (English per site language decision)
   palette: "green" | "red" | "gold" | "teal";
   tall?: boolean;
+  src?: string;
 };
 
 // Placeholder gallery. Swap with real event photos later.

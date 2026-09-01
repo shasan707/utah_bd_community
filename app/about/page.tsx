@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import Alpona from "@/components/Alpona";
-import { committee } from "@/data/committee";
+import { getCommittee } from "@/lib/content";
 import { paletteGradient } from "@/lib/palette";
 
 export const metadata: Metadata = {
   title: "About | Utha USA",
   description: "The story, mission, and people of Utha USA.",
 };
+
+export const revalidate = 60;
 
 const values = [
   {
@@ -28,7 +30,8 @@ const values = [
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const committee = await getCommittee();
   return (
     <div className="pt-28">
       <section className="mx-auto max-w-6xl px-5">
@@ -103,12 +106,21 @@ export default function AboutPage() {
             {committee.map((m, i) => (
               <Reveal key={m.name} delay={(i % 4) * 0.08}>
                 <div className="group rounded-3xl border border-sand bg-white p-6 text-center shadow-sm transition-shadow hover:shadow-lg">
-                  <div
-                    className="mx-auto flex h-20 w-20 items-center justify-center rounded-full text-2xl font-black text-white transition-transform group-hover:scale-110"
-                    style={{ background: paletteGradient[m.palette] }}
-                  >
-                    {m.initials}
-                  </div>
+                  {m.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={m.photoUrl}
+                      alt={m.name}
+                      className="mx-auto h-20 w-20 rounded-full object-cover transition-transform group-hover:scale-110"
+                    />
+                  ) : (
+                    <div
+                      className="mx-auto flex h-20 w-20 items-center justify-center rounded-full text-2xl font-black text-white transition-transform group-hover:scale-110"
+                      style={{ background: paletteGradient[m.palette] }}
+                    >
+                      {m.initials}
+                    </div>
+                  )}
                   <div className="mt-4 font-bold text-forest-ink">{m.name}</div>
                   <div className="text-sm text-forest">{m.role}</div>
                 </div>

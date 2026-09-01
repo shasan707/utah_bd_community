@@ -16,9 +16,10 @@ import Alpona from "@/components/Alpona";
 import Icon from "@/components/Icon";
 import Honeycomb from "@/components/Honeycomb";
 import Mountains from "@/components/Mountains";
-import { nextEvent, upcomingEvents } from "@/data/events";
-import { gallery } from "@/data/gallery";
+import { getEvents, getGallery, next, upcoming } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
+
+export const revalidate = 60;
 
 const stats = [
   { value: 500, suffix: "+", label: "Community families" },
@@ -27,10 +28,11 @@ const stats = [
   { value: 1, suffix: "", label: "Family, united as one" },
 ];
 
-export default function HomePage() {
-  const featured = nextEvent();
-  const upcoming = upcomingEvents().slice(0, 3);
-  const galleryPreview = gallery.slice(0, 6);
+export default async function HomePage() {
+  const allEvents = await getEvents();
+  const featured = next(allEvents);
+  const upcomingList = upcoming(allEvents).slice(0, 3);
+  const galleryPreview = (await getGallery()).slice(0, 6);
 
   return (
     <>
@@ -239,7 +241,7 @@ export default function HomePage() {
             </Reveal>
           </div>
           <div className="mt-10 grid gap-7 md:grid-cols-3">
-            {upcoming.map((e, i) => (
+            {upcomingList.map((e, i) => (
               <Reveal key={e.slug} delay={i * 0.12}>
                 <EventCard event={e} />
               </Reveal>
@@ -272,6 +274,7 @@ export default function HomePage() {
                 palette={g.palette}
                 banglaCaption={g.banglaCaption}
                 caption={g.caption}
+                src={g.src}
                 className="h-44 rounded-2xl md:h-56"
               />
             </Reveal>

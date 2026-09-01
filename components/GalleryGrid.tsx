@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import PlaceholderImage from "@/components/PlaceholderImage";
 import Reveal from "@/components/Reveal";
-import { gallery, type GalleryItem } from "@/data/gallery";
+import type { GalleryItem } from "@/data/gallery";
 
-export default function GalleryGrid() {
+export default function GalleryGrid({ items }: { items: GalleryItem[] }) {
   const [active, setActive] = useState<GalleryItem | null>(null);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function GalleryGrid() {
   return (
     <>
       <div className="columns-2 gap-4 md:columns-3 [&>*]:mb-4">
-        {gallery.map((g, i) => (
+        {items.map((g, i) => (
           <Reveal key={g.id} delay={(i % 4) * 0.06} className="break-inside-avoid">
             <button
               onClick={() => setActive(g)}
@@ -31,6 +31,7 @@ export default function GalleryGrid() {
                 palette={g.palette}
                 banglaCaption={g.banglaCaption}
                 caption={g.caption}
+                src={g.src}
                 className={g.tall ? "h-80" : "h-52"}
               />
             </button>
@@ -59,6 +60,7 @@ export default function GalleryGrid() {
                 palette={active.palette}
                 banglaCaption={active.banglaCaption}
                 caption={active.caption}
+                src={active.src}
                 className="h-[60vh] rounded-3xl"
               />
               <button

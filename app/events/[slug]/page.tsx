@@ -5,13 +5,11 @@ import Countdown from "@/components/Countdown";
 import Icon from "@/components/Icon";
 import Alpona from "@/components/Alpona";
 import PlaceholderImage from "@/components/PlaceholderImage";
-import { events, getEvent } from "@/data/events";
+import { getEventBySlug } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
 import { paletteGradient } from "@/lib/palette";
 
-export function generateStaticParams() {
-  return events.map((e) => ({ slug: e.slug }));
-}
+export const revalidate = 60;
 
 export default async function EventDetailPage({
   params,
@@ -19,7 +17,7 @@ export default async function EventDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const event = getEvent(slug);
+  const event = await getEventBySlug(slug);
   if (!event) notFound();
 
   return (
@@ -108,7 +106,8 @@ export default async function EventDetailPage({
               <PlaceholderImage
                 palette={event.palette}
                 banglaCaption={event.banglaTitle}
-                caption="Venue photo placeholder"
+                caption={event.imageUrl ? undefined : "Venue photo placeholder"}
+                src={event.imageUrl}
                 className="h-52 rounded-3xl"
               />
             </Reveal>

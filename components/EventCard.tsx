@@ -14,6 +14,7 @@ export default function EventCard({ event }: { event: CommunityEvent }) {
         <PlaceholderImage
           palette={event.palette}
           banglaCaption={event.banglaTitle}
+          src={event.imageUrl}
           className="h-44"
         />
         <div className="flex flex-1 flex-col p-6">

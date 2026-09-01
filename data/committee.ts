@@ -3,6 +3,7 @@ export type CommitteeMember = {
   role: string;
   initials: string;
   palette: "green" | "red" | "gold" | "teal";
+  photoUrl?: string;
 };
 
 // Placeholder names. Replace with the real Utha USA committee.

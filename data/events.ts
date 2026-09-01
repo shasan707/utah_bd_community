@@ -11,6 +11,7 @@ export type CommunityEvent = {
   blurb: string;
   description: string[];
   palette: "green" | "red" | "gold" | "teal";
+  imageUrl?: string;
 };
 
 export const events: CommunityEvent[] = [

@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
 import EventCard from "@/components/EventCard";
 import SectionHeading from "@/components/SectionHeading";
-import { events } from "@/data/events";
+import { getEvents } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Events | Utha USA",
   description: "Upcoming Utha USA community events: melas, reunions, national days, and picnics.",
 };
 
-export default function EventsPage() {
-  const sorted = [...events].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+export const revalidate = 60;
+
+export default async function EventsPage() {
+  const sorted = await getEvents();
 
   return (
     <div className="pt-28">
