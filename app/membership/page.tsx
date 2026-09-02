@@ -4,6 +4,7 @@ import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import Alpona from "@/components/Alpona";
 import Icon from "@/components/Icon";
+import { REGISTRATION_FORM_URL } from "@/lib/links";
 
 export const metadata: Metadata = {
   title: "Membership | Utha USA",
@@ -123,11 +124,30 @@ export default function MembershipPage() {
         </div>
 
         <Reveal delay={0.2}>
-          <div className="mt-8 rounded-2xl border border-sand bg-cream-dim p-5 text-center text-sm text-forest-ink/70">
-            Online membership payment with automatic confirmation is coming
-            in the next version of this website. For now, joining works through
-            the contact page.
-          </div>
+          {REGISTRATION_FORM_URL ? (
+            <div className="mt-8 rounded-2xl border border-forest bg-forest p-6 text-center text-cream">
+              <div className="text-lg font-bold">
+                Event registration is open
+              </div>
+              <p className="mt-1 text-sm text-cream/80">
+                Register for the next event and pay by Zelle in two minutes.
+              </p>
+              <a
+                href={REGISTRATION_FORM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-block rounded-full bg-bengal-red px-8 py-3.5 font-semibold text-white transition-transform hover:scale-105"
+              >
+                Register &amp; Pay
+              </a>
+            </div>
+          ) : (
+            <div className="mt-8 rounded-2xl border border-sand bg-cream-dim p-5 text-center text-sm text-forest-ink/70">
+              Online membership payment with automatic confirmation is coming
+              in the next version of this website. For now, joining works
+              through the contact page.
+            </div>
+          )}
         </Reveal>
       </section>
 

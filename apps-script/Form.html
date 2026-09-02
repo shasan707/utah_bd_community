@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --green:#006a4e; --red:#f42a41; --cream:#faf7f0; --ink:#16211c; --sand:#e4ddcc; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--cream); color:var(--ink); font-family:"Open Sans",Arial,sans-serif; }
+  .wrap { max-width:560px; margin:0 auto; padding:28px 18px 60px; }
+  h1,h2 { font-family:"Montserrat",Arial,sans-serif; }
+  h1 { color:var(--green); font-size:26px; margin:0; }
+  .sub { color:#5a6660; font-size:14px; margin:6px 0 22px; }
+  label { display:block; font-weight:600; font-size:14px; margin:14px 0 4px; }
+  input,select,textarea { width:100%; padding:11px 12px; border:1px solid var(--sand); border-radius:12px; font-size:15px; font-family:inherit; background:#fff; }
+  input:focus,select:focus,textarea:focus { outline:none; border-color:var(--green); }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .check { display:flex; gap:8px; align-items:flex-start; font-size:13px; margin-top:16px; color:#5a6660; }
+  .check input { width:auto; margin-top:3px; }
+  .total { margin-top:20px; padding:14px 16px; background:#eef5f1; border-radius:12px; display:flex; justify-content:space-between; font-weight:700; font-size:17px; }
+  .total span:last-child { color:var(--green); }
+  button.primary { width:100%; margin-top:18px; padding:14px; border:0; border-radius:999px; background:var(--red); color:#fff; font-size:16px; font-weight:700; font-family:"Montserrat",Arial,sans-serif; cursor:pointer; }
+  button.primary:disabled { opacity:.6; }
+  .err { color:var(--red); font-weight:600; font-size:14px; margin-top:12px; }
+  .hidden { display:none; }
+  /* confirmation */
+  .codebox { margin-top:18px; padding:22px; background:var(--green); color:#fff; border-radius:16px; text-align:center; }
+  .codebox .code { font-family:"Montserrat",monospace; font-size:38px; font-weight:800; letter-spacing:4px; }
+  .codebox .amt { font-size:22px; margin-top:6px; font-weight:700; }
+  .copybtn { margin-top:12px; padding:9px 22px; border:0; border-radius:999px; background:#fff; color:var(--green); font-weight:700; cursor:pointer; }
+  .steps { margin-top:18px; background:#fff; border:1px solid var(--sand); border-radius:14px; padding:16px 18px; font-size:15px; line-height:1.7; }
+  .steps b { color:var(--green); }
+  .memo { color:var(--red); font-weight:700; }
+  .note { font-size:13px; color:#5a6660; margin-top:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="formview">
+    <h1 id="eventname">BPAU Registration</h1>
+    <p class="sub" id="eventmeta"></p>
+
+    <label>Full name *</label>
+    <input id="name" required placeholder="Your name">
+
+    <div class="row2">
+      <div>
+        <label>Phone *</label>
+        <input id="phone" required inputmode="tel" placeholder="801 555 0123">
+      </div>
+      <div>
+        <label>Email *</label>
+        <input id="email" type="email" required placeholder="you@example.com">
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label>Adults</label>
+        <input id="adults" type="number" min="0" max="50" value="1">
+      </div>
+      <div>
+        <label>Children (under 10)</label>
+        <input id="children" type="number" min="0" max="50" value="0">
+      </div>
+    </div>
+
+    <label>Ticket type</label>
+    <select id="ticket_type">
+      <option value="professional">Professional</option>
+      <option value="student">Student</option>
+    </select>
+
+    <div class="row2">
+      <div>
+        <label>Food coupons</label>
+        <input id="coupons" type="number" min="0" max="500" value="0">
+      </div>
+      <div>
+        <label>Donation ($)</label>
+        <input id="donation" type="number" min="0" step="0.01" value="0">
+      </div>
+    </div>
+
+    <label>Comment (optional)</label>
+    <textarea id="comment" rows="2"></textarea>
+
+    <div class="check">
+      <input type="checkbox" id="announcements">
+      <span>Send me BPAU announcements by email</span>
+    </div>
+
+    <div class="total"><span>Total</span><span id="estimate">$0.00</span></div>
+    <button class="primary" id="submitbtn" onclick="submitForm()">Get My Payment Code</button>
+    <div class="err hidden" id="error"></div>
+    <p class="note">The final amount is confirmed by our system on the next screen.</p>
+  </div>
+
+  <div id="confirmview" class="hidden">
+    <h1>One step left</h1>
+    <p class="sub">Your registration is saved. Now send the payment.</p>
+    <div class="codebox">
+      <div style="font-size:13px;opacity:.8">YOUR CODE</div>
+      <div class="code" id="c_code"></div>
+      <div class="amt" id="c_amount"></div>
+      <button class="copybtn" onclick="copyCode()">Copy code</button>
+    </div>
+    <div class="steps">
+      Send <b id="c_amount2"></b> via Zelle to:<br>
+      <b id="c_recipient"></b><br>
+      (<span id="c_recipient_name"></span>)<br><br>
+      Put <span class="memo" id="c_code2"></span> in the Zelle memo/note field.<br><br>
+      You'll get a receipt by email once we confirm. We also emailed these
+      instructions to you.
+    </div>
+    <p class="note" id="c_contact"></p>
+  </div>
+</div>
+
+<script>
+  var P = JSON.parse(<?!= JSON.stringify(pricingJson) ?>);
+
+  document.getElementById('eventname').textContent = P.event_name;
+  document.getElementById('eventmeta').textContent =
+    'Event date: ' + P.event_date + ' · Registration closes: ' + P.registration_closes;
+
+  function couponCost(qty) {
+    var bundles = Math.floor(qty / P.coupon_bundle_qty);
+    var singles = qty % P.coupon_bundle_qty;
+    return bundles * P.coupon_bundle_price + singles * P.coupon_single;
+  }
+
+  function estimate() {
+    var adults = Number(document.getElementById('adults').value) || 0;
+    var children = Number(document.getElementById('children').value) || 0;
+    var type = document.getElementById('ticket_type').value;
+    var coupons = Number(document.getElementById('coupons').value) || 0;
+    var donation = Number(document.getElementById('donation').value) || 0;
+    var perAdult = type === 'student' ? P.price_student : P.price_adult;
+    var total = adults * perAdult + children * P.price_child + couponCost(coupons) + donation;
+    document.getElementById('estimate').textContent = '$' + total.toFixed(2);
+  }
+  ['adults','children','ticket_type','coupons','donation'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', estimate);
+    document.getElementById(id).addEventListener('change', estimate);
+  });
+  estimate();
+
+  function submitForm() {
+    var btn = document.getElementById('submitbtn');
+    var err = document.getElementById('error');
+    err.classList.add('hidden');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    google.script.run
+      .withSuccessHandler(function (res) { showConfirm(res); })
+      .withFailureHandler(function (e) {
+        err.textContent = e.message || 'Something went wrong. Please try again.';
+        err.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Get My Payment Code';
+      })
+      .submitRegistration({
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        adults: document.getElementById('adults').value,
+        children: document.getElementById('children').value,
+        ticket_type: document.getElementById('ticket_type').value,
+        coupons_qty: document.getElementById('coupons').value,
+        donation: document.getElementById('donation').value,
+        comment: document.getElementById('comment').value,
+        announcements: document.getElementById('announcements').checked
+      });
+  }
+
+  var currentCode = '';
+  function showConfirm(res) {
+    currentCode = res.code;
+    document.getElementById('c_code').textContent = res.code;
+    document.getElementById('c_code2').textContent = res.code;
+    document.getElementById('c_amount').textContent = res.amount;
+    document.getElementById('c_amount2').textContent = res.amount;
+    document.getElementById('c_recipient').textContent = res.zelle_recipient;
+    document.getElementById('c_recipient_name').textContent = res.zelle_recipient_name;
+    document.getElementById('c_contact').textContent =
+      'Questions? Write to ' + P.contact_email + ' and mention your code.';
+    document.getElementById('formview').classList.add('hidden');
+    document.getElementById('confirmview').classList.remove('hidden');
+    window.scrollTo(0, 0);
+  }
+
+  function copyCode() {
+    var done = function () {
+      var b = document.querySelector('.copybtn');
+      b.textContent = 'Copied!';
+      setTimeout(function () { b.textContent = 'Copy code'; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(currentCode).then(done);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = currentCode;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      done();
+    }
+  }
+</script>
+</body>
+</html>

@@ -18,6 +18,7 @@ import Honeycomb from "@/components/Honeycomb";
 import Mountains from "@/components/Mountains";
 import { getEvents, getGallery, next, upcoming } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
+import { REGISTRATION_FORM_URL } from "@/lib/links";
 
 export const revalidate = 60;
 
@@ -298,12 +299,24 @@ export default async function HomePage() {
               Membership means free entry to our biggest events, a voice in the
               community, and a family of hundreds who celebrate the way you do.
             </p>
-            <Link
-              href="/membership"
-              className="mt-8 inline-block rounded-full bg-white px-9 py-4 font-bold text-bengal-red shadow-xl transition-transform hover:scale-105"
-            >
-              Learn About Membership
-            </Link>
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+              <Link
+                href="/membership"
+                className="inline-block rounded-full bg-white px-9 py-4 font-bold text-bengal-red shadow-xl transition-transform hover:scale-105"
+              >
+                Learn About Membership
+              </Link>
+              {REGISTRATION_FORM_URL && (
+                <a
+                  href={REGISTRATION_FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block rounded-full border-2 border-white px-9 py-4 font-bold text-white transition-colors hover:bg-white hover:text-bengal-red"
+                >
+                  Register &amp; Pay
+                </a>
+              )}
+            </div>
           </Reveal>
         </div>
       </section>
