@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
+import { PAYMENT_ADMIN_URL } from "@/lib/links";
 
 type Counts = { photos: number; events: number; committee: number };
 
@@ -57,6 +58,23 @@ export default function AdminDashboard() {
           </Link>
         ))}
       </div>
+      <a
+        href={PAYMENT_ADMIN_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-5 block rounded-3xl border border-forest bg-forest p-6 text-cream shadow-sm transition-shadow hover:shadow-lg"
+      >
+        <div className="text-xl font-bold">Payment System</div>
+        <p className="mt-1 text-sm text-cream/80">
+          Registrations, Zelle payments, receipts, and the audit log. Opens the
+          BPAU payment admin in a new tab (sign in with an approved Google
+          account).
+        </p>
+        <div className="mt-3 text-sm font-semibold text-bengal-red">
+          Open payment admin
+        </div>
+      </a>
+
       <p className="mt-8 text-sm text-forest-ink/50">
         Tip: as long as a section is empty, the public site shows its sample
         placeholder content. The moment you add the first real item, the real
