@@ -6,4 +6,5 @@
  * step 4, deployment 1). While it is empty, the Register & Pay buttons
  * stay hidden.
  */
-export const REGISTRATION_FORM_URL = "";
+export const REGISTRATION_FORM_URL =
+  "https://script.google.com/macros/s/AKfycbwQXk-oyTnBCuG6i-onX1LVZ1ZmSOgZ1Nq31or6BdHcA8VWtwT2lNAmg_7CqIppZgimFA/exec";

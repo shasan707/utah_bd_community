@@ -40,8 +40,8 @@ var DEFAULT_PRICING = [
   ['zelle_recipient', 'bpau.pay@gmail.com'],
   ['zelle_recipient_name', 'Qudrat E Alahy Ratul'],
   ['poll_interval_minutes', 5],
-  ['contact_email', 'bpau@gmail.com'],
-  ['admin_emails', 'bpau@gmail.com'],
+  ['contact_email', 'bpau.pay@gmail.com'],
+  ['admin_emails', 'bpau.pay@gmail.com'],
   ['log_only', 'TRUE'],
   ['pending_expiry_hours', 72]
 ];
