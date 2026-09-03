@@ -204,8 +204,8 @@ function doGet(e) {
   var p = getPricing_();
   t.pricingJson = JSON.stringify({
     event_name: p.event_name,
-    event_date: p.event_date,
-    registration_closes: p.registration_closes,
+    event_date: fmtDate_(p.event_date),
+    registration_closes: fmtDate_(p.registration_closes),
     price_adult: Number(p.price_adult),
     price_child: Number(p.price_child),
     price_student: Number(p.price_student),
@@ -225,8 +225,9 @@ function doGet(e) {
 /** Called from Form.html. The amount is ALWAYS computed server-side. */
 function submitRegistration(data) {
   var p = getPricing_();
-  var closes = new Date(String(p.registration_closes) + 'T23:59:59');
-  if (new Date() > closes) throw new Error('Registration is closed.');
+  if (new Date() > closesAt_(p.registration_closes)) {
+    throw new Error('Registration is closed.');
+  }
 
   var reg = {
     name: String(data.name || '').trim(),
@@ -293,6 +294,21 @@ function clampInt_(v, min, max) {
 
 function money_(n) { return '$' + Number(n).toFixed(2); }
 
+/** Formats a Pricing date (Date object or yyyy-mm-dd text) as "Oct 18, 2026". */
+function fmtDate_(v) {
+  var d = v instanceof Date ? v : new Date(String(v) + 'T12:00:00');
+  if (isNaN(d.getTime())) return String(v);
+  return Utilities.formatDate(d, Session.getScriptTimeZone(), 'MMM d, yyyy');
+}
+
+/** End-of-day cutoff for registration_closes, whether stored as Date or text. */
+function closesAt_(v) {
+  var d = v instanceof Date ? new Date(v.getTime()) : new Date(String(v) + 'T12:00:00');
+  if (isNaN(d.getTime())) return new Date('2100-01-01');
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
 function breakdownLines_(reg, p) {
   var lines = [];
   var adultPrice = reg.ticket_type === 'student' ? Number(p.price_student) : Number(p.price_adult);
@@ -342,7 +358,7 @@ function sendReceipt_(regRow, p) {
     breakdownLines_(reg, p).map(function (l) { return '  ' + l; }).join('\n') + '\n' +
     '  Total = ' + money_(regRow.amount_due) + '\n\n' +
     'Event:  ' + p.event_name + '\n' +
-    'Date:   ' + p.event_date + '\n\n' +
+    'Date:   ' + fmtDate_(p.event_date) + '\n\n' +
     'Bring this email or your name to the check-in desk.\n\nBPAU';
   MailApp.sendEmail(regRow.email, subject, body, { name: 'BPAU', replyTo: String(p.contact_email) });
 }

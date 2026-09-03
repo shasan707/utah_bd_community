@@ -66,10 +66,10 @@ export default function Navbar() {
             );
           })}
           <Link
-            href="/membership"
+            href="/register"
             className="ml-3 rounded-full bg-bengal-red px-5 py-2 text-sm font-semibold text-white transition-transform hover:scale-105"
           >
-            Join Us
+            Register &amp; Pay
           </Link>
         </nav>
 
@@ -115,6 +115,12 @@ export default function Navbar() {
                   {l.label}
                 </Link>
               ))}
+              <Link
+                href="/register"
+                className="mt-2 rounded-full bg-bengal-red px-4 py-2.5 text-center font-semibold text-white"
+              >
+                Register &amp; Pay
+              </Link>
             </div>
           </motion.nav>
         )}
