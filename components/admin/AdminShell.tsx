@@ -14,6 +14,7 @@ const nav = [
   { href: "/admin/photos", label: "Photos" },
   { href: "/admin/events", label: "Events" },
   { href: "/admin/committee", label: "Committee" },
+  { href: "/admin/payments", label: "Payments" },
 ];
 
 function LoginForm() {

@@ -4,7 +4,9 @@ import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import Alpona from "@/components/Alpona";
 import Icon from "@/components/Icon";
-import { REGISTRATION_FORM_URL } from "@/lib/links";
+import { getRegistrationStatus } from "@/lib/payments/settings";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Membership | Utha USA",
@@ -45,7 +47,8 @@ const benefits: { icon: "ticket" | "check" | "users" | "heart"; text: string }[]
   { icon: "heart", text: "Bangla culture programs for children born in America" },
 ];
 
-export default function MembershipPage() {
+export default async function MembershipPage() {
+  const registration = await getRegistrationStatus();
   return (
     <div className="pt-28">
       <section className="mx-auto max-w-6xl px-5">
@@ -124,7 +127,7 @@ export default function MembershipPage() {
         </div>
 
         <Reveal delay={0.2}>
-          {REGISTRATION_FORM_URL ? (
+          {registration.open ? (
             <div className="mt-8 rounded-2xl border border-forest bg-forest p-6 text-center text-cream">
               <div className="text-lg font-bold">
                 Event registration is open
@@ -141,9 +144,9 @@ export default function MembershipPage() {
             </div>
           ) : (
             <div className="mt-8 rounded-2xl border border-sand bg-cream-dim p-5 text-center text-sm text-forest-ink/70">
-              Online membership payment with automatic confirmation is coming
-              in the next version of this website. For now, joining works
-              through the contact page.
+              Membership payment is handled through the contact page for now.
+              Event registration opens on this website whenever a paid event
+              is announced.
             </div>
           )}
         </Reveal>

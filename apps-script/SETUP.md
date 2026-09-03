@@ -1,5 +1,10 @@
 # BPAU Zelle Payment System, Setup Runbook
 
+**Retired (September 2026).** This Google Apps Script version depended on a
+Gmail account that got locked. The payment system now runs inside the website
+on Supabase and Next.js. See `docs/payments-runbook.md`. This folder stays only
+until the new system has been verified on the live site, then it is deleted.
+
 Everything below is done by you, logged into the bpau Gmail account in your browser.
 No password ever needs to be shared with anyone.
 

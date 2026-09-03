@@ -18,7 +18,7 @@ import Honeycomb from "@/components/Honeycomb";
 import Mountains from "@/components/Mountains";
 import { getEvents, getGallery, next, upcoming } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
-import { REGISTRATION_FORM_URL } from "@/lib/links";
+import { getRegistrationStatus } from "@/lib/payments/settings";
 
 export const revalidate = 60;
 
@@ -31,6 +31,7 @@ const stats = [
 
 export default async function HomePage() {
   const allEvents = await getEvents();
+  const registration = await getRegistrationStatus();
   const featured = next(allEvents);
   const upcomingList = upcoming(allEvents).slice(0, 3);
   const galleryPreview = (await getGallery()).slice(0, 6);
@@ -306,7 +307,7 @@ export default async function HomePage() {
               >
                 Learn About Membership
               </Link>
-              {REGISTRATION_FORM_URL && (
+              {registration.open && (
                 <Link
                   href="/register"
                   className="inline-block rounded-full border-2 border-white px-9 py-4 font-bold text-white transition-colors hover:bg-white hover:text-bengal-red"

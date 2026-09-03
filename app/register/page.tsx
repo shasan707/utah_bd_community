@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Alpona from "@/components/Alpona";
 import Reveal from "@/components/Reveal";
 import RegisterForm from "@/components/RegisterForm";
-import { REGISTRATION_FORM_URL } from "@/lib/links";
+import {
+  getRegistrationStatus,
+  type RegistrationStatus,
+} from "@/lib/payments/settings";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Register | Utha USA",
@@ -28,7 +34,31 @@ const steps = [
   },
 ];
 
-export default function RegisterPage() {
+function OfflineCard({ status }: { status: RegistrationStatus }) {
+  const closed = status.reason === "closed" && status.pricing;
+  return (
+    <div className="mx-auto max-w-xl rounded-3xl border border-sand bg-white p-8 text-center">
+      <h2 className="text-xl font-bold text-forest-ink">
+        {closed ? "Registration has closed" : "Registration is not open yet"}
+      </h2>
+      <p className="mt-2 text-forest-ink/70">
+        {closed
+          ? `Online registration for ${status.pricing!.event_name} closed on ${status.pricing!.registration_closes}. If you still need a seat, reach us through the contact page.`
+          : "Online registration for the next event has not opened. Check back soon, or reach us through the contact page and we will register you personally."}
+      </p>
+      <Link
+        href="/contact"
+        className="mt-5 inline-block rounded-full bg-forest px-7 py-2.5 font-semibold text-cream transition-transform hover:scale-105"
+      >
+        Contact us
+      </Link>
+    </div>
+  );
+}
+
+export default async function RegisterPage() {
+  const status = await getRegistrationStatus();
+
   return (
     <div>
       {/* Hero band, same language as the event pages */}
@@ -41,7 +71,7 @@ export default function RegisterPage() {
               ✦ Register &amp; Pay
             </span>
             <h1 className="mt-2 text-4xl font-black md:text-5xl">
-              Event Registration
+              {status.pricing?.event_name || "Event Registration"}
             </h1>
             <p className="mt-3 max-w-xl text-cream/80">
               Two minutes, three steps, and your seat is reserved.
@@ -67,19 +97,10 @@ export default function RegisterPage() {
 
       {/* The form, native to the site */}
       <section className="mx-auto max-w-5xl px-5 py-14">
-        {REGISTRATION_FORM_URL ? (
-          <RegisterForm />
+        {status.open && status.pricing ? (
+          <RegisterForm pricing={status.pricing} />
         ) : (
-          <div className="mx-auto max-w-xl rounded-3xl border border-sand bg-white p-8 text-center">
-            <h2 className="text-xl font-bold text-forest-ink">
-              Registration is temporarily offline
-            </h2>
-            <p className="mt-2 text-forest-ink/70">
-              We are doing maintenance on the payment system. Please check back
-              soon, or reach us through the contact page and we will register
-              you personally.
-            </p>
-          </div>
+          <OfflineCard status={status} />
         )}
       </section>
     </div>

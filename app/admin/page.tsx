@@ -3,9 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
-import { PAYMENT_ADMIN_URL } from "@/lib/links";
 
-type Counts = { photos: number; events: number; committee: number };
+type Counts = {
+  photos: number;
+  events: number;
+  committee: number;
+  pending: number;
+  paid: number;
+  collected: number;
+  paymentsReady: boolean;
+};
 
 export default function AdminDashboard() {
   const [counts, setCounts] = useState<Counts | null>(null);
@@ -18,12 +25,37 @@ export default function AdminDashboard() {
         .select("*", { count: "exact", head: true });
       return count ?? 0;
     };
+    const payments = async () => {
+      const pending = await supabase
+        .from("registrations")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "PENDING");
+      const paid = await supabase
+        .from("registrations")
+        .select("amount_received")
+        .eq("status", "PAID");
+      if (pending.error || paid.error) {
+        return { pending: 0, paid: 0, collected: 0, paymentsReady: false };
+      }
+      const rows = paid.data ?? [];
+      const collected = rows.reduce(
+        (sum, r) => sum + (Number(r.amount_received) || 0),
+        0
+      );
+      return {
+        pending: pending.count ?? 0,
+        paid: rows.length,
+        collected,
+        paymentsReady: true,
+      };
+    };
     Promise.all([
       count("gallery_items"),
       count("events"),
       count("committee_members"),
-    ]).then(([photos, events, committee]) =>
-      setCounts({ photos, events, committee })
+      payments(),
+    ]).then(([photos, events, committee, pay]) =>
+      setCounts({ photos, events, committee, ...pay })
     );
   }, []);
 
@@ -58,22 +90,36 @@ export default function AdminDashboard() {
           </Link>
         ))}
       </div>
-      <a
-        href={PAYMENT_ADMIN_URL}
-        target="_blank"
-        rel="noopener noreferrer"
+      <Link
+        href="/admin/payments"
         className="mt-5 block rounded-3xl border border-forest bg-forest p-6 text-cream shadow-sm transition-shadow hover:shadow-lg"
       >
-        <div className="text-xl font-bold">Payment System</div>
-        <p className="mt-1 text-sm text-cream/80">
-          Registrations, Zelle payments, receipts, and the audit log. Opens the
-          BPAU payment admin in a new tab (sign in with an approved Google
-          account).
-        </p>
-        <div className="mt-3 text-sm font-semibold text-bengal-red">
-          Open payment admin
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <div className="text-xl font-bold">Payment System</div>
+          {counts && counts.paymentsReady && (
+            <div className="text-sm text-cream/80">
+              <b className="text-cream">{counts.pending}</b> waiting for payment
+              {" · "}
+              <b className="text-cream">{counts.paid}</b> paid
+              {" · "}
+              <b className="text-cream">${counts.collected.toFixed(2)}</b>{" "}
+              collected
+            </div>
+          )}
         </div>
-      </a>
+        <p className="mt-1 text-sm text-cream/80">
+          Registrations, Zelle payments, receipts, settings, and the audit log.
+        </p>
+        {counts && !counts.paymentsReady && (
+          <p className="mt-2 text-sm text-cream/70">
+            The payment tables are not set up yet. Run supabase/payments.sql in
+            the Supabase SQL editor.
+          </p>
+        )}
+        <div className="mt-3 text-sm font-semibold text-bengal-red">
+          Open payments
+        </div>
+      </Link>
 
       <p className="mt-8 text-sm text-forest-ink/50">
         Tip: as long as a section is empty, the public site shows its sample
