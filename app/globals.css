@@ -77,23 +77,11 @@ body {
   animation: drift-slow 12s ease-in-out infinite;
 }
 
-/* Scroll cue */
-@keyframes scroll-cue {
-  0% { transform: translateY(0); opacity: 1; }
-  70% { transform: translateY(10px); opacity: 0.2; }
-  100% { transform: translateY(0); opacity: 1; }
-}
-
-.scroll-cue-dot {
-  animation: scroll-cue 1.8s ease-in-out infinite;
-}
-
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .marquee-track,
   .drift,
-  .drift-slow,
-  .scroll-cue-dot {
+  .drift-slow {
     animation: none;
   }
 }

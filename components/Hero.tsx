@@ -143,16 +143,6 @@ export default function Hero() {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 text-forest/15">
         <Mountains className="h-28 w-full md:h-44" />
       </div>
-
-      {/* Scroll cue */}
-      <motion.div
-        style={reduce ? undefined : { opacity: contentOpacity }}
-        className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2"
-      >
-        <div className="flex h-12 w-7 items-start justify-center rounded-full border-2 border-forest-ink/25 p-1.5">
-          <div className="scroll-cue-dot h-2.5 w-2.5 rounded-full bg-bengal-red" />
-        </div>
-      </motion.div>
     </section>
   );
 }
