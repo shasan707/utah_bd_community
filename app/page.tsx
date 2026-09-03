@@ -307,14 +307,12 @@ export default async function HomePage() {
                 Learn About Membership
               </Link>
               {REGISTRATION_FORM_URL && (
-                <a
-                  href={REGISTRATION_FORM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/register"
                   className="inline-block rounded-full border-2 border-white px-9 py-4 font-bold text-white transition-colors hover:bg-white hover:text-bengal-red"
                 >
                   Register &amp; Pay
-                </a>
+                </Link>
               )}
             </div>
           </Reveal>

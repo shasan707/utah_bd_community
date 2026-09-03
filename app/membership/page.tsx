@@ -132,14 +132,12 @@ export default function MembershipPage() {
               <p className="mt-1 text-sm text-cream/80">
                 Register for the next event and pay by Zelle in two minutes.
               </p>
-              <a
-                href={REGISTRATION_FORM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/register"
                 className="mt-4 inline-block rounded-full bg-bengal-red px-8 py-3.5 font-semibold text-white transition-transform hover:scale-105"
               >
                 Register &amp; Pay
-              </a>
+              </Link>
             </div>
           ) : (
             <div className="mt-8 rounded-2xl border border-sand bg-cream-dim p-5 text-center text-sm text-forest-ink/70">

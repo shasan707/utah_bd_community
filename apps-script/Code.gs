@@ -216,7 +216,10 @@ function doGet(e) {
     zelle_recipient_name: p.zelle_recipient_name,
     contact_email: p.contact_email
   });
-  return t.evaluate().setTitle('BPAU Registration').addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  return t.evaluate()
+    .setTitle('BPAU Registration')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 /** Called from Form.html. The amount is ALWAYS computed server-side. */
