@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Alpona from "@/components/Alpona";
 import Reveal from "@/components/Reveal";
+import RegisterForm from "@/components/RegisterForm";
 import { REGISTRATION_FORM_URL } from "@/lib/links";
 
 export const metadata: Metadata = {
@@ -64,14 +65,22 @@ export default function RegisterPage() {
         </div>
       </section>
 
-      {/* The form, filling the page with no dead space below */}
-      <section className="bg-cream">
-        <iframe
-          src={REGISTRATION_FORM_URL}
-          title="BPAU event registration form"
-          className="block h-[calc(100vh-4rem)] min-h-[700px] w-full border-0"
-          allow="clipboard-write"
-        />
+      {/* The form, native to the site */}
+      <section className="mx-auto max-w-5xl px-5 py-14">
+        {REGISTRATION_FORM_URL ? (
+          <RegisterForm />
+        ) : (
+          <div className="mx-auto max-w-xl rounded-3xl border border-sand bg-white p-8 text-center">
+            <h2 className="text-xl font-bold text-forest-ink">
+              Registration is temporarily offline
+            </h2>
+            <p className="mt-2 text-forest-ink/70">
+              We are doing maintenance on the payment system. Please check back
+              soon, or reach us through the contact page and we will register
+              you personally.
+            </p>
+          </div>
+        )}
       </section>
     </div>
   );

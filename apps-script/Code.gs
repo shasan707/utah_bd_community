@@ -186,8 +186,49 @@ function generateCode(prefix) {
 /* Web app                                                             */
 /* ------------------------------------------------------------------ */
 
+/** Public pricing snapshot used by both the embedded form and the website form. */
+function publicPricing_() {
+  var p = getPricing_();
+  return {
+    event_name: p.event_name,
+    event_date: fmtDate_(p.event_date),
+    registration_closes: fmtDate_(p.registration_closes),
+    price_adult: Number(p.price_adult),
+    price_child: Number(p.price_child),
+    price_student: Number(p.price_student),
+    coupon_single: Number(p.coupon_single),
+    coupon_bundle_qty: Number(p.coupon_bundle_qty),
+    coupon_bundle_price: Number(p.coupon_bundle_price),
+    zelle_recipient: p.zelle_recipient,
+    zelle_recipient_name: p.zelle_recipient_name,
+    contact_email: p.contact_email
+  };
+}
+
+/** JSON API for the website form: register via a cross-origin POST. */
+function doPost(e) {
+  var out;
+  try {
+    var raw = e && e.postData && e.postData.contents ? e.postData.contents : '{}';
+    var data = JSON.parse(raw);
+    if (data.action === 'register') {
+      out = { ok: true, result: submitRegistration(data.payload || {}) };
+    } else {
+      out = { ok: false, error: 'Unknown action' };
+    }
+  } catch (err) {
+    out = { ok: false, error: String(err && err.message ? err.message : err) };
+  }
+  return ContentService.createTextOutput(JSON.stringify(out))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 function doGet(e) {
   var page = (e && e.parameter && e.parameter.page) || 'form';
+  if (e && e.parameter && e.parameter.api === 'pricing') {
+    return ContentService.createTextOutput(JSON.stringify(publicPricing_()))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
   if (page === 'admin') {
     var email = Session.getActiveUser().getEmail();
     if (!isAdmin_(email)) {
@@ -201,21 +242,7 @@ function doGet(e) {
     return admin.evaluate().setTitle('BPAU Admin').addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   var t = HtmlService.createTemplateFromFile('Form');
-  var p = getPricing_();
-  t.pricingJson = JSON.stringify({
-    event_name: p.event_name,
-    event_date: fmtDate_(p.event_date),
-    registration_closes: fmtDate_(p.registration_closes),
-    price_adult: Number(p.price_adult),
-    price_child: Number(p.price_child),
-    price_student: Number(p.price_student),
-    coupon_single: Number(p.coupon_single),
-    coupon_bundle_qty: Number(p.coupon_bundle_qty),
-    coupon_bundle_price: Number(p.coupon_bundle_price),
-    zelle_recipient: p.zelle_recipient,
-    zelle_recipient_name: p.zelle_recipient_name,
-    contact_email: p.contact_email
-  });
+  t.pricingJson = JSON.stringify(publicPricing_());
   return t.evaluate()
     .setTitle('BPAU Registration')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')

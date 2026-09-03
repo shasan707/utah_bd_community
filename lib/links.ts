@@ -6,8 +6,9 @@
  * step 4, deployment 1). While it is empty, the Register & Pay buttons
  * stay hidden.
  */
-export const REGISTRATION_FORM_URL =
-  "https://script.google.com/macros/s/AKfycbwQXk-oyTnBCuG6i-onX1LVZ1ZmSOgZ1Nq31or6BdHcA8VWtwT2lNAmg_7CqIppZgimFA/exec";
+// Empty while the payment backend account is being restored or recreated.
+// Set to the new Apps Script /exec URL to bring registration back online.
+export const REGISTRATION_FORM_URL = "";
 
 /**
  * The BPAU payment admin panel (Apps Script deployment 2). Requires a
