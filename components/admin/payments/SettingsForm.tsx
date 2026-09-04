@@ -134,6 +134,28 @@ export default function SettingsForm({
             </span>
           </span>
         </label>
+        <label className="mt-5 flex items-start gap-3">
+          <input
+            type="checkbox"
+            checked={form.auto_confirm === "true"}
+            onChange={(e) =>
+              set("auto_confirm", e.target.checked ? "true" : "false")
+            }
+            className="mt-1"
+          />
+          <span>
+            <span className="block font-bold text-forest-ink">
+              Auto-confirm Zelle payments
+            </span>
+            <span className="block text-sm text-forest-ink/60">
+              When on, a bank alert whose memo matches a code marks that
+              registration PAID and emails the receipt with no click from you.
+              When off, the alerts are still recorded and matched on the Zelle
+              tab, but nothing is confirmed until you click. Keep it off for the
+              first week and watch the matches.
+            </span>
+          </span>
+        </label>
         {open && !form.zelle_recipient?.trim() && (
           <p className="mt-3 rounded-xl bg-bengal-red/10 px-4 py-2 text-sm font-medium text-bengal-red">
             The Zelle recipient is empty. Members will be told to send money to

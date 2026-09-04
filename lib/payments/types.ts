@@ -46,6 +46,58 @@ export type RegistrationRow = {
   client_ip: string | null;
 };
 
+export const MATCH_STATUSES = [
+  "UNMATCHED",
+  "MATCHED",
+  "AMOUNT_MISMATCH",
+  "DUPLICATE",
+] as const;
+export type MatchStatus = (typeof MATCH_STATUSES)[number];
+
+export type PaymentSource = "admin" | "email" | "import";
+
+/** One Zelle transaction as seen by the treasurer or relayed from the bank email. */
+export type PaymentRow = {
+  id: number;
+  confirmation_id: string;
+  received_at: string;
+  sender_name: string;
+  amount: number;
+  memo_raw: string;
+  memo_normalized: string;
+  extracted_code: string;
+  match_status: MatchStatus;
+  linked_code: string | null;
+  suggested_code: string | null;
+  processed_at: string | null;
+  source: PaymentSource;
+  message_id: string | null;
+  created_at: string;
+};
+
+export function parsePayment(raw: Record<string, unknown>): PaymentRow {
+  return {
+    id: num(raw.id),
+    confirmation_id: str(raw.confirmation_id),
+    received_at: str(raw.received_at),
+    sender_name: str(raw.sender_name),
+    amount: num(raw.amount),
+    memo_raw: str(raw.memo_raw),
+    memo_normalized: str(raw.memo_normalized),
+    extracted_code: str(raw.extracted_code),
+    match_status: MATCH_STATUSES.includes(raw.match_status as MatchStatus)
+      ? (raw.match_status as MatchStatus)
+      : "UNMATCHED",
+    linked_code: strOrNull(raw.linked_code),
+    suggested_code: strOrNull(raw.suggested_code),
+    processed_at: strOrNull(raw.processed_at),
+    source:
+      raw.source === "email" || raw.source === "import" ? raw.source : "admin",
+    message_id: strOrNull(raw.message_id),
+    created_at: str(raw.created_at),
+  };
+}
+
 export type AuditRow = {
   id: number;
   at: string;
@@ -89,16 +141,19 @@ export const EXPORT_COLUMNS: (keyof RegistrationRow)[] = [
   "notes",
 ];
 
-const num = (v: unknown): number => {
+function num(v: unknown): number {
   const n = Number(v ?? 0);
   return Number.isFinite(n) ? n : 0;
-};
-const numOrNull = (v: unknown): number | null =>
-  v === null || v === undefined || v === "" ? null : num(v);
-const str = (v: unknown): string =>
-  v === null || v === undefined ? "" : String(v);
-const strOrNull = (v: unknown): string | null =>
-  v === null || v === undefined ? null : String(v);
+}
+function numOrNull(v: unknown): number | null {
+  return v === null || v === undefined || v === "" ? null : num(v);
+}
+function str(v: unknown): string {
+  return v === null || v === undefined ? "" : String(v);
+}
+function strOrNull(v: unknown): string | null {
+  return v === null || v === undefined ? null : String(v);
+}
 
 /**
  * Converts a raw PostgREST row into a typed row. PostgREST sends numeric

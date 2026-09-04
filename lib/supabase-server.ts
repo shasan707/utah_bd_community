@@ -1,4 +1,5 @@
 import "server-only";
+import { timingSafeEqual } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
@@ -93,6 +94,15 @@ export function jsonError(err: unknown): Response {
     { ok: false, error: "Something went wrong. Please try again." },
     { status: 500 }
   );
+}
+
+/** Compares a presented token with a configured secret without leaking timing. */
+export function secretMatches(token: string, secret: string | undefined): boolean {
+  if (!secret || !token) return false;
+  const a = Buffer.from(token);
+  const b = Buffer.from(secret);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }
 
 /** Client IP as seen through Vercel's proxy, for the registration throttle. */

@@ -13,6 +13,7 @@ export async function GET(req: Request) {
       service_configured: serviceConfigured,
       email_provider: emailProvider(),
       cron_secret_set: Boolean(process.env.CRON_SECRET),
+      inbound_secret_set: Boolean(process.env.ZELLE_INBOUND_SECRET),
     });
   } catch (err) {
     return jsonError(err);

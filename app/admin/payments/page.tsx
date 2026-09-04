@@ -7,6 +7,10 @@ import ActionDialog, {
 } from "@/components/admin/payments/ActionDialog";
 import AuditDrawer from "@/components/admin/payments/AuditDrawer";
 import NewEntryForm from "@/components/admin/payments/NewEntryForm";
+import PaymentTable, {
+  needsAttention,
+  type PaymentAction,
+} from "@/components/admin/payments/PaymentTable";
 import RegistrationTable, {
   type RowAction,
 } from "@/components/admin/payments/RegistrationTable";
@@ -18,20 +22,29 @@ import { closesAt, formatDateOnly } from "@/lib/payments/dates";
 import { money } from "@/lib/payments/pricing";
 import {
   METHODS,
+  parsePayment,
   parseRegistration,
+  type PaymentRow,
   type RegistrationRow,
 } from "@/lib/payments/types";
 
-type Tab = "pending" | "all" | "settings";
+type Tab = "pending" | "all" | "zelle" | "settings";
 
 type ServerStatus = {
   admin_email: string;
   service_configured: boolean;
   email_provider: string | null;
   cron_secret_set: boolean;
+  inbound_secret_set: boolean;
 };
 
-function Pill({ tone, children }: { tone: "good" | "warn" | "muted"; children: React.ReactNode }) {
+function Pill({
+  tone,
+  children,
+}: {
+  tone: "good" | "warn" | "muted";
+  children: React.ReactNode;
+}) {
   const cls =
     tone === "good"
       ? "bg-forest/10 text-forest"
@@ -43,8 +56,19 @@ function Pill({ tone, children }: { tone: "good" | "warn" | "muted"; children: R
   );
 }
 
+function ago(iso: string | null): string {
+  if (!iso) return "none yet";
+  const h = Math.round((Date.now() - new Date(iso).getTime()) / 3600000);
+  if (h < 1) return "under an hour ago";
+  if (h < 48) return `${h}h ago`;
+  return `${Math.round(h / 24)} days ago`;
+}
+
 export default function AdminPayments() {
   const [rows, setRows] = useState<RegistrationRow[]>([]);
+  const [payments, setPayments] = useState<PaymentRow[]>([]);
+  const [lastEmailAt, setLastEmailAt] = useState<string | null>(null);
+  const [zelleReady, setZelleReady] = useState(true);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [server, setServer] = useState<ServerStatus | null>(null);
   const [tab, setTab] = useState<Tab>("pending");
@@ -57,12 +81,22 @@ export default function AdminPayments() {
 
   const load = useCallback(async () => {
     const supabase = getSupabase();
-    const [regs, sets] = await Promise.all([
+    const [regs, sets, pays, raw] = await Promise.all([
       supabase
         .from("registrations")
         .select("*")
         .order("created_at", { ascending: false }),
       supabase.from("payment_settings").select("key,value"),
+      supabase
+        .from("payments")
+        .select("*")
+        .order("received_at", { ascending: false })
+        .limit(300),
+      supabase
+        .from("raw_emails")
+        .select("received_at")
+        .order("received_at", { ascending: false })
+        .limit(1),
     ]);
     if (regs.error || sets.error) {
       setLoadError((regs.error || sets.error)?.message || "Could not load.");
@@ -73,6 +107,16 @@ export default function AdminPayments() {
     const map: Record<string, string> = {};
     for (const s of sets.data ?? []) map[String(s.key)] = String(s.value ?? "");
     setSettings(map);
+    // The Zelle tables come from payments_zelle.sql; the page still works without them.
+    if (pays.error || raw.error) {
+      setZelleReady(false);
+      setPayments([]);
+      setLastEmailAt(null);
+    } else {
+      setZelleReady(true);
+      setPayments((pays.data ?? []).map((p) => parsePayment(p)));
+      setLastEmailAt(raw.data?.[0]?.received_at ?? null);
+    }
     adminRequest<ServerStatus>("/api/admin/status", undefined, "GET")
       .then(setServer)
       .catch(() => setServer(null));
@@ -86,6 +130,7 @@ export default function AdminPayments() {
   const paid = useMemo(() => rows.filter((r) => r.status === "PAID"), [rows]);
   const collected = paid.reduce((s, r) => s + (r.amount_received ?? 0), 0);
   const expiredCount = rows.filter((r) => r.status === "EXPIRED").length;
+  const attention = useMemo(() => payments.filter(needsAttention), [payments]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -104,6 +149,7 @@ export default function AdminPayments() {
     if (Date.now() > closesAt(settings.registration_closes || "").getTime()) return "Closed";
     return "Open";
   })();
+  const autoConfirm = settings.auto_confirm === "true";
 
   const run = async (fn: () => Promise<{ message: string }>) => {
     const r = await fn();
@@ -168,9 +214,7 @@ export default function AdminPayments() {
               : "Marks the registration CANCELLED. The code can no longer be paid.",
           confirmLabel: r.status === "PAID" ? "Mark refunded" : "Void",
           danger: true,
-          fields: [
-            { name: "reason", label: "Reason", type: "text", required: true },
-          ],
+          fields: [{ name: "reason", label: "Reason", type: "text", required: true }],
           onConfirm: (v) => run(() => patch({ action: "void", reason: v.reason })),
         });
         break;
@@ -224,6 +268,92 @@ export default function AdminPayments() {
         break;
     }
   };
+
+  const onPaymentAction = (action: PaymentAction, p: PaymentRow) => {
+    const patch = (body: Record<string, unknown>) =>
+      adminRequest<{ message: string }>(`/api/admin/payments/${p.id}`, body, "PATCH");
+    switch (action) {
+      case "link":
+        setDialog({
+          title: `Link ${money(p.amount)} from ${p.sender_name || "unknown sender"}`,
+          description:
+            "Enter the registration code this Zelle belongs to. It is marked PAID right away and the receipt goes out.",
+          confirmLabel: "Link and confirm",
+          fields: [
+            {
+              name: "code",
+              label: "Registration code",
+              type: "text",
+              value: p.suggested_code ?? "",
+              required: true,
+              placeholder: "R-XXXX",
+            },
+          ],
+          onConfirm: (v) => run(() => patch({ action: "link", code: v.code })),
+        });
+        break;
+      case "apply":
+        setDialog({
+          title: `Confirm ${p.linked_code}`,
+          description: `${money(p.amount)} from ${p.sender_name || "unknown sender"} matches ${p.linked_code}. Mark it PAID and send the receipt.`,
+          confirmLabel: "Confirm",
+          fields: [],
+          onConfirm: () => run(() => patch({ action: "link", code: p.linked_code })),
+        });
+        break;
+      case "accept":
+        setDialog({
+          title: `Accept ${money(p.amount)} for ${p.linked_code}`,
+          description:
+            "The member sent less than the amount due. Accepting marks the registration PAID with what arrived and sends the receipt.",
+          confirmLabel: "Accept",
+          fields: [{ name: "note", label: "Note (optional)", type: "text" }],
+          onConfirm: (v) => run(() => patch({ action: "accept_mismatch", note: v.note })),
+        });
+        break;
+      case "note":
+        setDialog({
+          title: `Note on ${p.linked_code}`,
+          description:
+            "Writes a note to the history. The registration stays unpaid until the rest arrives; then use Mark paid.",
+          confirmLabel: "Save note",
+          fields: [{ name: "note", label: "Note", type: "text", required: true }],
+          onConfirm: (v) => run(() => patch({ action: "note_mismatch", note: v.note })),
+        });
+        break;
+    }
+  };
+
+  const recordByHand = () =>
+    setDialog({
+      title: "Record a Zelle by hand",
+      description:
+        "Copy the details from the bank app. If the memo has a code, the registration is confirmed right away.",
+      confirmLabel: "Record",
+      fields: [
+        {
+          name: "confirmation_id",
+          label: "Zelle confirmation number",
+          type: "text",
+          required: true,
+        },
+        { name: "amount", label: "Amount received", type: "number", required: true },
+        { name: "sender_name", label: "Sender name", type: "text" },
+        { name: "memo_raw", label: "Memo", type: "text", placeholder: "R-XXXX" },
+        {
+          name: "received_at",
+          label: "Received (optional, e.g. 2026-10-05 14:30)",
+          type: "text",
+        },
+      ],
+      onConfirm: (v) =>
+        run(() =>
+          adminRequest<{ message: string }>("/api/admin/payments", {
+            ...v,
+            amount: Number(v.amount),
+          })
+        ),
+    });
 
   const runExpiry = () =>
     run(async () => {
@@ -294,8 +424,17 @@ export default function AdminPayments() {
           <Pill tone={server?.email_provider ? "good" : "warn"}>
             Email: {server ? server.email_provider ?? "not configured" : "..."}
           </Pill>
-          {server && !server.cron_secret_set && (
-            <Pill tone="warn">Cron secret missing</Pill>
+          <Pill tone={autoConfirm ? "good" : "muted"}>
+            Auto-confirm: {autoConfirm ? "on" : "off (log only)"}
+          </Pill>
+          {zelleReady && (
+            <Pill tone={lastEmailAt ? "good" : "muted"}>
+              Last bank email: {ago(lastEmailAt)}
+            </Pill>
+          )}
+          {server && !server.cron_secret_set && <Pill tone="warn">Cron secret missing</Pill>}
+          {server && !server.inbound_secret_set && (
+            <Pill tone="warn">Zelle relay secret missing</Pill>
           )}
         </div>
       </div>
@@ -319,14 +458,14 @@ export default function AdminPayments() {
 
       {settings.registration_open === "true" && !settings.zelle_recipient?.trim() && (
         <p className="mt-4 rounded-2xl bg-bengal-red/10 px-5 py-3 text-sm font-medium text-bengal-red">
-          Registration is open but the Zelle recipient is empty. Set it in
-          Settings.
+          Registration is open but the Zelle recipient is empty. Set it in Settings.
         </p>
       )}
 
       <div className="mt-6 flex flex-wrap items-center gap-2">
         {tabBtn("pending", `Pending (${pending.length})`)}
         {tabBtn("all", `All registrations (${rows.length})`)}
+        {tabBtn("zelle", `Zelle${attention.length ? ` (${attention.length} to check)` : ""}`)}
         {tabBtn("settings", "Settings")}
         <div className="ml-auto flex flex-wrap gap-2">
           <button
@@ -391,9 +530,48 @@ export default function AdminPayments() {
             />
           </>
         )}
-        {tab === "settings" && (
-          <SettingsForm values={settings} onSaved={load} />
+        {tab === "zelle" && (
+          <div>
+            {!zelleReady && (
+              <p className="mb-4 rounded-2xl bg-amber-100 px-5 py-3 text-sm font-medium text-amber-800">
+                The Zelle tables are not set up yet. Run supabase/payments_zelle.sql in
+                the Supabase SQL editor.
+              </p>
+            )}
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={recordByHand}
+                className="rounded-full bg-forest px-4 py-2 text-sm font-semibold text-cream"
+              >
+                Record a Zelle by hand
+              </button>
+              <p className="text-sm text-forest-ink/60">
+                Bank alert emails arrive here by themselves through the Gmail relay.
+                {autoConfirm
+                  ? " Matches are confirmed automatically."
+                  : " Auto-confirm is off, so matches wait for your click."}
+              </p>
+            </div>
+            {attention.length > 0 && (
+              <>
+                <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-forest-ink/60">
+                  Needs a look
+                </h2>
+                <PaymentTable rows={attention} onAction={onPaymentAction} emptyText="" />
+                <h2 className="mb-2 mt-8 text-sm font-bold uppercase tracking-wide text-forest-ink/60">
+                  Everything else
+                </h2>
+              </>
+            )}
+            <PaymentTable
+              rows={payments.filter((p) => !needsAttention(p))}
+              onAction={onPaymentAction}
+              emptyText="No Zelle transactions recorded yet."
+            />
+          </div>
         )}
+        {tab === "settings" && <SettingsForm values={settings} onSaved={load} />}
       </div>
 
       {dialog && <ActionDialog spec={dialog} onClose={() => setDialog(null)} />}

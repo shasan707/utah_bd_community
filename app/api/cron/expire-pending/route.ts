@@ -1,4 +1,9 @@
-import { jsonError, jsonOk, requireAdmin } from "@/lib/supabase-server";
+import {
+  jsonError,
+  jsonOk,
+  requireAdmin,
+  secretMatches,
+} from "@/lib/supabase-server";
 import { getSettings } from "@/lib/payments/settings";
 import { expirePending } from "@/lib/payments/registrations";
 
@@ -15,10 +20,8 @@ export async function GET(req: Request) {
   try {
     const header = req.headers.get("authorization") || "";
     const token = header.replace(/^Bearer\s+/i, "").trim();
-    const secret = process.env.CRON_SECRET;
-
     let actor = "cron";
-    if (!(secret && token && token === secret)) {
+    if (!secretMatches(token, process.env.CRON_SECRET)) {
       const admin = await requireAdmin(req);
       actor = admin.email;
     }

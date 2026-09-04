@@ -47,7 +47,7 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
-function appendNote(existing: string, extra: string): string {
+export function appendNote(existing: string, extra: string): string {
   if (!extra) return existing;
   return existing ? `${existing} ${extra}` : extra;
 }
@@ -205,7 +205,7 @@ async function deliverPendingEmail(
   return res;
 }
 
-async function deliverReceipt(
+export async function deliverReceipt(
   row: RegistrationRow,
   s: Settings
 ): Promise<{ row: RegistrationRow; email: EmailResult }> {
