@@ -27,7 +27,7 @@ type Tab = "pending" | "all" | "settings";
 type ServerStatus = {
   admin_email: string;
   service_configured: boolean;
-  email_provider: "resend" | "brevo" | null;
+  email_provider: string | null;
   cron_secret_set: boolean;
 };
 

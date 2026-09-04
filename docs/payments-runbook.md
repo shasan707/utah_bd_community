@@ -1,8 +1,10 @@
 # BPAU Registration and Zelle Payments, Runbook
 
-This replaces the old Google Apps Script system (apps-script/SETUP.md). Nothing
-here depends on a Google account. The website, its database (Supabase), and the
-email service do all the work.
+This replaces the old Google Apps Script system (apps-script/SETUP.md). The
+website and its database (Supabase) do all the work. The only Google piece left
+is the Gmail account that sends the code and receipt emails. If Google ever
+locks that account again, only the emails stop; registrations, codes, and the
+admin keep working.
 
 ## How it works, in one paragraph
 
@@ -35,20 +37,37 @@ On Vercel they go in Project Settings, Environment Variables, for Production.
 |---|---|
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase, Project Settings, API, service_role key. Never put this in a NEXT_PUBLIC variable. |
 | `CRON_SECRET` | Any long random string. Vercel sends it when it runs the nightly expiry job. |
-| `EMAIL_PROVIDER` | `resend` (or `brevo`). Leave empty to send no email. |
-| `EMAIL_API_KEY` | The API key from the email provider. |
-| `EMAIL_FROM` | `BPAU <noreply@uthausa.org>` or another sender the provider has verified. |
+| `EMAIL_PROVIDER` | `gmail`. Leave empty to send no email. (`resend` or `brevo` also work, with a verified domain.) |
+| `EMAIL_USER` | The Gmail address that sends, for example `bpau.pay@gmail.com`. |
+| `EMAIL_APP_PASSWORD` | A 16 character App Password from that Gmail account (see step 3). |
+| `EMAIL_FROM` | `BPAU <bpau.pay@gmail.com>`. Gmail always uses the account address; this only sets the display name. |
 
 After adding or changing variables, redeploy.
 
-### 3. Email (Resend)
+### 3. Email (Gmail)
 
-1. Buy the domain `uthausa.org` (or whichever domain the committee picks).
-2. Create a Resend account, add the domain, and publish the DNS records Resend
-   shows (SPF, DKIM, DMARC) at the domain registrar. Wait until Resend marks the
-   domain verified.
-3. Create an API key and put it in `EMAIL_API_KEY`. Set `EMAIL_PROVIDER=resend`
-   and `EMAIL_FROM=BPAU <noreply@uthausa.org>`.
+The emails are sent through the BPAU Gmail account, the same address members
+saw before. Nothing else from the old system is used: no Apps Script, no
+Sheet, no forwarding rules. Keep that account quiet and it should stay healthy.
+
+1. Sign in to the Gmail account. Google Account, Security: turn on 2-Step
+   Verification if it is not on already.
+2. On the same Security page open "App passwords" (search for it if hidden).
+   Create one named "Utha USA website". Google shows a 16 character password
+   once. Copy it.
+3. In Vercel set `EMAIL_PROVIDER=gmail`, `EMAIL_USER` to the Gmail address,
+   `EMAIL_APP_PASSWORD` to that password, and `EMAIL_FROM=BPAU <the address>`.
+   Redeploy.
+4. Register once on /register with your own email and check the code email
+   arrives. Mark it paid in the admin and check the receipt arrives.
+
+Gmail allows about 500 emails a day from a normal account, far more than an
+event needs. Do not add this account to Apps Script, forwarding rules, or any
+other automation; sending mail with an App Password is a normal, supported use.
+
+If you later own a domain, Resend is the cleaner option: verify the domain
+there, then set `EMAIL_PROVIDER=resend`, `EMAIL_API_KEY`, and `EMAIL_FROM` on
+that domain. No code change.
 
 Until email is set up, the system still works: members see their code and the
 Zelle instructions on screen and can email the instructions to themselves.
@@ -57,9 +76,10 @@ The admin shows "code not emailed (email off)" on those rows.
 ### 4. Zelle recipient
 
 Decide which Zelle alias people send money to. It must be an email or phone
-number enrolled in Zelle at the bank that holds BPAU's money. Do not use the old
-bpau.pay@gmail.com address. Enter it in Settings on /admin/payments together
-with the name Zelle shows for it.
+number enrolled in Zelle at the bank that holds BPAU's money. The
+bpau.pay@gmail.com alias still works at the bank, but a phone number, or an
+address Google cannot lock, is the safer choice. Enter it in Settings on
+/admin/payments together with the name Zelle shows for it.
 
 ### 5. Turn it on
 
@@ -132,10 +152,14 @@ Cron Jobs. An EXPIRED row can still be marked paid if the money arrives late.
   run, or the admin user is not signed in.
 - "The payment system is not configured on the server": the service role key is
   missing on Vercel. Add it and redeploy.
-- Email pill says "not configured": one of the three EMAIL variables is empty.
-- Receipts fail with a provider error: the domain is not verified at Resend, or
-  the API key is wrong. The exact provider message is stored on the row and
-  shown in History.
+- Email pill says "not configured": `EMAIL_PROVIDER`, `EMAIL_USER`, or
+  `EMAIL_APP_PASSWORD` is empty.
+- Emails fail with "Invalid login" or a 535 error: the App Password is wrong,
+  2-Step Verification is off, or Google has locked the account again. The
+  system keeps working without email; fix the account or switch providers and
+  use Resend receipt for anyone who missed one. The exact error is stored on
+  the row and shown in History.
+- With Resend: the domain is not verified or the API key is wrong.
 - Register buttons do not appear: registration is paused, the closing date has
   passed, or the page has not refreshed yet (up to one minute).
 
