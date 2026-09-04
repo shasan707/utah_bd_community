@@ -1,11 +1,15 @@
 /**
- * BPAU Zelle relay.
+ * BPAU Gmail relay. Two quiet jobs, both on timers:
  *
- * The only job of this script: every few minutes, take the bank's Zelle alert
- * emails that carry the BPAU-Zelle label and hand them to the website, which
- * does the matching, the confirming, the receipts, and the audit log.
+ *   relayZelleEmails  every 5 minutes: take the bank's Zelle alert emails that
+ *                     carry the BPAU-Zelle label and hand them to the website,
+ *                     which does the matching, the confirming, and the audit log.
+ *   sendQueuedEmails  every minute: fetch the emails the website has queued
+ *                     (the code email after the form, the receipt after
+ *                     confirmation, alerts) and send them from this account
+ *                     with MailApp, exactly as the first version did.
  *
- * No web app, no spreadsheet, no mail sending. Setup: see SETUP.md.
+ * No web app, no spreadsheet. Setup: see SETUP.md.
  *
  * Script Properties (Project Settings > Script Properties):
  *   WEBSITE_URL     e.g. https://uthahbdcommunity.vercel.app
@@ -16,6 +20,8 @@ var ZELLE_LABEL = 'BPAU-Zelle';
 var PROCESSED_LABEL = 'BPAU-Zelle-Processed';
 var MAX_THREADS_PER_RUN = 20;
 var MAX_BODY_CHARS = 40000;
+var MAX_EMAILS_PER_RUN = 20;
+var SENDER_NAME = 'BPAU';
 
 function config_() {
   var props = PropertiesService.getScriptProperties();
@@ -69,14 +75,76 @@ function relayZelleEmails() {
   }
 }
 
-/** Run once after setting the Script Properties. Re-run to change the interval. */
+/**
+ * Runs on the timer. Asks the website for queued emails, sends each one from
+ * this account, and reports back. Safe to run twice: the website hands out
+ * each email once and retries only those it never heard back about.
+ */
+function sendQueuedEmails() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) return;
+  try {
+    var cfg = config_();
+    var quota = MailApp.getRemainingDailyQuota();
+    if (quota <= 0) {
+      console.warn('Daily email quota used up; queued emails wait until tomorrow.');
+      return;
+    }
+    var limit = Math.min(MAX_EMAILS_PER_RUN, quota);
+    var claim = UrlFetchApp.fetch(cfg.url + '/api/email/outbox?limit=' + limit, {
+      method: 'get',
+      headers: { Authorization: 'Bearer ' + cfg.secret },
+      muteHttpExceptions: true
+    });
+    if (claim.getResponseCode() !== 200) {
+      console.error('Outbox claim failed: HTTP ' + claim.getResponseCode() + ' ' + claim.getContentText().substring(0, 500));
+      return;
+    }
+    var data = JSON.parse(claim.getContentText());
+    var queue = (data.result && data.result.messages) || [];
+    if (queue.length === 0) return;
+
+    var results = queue.map(function (m) {
+      try {
+        var options = { name: m.from_name || SENDER_NAME };
+        if (m.reply_to) options.replyTo = m.reply_to;
+        MailApp.sendEmail(m.to, m.subject, m.text, options);
+        return { id: m.id, ok: true };
+      } catch (err) {
+        var text = String((err && err.message) || err);
+        // A quota error is temporary: the website keeps the email queued
+        // without counting it as a failed attempt.
+        return { id: m.id, ok: false, error: text.substring(0, 300), retry: /quota|limit|too many times/i.test(text) };
+      }
+    });
+
+    var report = UrlFetchApp.fetch(cfg.url + '/api/email/outbox', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { Authorization: 'Bearer ' + cfg.secret },
+      payload: JSON.stringify({ results: results }),
+      muteHttpExceptions: true
+    });
+    if (report.getResponseCode() !== 200) {
+      // The website will hand the same emails out again after 15 minutes.
+      console.error('Outbox report failed: HTTP ' + report.getResponseCode() + ' ' + report.getContentText().substring(0, 500));
+      return;
+    }
+    console.log('Emails: ' + report.getContentText().substring(0, 300));
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Run once after setting the Script Properties. Re-run to change the intervals. */
 function installTriggers() {
   ScriptApp.getProjectTriggers().forEach(function (t) { ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('relayZelleEmails').timeBased().everyMinutes(5).create();
-  console.log('Trigger installed: relayZelleEmails every 5 minutes');
+  ScriptApp.newTrigger('sendQueuedEmails').timeBased().everyMinutes(1).create();
+  console.log('Triggers installed: relayZelleEmails every 5 minutes, sendQueuedEmails every minute');
 }
 
-/** Run once to check the website URL and the secret without touching Gmail. */
+/** Run once to check the website URL, the secret, and the email quota. */
 function testConnection() {
   var cfg = config_();
   var pricing = UrlFetchApp.fetch(cfg.url + '/api/pricing', { muteHttpExceptions: true });
@@ -90,4 +158,5 @@ function testConnection() {
   });
   // 400 "No messages." means the secret was accepted. 401 means it was not.
   console.log('Secret check: HTTP ' + probe.getResponseCode() + ' ' + probe.getContentText().substring(0, 200));
+  console.log('Emails this account can still send today: ' + MailApp.getRemainingDailyQuota());
 }

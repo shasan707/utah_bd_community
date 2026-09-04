@@ -1,51 +1,20 @@
 import "server-only";
 import { ApiError, getServiceClient } from "@/lib/supabase-server";
 import { closesAt, formatDateOnly } from "./dates";
+import { DEFAULT_SETTINGS, withDefaults, type SettingKey } from "./defaults";
 import type { Pricing } from "./pricing";
 
 /**
  * Payment settings live in the payment_settings table as key/value text,
  * the replacement for the old Pricing tab. Admins edit them from
  * /admin/payments. This module reads and types them for the server.
+ *
+ * A missing or blank row falls back to DEFAULT_SETTINGS (see defaults.ts),
+ * the same pre-filled values the first version had, so the Zelle recipient,
+ * the name, and the contact email work without anyone typing them.
  */
 
-export const SETTING_KEYS = [
-  "event_name",
-  "event_date",
-  "registration_closes",
-  "registration_open",
-  "price_adult",
-  "price_child",
-  "price_student",
-  "coupon_single",
-  "coupon_bundle_qty",
-  "coupon_bundle_price",
-  "zelle_recipient",
-  "zelle_recipient_name",
-  "contact_email",
-  "pending_expiry_hours",
-  "auto_confirm",
-] as const;
-
-export type SettingKey = (typeof SETTING_KEYS)[number];
-
-export const DEFAULT_SETTINGS: Record<SettingKey, string> = {
-  event_name: "BPAU Eid Reunion 2026",
-  event_date: "2026-10-18",
-  registration_closes: "2026-10-11",
-  registration_open: "false",
-  price_adult: "25",
-  price_child: "10",
-  price_student: "15",
-  coupon_single: "2",
-  coupon_bundle_qty: "10",
-  coupon_bundle_price: "18",
-  zelle_recipient: "",
-  zelle_recipient_name: "",
-  contact_email: "",
-  pending_expiry_hours: "72",
-  auto_confirm: "false",
-};
+export { DEFAULT_SETTINGS, SETTING_KEYS, type SettingKey } from "./defaults";
 
 export type Settings = {
   event_name: string;
@@ -75,10 +44,8 @@ function toBool(v: string): boolean {
 }
 
 export function parseSettings(raw: Partial<Record<string, string>>): Settings {
-  const get = (k: SettingKey): string => {
-    const v = raw[k];
-    return v === undefined || v === null ? DEFAULT_SETTINGS[k] : String(v);
-  };
+  const filled = withDefaults(raw);
+  const get = (k: SettingKey): string => filled[k];
   const d = DEFAULT_SETTINGS;
   return {
     event_name: get("event_name").trim(),

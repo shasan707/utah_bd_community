@@ -74,7 +74,12 @@ function cents(n: number): number {
 
 async function notifyAdmins(s: Settings, subject: string, text: string): Promise<void> {
   if (!s.contact_email) return;
-  await sendEmail({ to: s.contact_email, subject: `[BPAU system] ${subject}`, text });
+  await sendEmail({
+    to: s.contact_email,
+    subject: `[BPAU system] ${subject}`,
+    text,
+    kind: "admin",
+  });
 }
 
 export async function getPayment(id: number): Promise<PaymentRow> {

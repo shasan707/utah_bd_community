@@ -14,6 +14,7 @@ type Confirmation = {
   zelle_recipient_name: string;
   breakdown: string[];
   email_sent: boolean;
+  email_queued?: boolean;
   contact_email: string;
   reused?: boolean;
 };
@@ -152,6 +153,16 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
             <p className="mt-4 text-sm text-forest-ink/60">
               We emailed these instructions to you. You will receive a receipt
               by email once we confirm the payment.
+            </p>
+          ) : done.email_queued ? (
+            <p className="mt-4 text-sm text-forest-ink/60">
+              We are emailing these instructions to you now; they should arrive
+              within a few minutes. You will receive a receipt by email once we
+              confirm the payment. If nothing arrives, you can{" "}
+              <a href={mailHref} className="font-semibold text-forest underline">
+                email these instructions to yourself
+              </a>
+              .
             </p>
           ) : (
             <div className="mt-4 text-sm text-forest-ink/70">

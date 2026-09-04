@@ -28,11 +28,16 @@ function when(iso: string): string {
 function emailState(r: RegistrationRow): { label: string; tone: string } {
   if (!r.email) return { label: "no email", tone: "text-stone-500" };
   if (r.status === "PAID") {
-    return r.receipt_sent_at
-      ? { label: "receipt sent", tone: "text-forest" }
-      : { label: "receipt not sent", tone: "text-bengal-red" };
+    if (r.receipt_sent_at) return { label: "receipt sent", tone: "text-forest" };
+    if (r.email_error === "queued") {
+      return { label: "receipt queued", tone: "text-amber-700" };
+    }
+    return { label: "receipt not sent", tone: "text-bengal-red" };
   }
   if (r.pending_email_sent_at) return { label: "code emailed", tone: "text-forest" };
+  if (r.email_error === "queued") {
+    return { label: "code email queued", tone: "text-amber-700" };
+  }
   if (r.email_error === "no_provider") {
     return { label: "code not emailed (email off)", tone: "text-amber-700" };
   }

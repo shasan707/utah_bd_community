@@ -19,6 +19,7 @@ import { downloadText, registrationsCsv } from "@/components/admin/payments/csv"
 import { adminRequest } from "@/lib/admin-api";
 import { getSupabase } from "@/lib/supabase";
 import { closesAt, formatDateOnly } from "@/lib/payments/dates";
+import { withDefaults } from "@/lib/payments/defaults";
 import { money } from "@/lib/payments/pricing";
 import {
   METHODS,
@@ -69,6 +70,7 @@ export default function AdminPayments() {
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [lastEmailAt, setLastEmailAt] = useState<string | null>(null);
   const [zelleReady, setZelleReady] = useState(true);
+  const [outbox, setOutbox] = useState<{ waiting: number; failed: number } | null>(null);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [server, setServer] = useState<ServerStatus | null>(null);
   const [tab, setTab] = useState<Tab>("pending");
@@ -81,7 +83,7 @@ export default function AdminPayments() {
 
   const load = useCallback(async () => {
     const supabase = getSupabase();
-    const [regs, sets, pays, raw] = await Promise.all([
+    const [regs, sets, pays, raw, box] = await Promise.all([
       supabase
         .from("registrations")
         .select("*")
@@ -97,6 +99,11 @@ export default function AdminPayments() {
         .select("received_at")
         .order("received_at", { ascending: false })
         .limit(1),
+      supabase
+        .from("email_outbox")
+        .select("status")
+        .in("status", ["queued", "sending", "failed"])
+        .limit(1000),
     ]);
     if (regs.error || sets.error) {
       setLoadError((regs.error || sets.error)?.message || "Could not load.");
@@ -106,7 +113,8 @@ export default function AdminPayments() {
     setRows((regs.data ?? []).map((r) => parseRegistration(r)));
     const map: Record<string, string> = {};
     for (const s of sets.data ?? []) map[String(s.key)] = String(s.value ?? "");
-    setSettings(map);
+    // Blank rows show the pre-filled value the site uses, as the first version did.
+    setSettings(withDefaults(map));
     // The Zelle tables come from payments_zelle.sql; the page still works without them.
     if (pays.error || raw.error) {
       setZelleReady(false);
@@ -116,6 +124,16 @@ export default function AdminPayments() {
       setZelleReady(true);
       setPayments((pays.data ?? []).map((p) => parsePayment(p)));
       setLastEmailAt(raw.data?.[0]?.received_at ?? null);
+    }
+    // The outbox comes from payments_email.sql; the page still works without it.
+    if (box.error) {
+      setOutbox(null);
+    } else {
+      const list = box.data ?? [];
+      setOutbox({
+        waiting: list.filter((r) => r.status !== "failed").length,
+        failed: list.filter((r) => r.status === "failed").length,
+      });
     }
     adminRequest<ServerStatus>("/api/admin/status", undefined, "GET")
       .then(setServer)
@@ -422,8 +440,19 @@ export default function AdminPayments() {
             Registration: {openLabel}
           </Pill>
           <Pill tone={server?.email_provider ? "good" : "warn"}>
-            Email: {server ? server.email_provider ?? "not configured" : "..."}
+            Email:{" "}
+            {server
+              ? server.email_provider === "relay"
+                ? "Gmail relay"
+                : server.email_provider ?? "not configured"
+              : "..."}
           </Pill>
+          {outbox && outbox.waiting > 0 && (
+            <Pill tone="muted">Emails waiting: {outbox.waiting}</Pill>
+          )}
+          {outbox && outbox.failed > 0 && (
+            <Pill tone="warn">Emails failed: {outbox.failed}</Pill>
+          )}
           <Pill tone={autoConfirm ? "good" : "muted"}>
             Auto-confirm: {autoConfirm ? "on" : "off (log only)"}
           </Pill>

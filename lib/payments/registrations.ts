@@ -195,6 +195,8 @@ async function deliverPendingEmail(
     to: row.email,
     ...content,
     replyTo: s.contact_email || undefined,
+    kind: "pending",
+    code: row.code,
   });
   await patchRow(
     row.code,
@@ -203,6 +205,35 @@ async function deliverPendingEmail(
       : { email_error: errorText(res) }
   );
   return res;
+}
+
+/**
+ * Called by the outbox when the Gmail relay has sent an email. The "queued"
+ * mark is cleared only when nothing else is waiting for the same code.
+ */
+export async function noteEmailDelivered(
+  code: string,
+  kind: "pending" | "receipt",
+  sentAt: string,
+  clearQueuedMark: boolean
+): Promise<void> {
+  const patch: Record<string, unknown> =
+    kind === "pending" ? { pending_email_sent_at: sentAt } : { receipt_sent_at: sentAt };
+  if (clearQueuedMark) patch.email_error = null;
+  try {
+    await patchRow(code, patch);
+  } catch (err) {
+    console.error(`noteEmailDelivered ${code}:`, err instanceof Error ? err.message : err);
+  }
+}
+
+/** Called by the outbox when the relay gave up on an email. */
+export async function noteEmailFailed(code: string, detail: string): Promise<void> {
+  try {
+    await patchRow(code, { email_error: detail.slice(0, 300) });
+  } catch (err) {
+    console.error(`noteEmailFailed ${code}:`, err instanceof Error ? err.message : err);
+  }
 }
 
 export async function deliverReceipt(
@@ -221,6 +252,8 @@ export async function deliverReceipt(
     to: row.email,
     ...content,
     replyTo: s.contact_email || undefined,
+    kind: "receipt",
+    code: row.code,
   });
   const updated = await patchRow(
     row.code,
@@ -235,6 +268,7 @@ export async function deliverReceipt(
 export function emailOutcome(res: EmailResult | null, what: string): string {
   if (!res) return "";
   if (res.sent) return `, ${what} sent.`;
+  if (res.reason === "queued") return `, ${what} goes out within a few minutes.`;
   if (res.reason === "invalid_recipient") return `, no email on file.`;
   if (res.reason === "no_provider") return `, email is not set up so no ${what} went out.`;
   return `, but the ${what} email failed.`;
@@ -252,6 +286,8 @@ export type CreateResult = {
   zelle_recipient_name: string;
   breakdown: string[];
   email_sent: boolean;
+  /** True while the Gmail relay still has the code email to send. */
+  email_queued: boolean;
   contact_email: string;
   status: RegistrationRow["status"];
 };
@@ -268,6 +304,7 @@ export function toCreateResult(
     zelle_recipient_name: s.zelle_recipient_name,
     breakdown: breakdownLines(row, s),
     email_sent: Boolean(row.pending_email_sent_at),
+    email_queued: !row.pending_email_sent_at && row.email_error === "queued",
     contact_email: s.contact_email,
     status: row.status,
   };
@@ -481,6 +518,13 @@ export async function resendReceipt(
   if (!existing.email) throw new ApiError(400, "No email address on file.");
   const { row, email } = await deliverReceipt(existing, s);
   await audit(actor, "RESEND_RECEIPT", code, null, null, "");
+  if (!email.sent && email.reason === "queued") {
+    return {
+      row,
+      email,
+      message: `Receipt for ${code} is queued; the Gmail relay sends it within a few minutes.`,
+    };
+  }
   if (!email.sent) {
     const why =
       email.reason === "no_provider"

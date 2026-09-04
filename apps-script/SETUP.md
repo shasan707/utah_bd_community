@@ -1,12 +1,14 @@
-# BPAU Zelle Relay, Setup
+# BPAU Gmail Script, Setup
 
 This folder holds the one small script that still runs in the BPAU Gmail
-account. It reads the bank's Zelle alert emails and hands them to the website.
-Everything else (form, codes, matching, receipts, admin, audit log) lives in
-the website. See `docs/payments-runbook.md` for the whole system.
+account. It does two things on timers: it sends the emails the website queues
+(the code email after the form, the receipt after confirmation) from this
+account, and it reads the bank's Zelle alert emails and hands them to the
+website. Everything else (form, codes, matching, receipts, admin, audit log)
+lives in the website. See `docs/payments-runbook.md` for the whole system.
 
-The old Apps Script system (web form, Google Sheet, admin page, mail sending)
-is gone. Do not deploy this project as a web app.
+The old Apps Script system (web form, Google Sheet, admin page) is gone. Do
+not deploy this project as a web app.
 
 ## 1. Push the code
 
@@ -20,7 +22,10 @@ clasp push
 
 `clasp push` replaces the old files in the existing script project with
 `Zelle.gs` and `appsscript.json`. Or skip clasp: open script.google.com, open
-the "BPAU Payments" project, delete the old files, and paste `Zelle.gs` in.
+the "BPAU Payments" project, delete the old files, paste `Zelle.gs` in, and
+also replace the manifest: Project Settings, tick "Show appsscript.json
+manifest file in editor", then paste this folder's `appsscript.json` over it
+(it lists the send-mail permission the script needs).
 
 ## 2. Clean up the old deployments
 
@@ -55,12 +60,18 @@ On the BPAU Gmail:
 ## 5. Test and start
 
 In the editor, select `testConnection` and Run. Approve the permission screen
-(Gmail and external requests; it is your own script). The log should show
-`Website: HTTP 200` and `Secret check: HTTP 400 ... No messages.` A 401 on
+(Gmail, "Send email as you", and external requests; it is your own script).
+The log should show `Website: HTTP 200`, `Secret check: HTTP 400 ... No
+messages.`, and how many emails the account can still send today. A 401 on
 the second line means the secret does not match Vercel.
 
-Then select `installTriggers` and Run once. From now on `relayZelleEmails`
-runs every 5 minutes and labels each handled thread `BPAU-Zelle-Processed`.
+Then select `installTriggers` and Run once. From now on `sendQueuedEmails`
+runs every minute and sends whatever the website has queued, and
+`relayZelleEmails` runs every 5 minutes and labels each handled thread
+`BPAU-Zelle-Processed`.
+
+On Vercel, `EMAIL_PROVIDER` must be `relay` and `supabase/payments_email.sql`
+must have been run once, or there is nothing for the script to send.
 
 ## 6. Watch it for a week
 

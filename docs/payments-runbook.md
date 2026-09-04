@@ -1,11 +1,13 @@
 # BPAU Registration and Zelle Payments, Runbook
 
-This is the same process as the first version: members register, get a code,
-send a Zelle with the code in the memo, and the bank's alert email confirms
-the payment automatically. What changed is where it runs. The website and its
-database (Supabase) hold the form, the codes, the matching, the receipts, the
-admin, and the audit log. The BPAU Gmail account keeps two quiet jobs only:
-sending the emails and relaying the bank's Zelle alerts to the website.
+This is the same process as the first version: members register, get a code
+by email, send a Zelle with the code in the memo, the bank's alert email
+confirms the payment automatically, and a receipt email goes out. What changed
+is where it runs. The website and its database (Supabase) hold the form, the
+codes, the matching, the receipts, the admin, and the audit log. The BPAU
+Gmail account keeps two quiet jobs only, both done by one small script on a
+timer: sending the emails the website queues, and relaying the bank's Zelle
+alerts to the website.
 
 If Google ever locks that account again, emails and automatic confirmation
 stop, but registrations, codes, and the admin keep working, and you can
@@ -14,8 +16,8 @@ confirm payments by hand until it is back.
 ## How it works
 
 1. A member fills the form at /register. The server saves a PENDING row, gives
-   them a short code such as R-7X3M, and emails the code with the Zelle
-   instructions.
+   them a short code such as R-7X3M, and queues the code email with the Zelle
+   instructions. The Gmail script sends it within about a minute.
 2. The member sends the Zelle with the code in the memo.
 3. Wells Fargo emails a "sent you $25.00" alert. A Gmail filter labels it
    BPAU-Zelle. Every 5 minutes the relay script hands new labeled emails to
@@ -36,7 +38,8 @@ confirm payments by hand until it is back.
 ### 1. Database
 
 In the Supabase dashboard open SQL Editor and run, once each and in this order:
-`supabase/payments.sql`, then `supabase/payments_zelle.sql`.
+`supabase/payments.sql`, then `supabase/payments_zelle.sql`, then
+`supabase/payments_email.sql`.
 
 Then Authentication, Providers, Email: turn off "Allow new users to sign up".
 Anyone who can sign in to /admin can see every registration, so accounts must
@@ -53,51 +56,75 @@ After adding or changing any of them, redeploy.
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase, Project Settings, API, service_role key. Never put this in a NEXT_PUBLIC variable. |
 | `CRON_SECRET` | Any long random string. Vercel sends it when it runs the nightly expiry job. |
 | `ZELLE_INBOUND_SECRET` | Another long random string. The Gmail relay sends it with every batch of bank emails. |
-| `EMAIL_PROVIDER` | `gmail`. Leave empty to send no email. (`resend` or `brevo` also work, with a verified domain.) |
-| `EMAIL_USER` | The Gmail address that sends, for example `bpau.pay@gmail.com`. |
-| `EMAIL_APP_PASSWORD` | A 16 character App Password from that Gmail account (see step 3). |
-| `EMAIL_FROM` | `BPAU <bpau.pay@gmail.com>`. Gmail always uses the account address; this only sets the display name. |
+| `EMAIL_PROVIDER` | `relay`: the Gmail script sends the emails (nothing else to set). `gmail`: the website sends at once through Gmail with an App Password. `resend` or `brevo`: with a verified domain. Leave empty to send no email. |
+| `EMAIL_USER` | `gmail` only. The Gmail address that sends, for example `bpau.pay@gmail.com`. |
+| `EMAIL_APP_PASSWORD` | `gmail` only. A 16 character App Password from that Gmail account (see step 3). |
+| `EMAIL_FROM` | Optional. `BPAU <bpau.pay@gmail.com>`. Only the display name is used with `relay` and `gmail`. |
 
-### 3. Email (Gmail)
+### 3. Email (the Gmail relay)
+
+Set `EMAIL_PROVIDER=relay` on Vercel and redeploy. That is all. The website
+writes each email it wants to send (the code email after the form, the receipt
+after confirmation, alerts to the contact email) into the `email_outbox` table,
+and the script in the BPAU Gmail (step 4) sends them from that account within
+about a minute, exactly as the first version did with MailApp. No App Password
+and no 2-Step Verification are needed. The member's screen says "we are
+emailing these instructions to you now", and the admin row shows "code email
+queued" until the script reports it sent.
+
+A normal Gmail account can send to 100 recipients a day through a script, the
+same limit the first version had. If a day's quota runs out, emails wait in
+the outbox and go out the next day; the code and the Zelle instructions are
+always shown on screen anyway. The admin header shows "Emails waiting" while
+anything is queued and "Emails failed" if the script gave up on one (the
+reason is in that row's History).
+
+Instant sending instead (optional): with an App Password the website sends
+each email itself, up to about 500 a day.
 
 1. Sign in to the BPAU Gmail. Google Account, Security: turn on 2-Step
-   Verification if it is not on already.
+   Verification. Google no longer needs a phone number for this; choose the
+   Google Authenticator app as the second step and scan the code.
 2. On the same Security page open "App passwords" (search for it if hidden).
    Create one named "Utha USA website". Google shows a 16 character password
-   once. Copy it into `EMAIL_APP_PASSWORD`.
-3. Register once on /register with your own email and check the code email
-   arrives. Mark it paid in the admin and check the receipt arrives.
+   once. Copy it into `EMAIL_APP_PASSWORD`, set `EMAIL_USER`, and set
+   `EMAIL_PROVIDER=gmail`.
 
-Gmail allows about 500 emails a day from a normal account, far more than an
-event needs. Sending mail with an App Password and reading mail with a
-time-based script are both ordinary uses. Do not deploy a web app in that
-account again.
+Either way, register once on /register with your own email and check the code
+email arrives. Mark it paid in the admin and check the receipt arrives. Do not
+deploy a web app in that account again; timed scripts and App Passwords are
+ordinary uses.
 
 If you later own a domain, Resend is the cleaner option: verify the domain
 there, then set `EMAIL_PROVIDER=resend`, `EMAIL_API_KEY`, and `EMAIL_FROM` on
 that domain. No code change.
 
-### 4. The Zelle relay (Gmail)
+### 4. The Gmail script (emails out, Zelle alerts in)
 
-Follow `apps-script/SETUP.md`: push `Zelle.gs` to the existing script project,
-archive the two old web app deployments, set the two Script Properties
-(`WEBSITE_URL`, `INBOUND_SECRET`), set up the Gmail forwarding and the
-BPAU-Zelle label filter, run `testConnection`, then run `installTriggers`.
+Follow `apps-script/SETUP.md`: push `Zelle.gs` and `appsscript.json` to the
+existing script project, archive the two old web app deployments, set the two
+Script Properties (`WEBSITE_URL`, `INBOUND_SECRET`), set up the Gmail
+forwarding and the BPAU-Zelle label filter, run `testConnection`, then run
+`installTriggers`. That installs two timers: `sendQueuedEmails` every minute
+and `relayZelleEmails` every 5 minutes.
 
-### 5. Zelle recipient
+### 5. Zelle recipient and contact email
 
-Decide which Zelle alias people send money to. It must be an email or phone
-number enrolled in Zelle at the bank that holds BPAU's money. The
-bpau.pay@gmail.com alias still works at the bank, but a phone number, or an
-address Google cannot lock, is the safer choice. Enter it in Settings on
-/admin/payments together with the name Zelle shows for it.
+Nothing to type. These three values are pre-filled with what the first
+version used: Zelle recipient `bpau.pay@gmail.com`, the name Zelle shows for
+it (`Qudrat E Alahy Ratul`), and `bpau@gmail.com` as the contact email for
+replies and alerts. A blank row in the database falls back to the same values.
+
+Change them in Settings on /admin/payments only if the alias enrolled in Zelle
+at the bank changes (a phone number, or an address Google cannot lock, is the
+safer long-term choice) or if the committee wants replies in another inbox.
 
 ### 6. Turn it on
 
-On /admin/payments, Settings tab: check the event name, dates, prices, Zelle
-recipient, and contact email. Leave "Auto-confirm Zelle payments" off for the
-first week. Tick "Registration is open" and save. Within a minute the Register
-buttons appear on the site.
+On /admin/payments, Settings tab: glance at the event name, dates, and prices
+(all pre-filled). Leave "Auto-confirm Zelle payments" off for the first week.
+Tick "Registration is open" and save. Within a minute the Register buttons
+appear on the site.
 
 Registration closes by itself at the end of the "Registration closes" date
 (Utah time). Untick "Registration is open" to pause it at any time.
@@ -164,8 +191,10 @@ Cron Jobs. An EXPIRED row can still be confirmed if the money arrives late.
 
 ## Test checklist before the first real event
 
-- [ ] Submit the form at /register: a code appears on screen, the code email
-      arrives, the row shows in Pending, the audit log has REGISTRATION_CREATED.
+- [ ] Submit the form at /register: a code appears on screen, the row shows in
+      Pending as "code email queued", the code email arrives within a couple of
+      minutes and the row changes to "code emailed", the audit log has
+      REGISTRATION_CREATED.
 - [ ] Submit the same form again within a day: the same code comes back, no
       duplicate row.
 - [ ] Real Zelle with the code in the memo: appears on the Zelle tab as
@@ -196,13 +225,20 @@ Cron Jobs. An EXPIRED row can still be confirmed if the money arrives late.
   `testConnection`.
 - Header says "Zelle relay secret missing": `ZELLE_INBOUND_SECRET` is not set
   on Vercel. The relay gets 401 until it is, and retries later.
-- Email pill says "not configured": `EMAIL_PROVIDER`, `EMAIL_USER`, or
-  `EMAIL_APP_PASSWORD` is empty.
-- Emails fail with "Invalid login" or a 535 error: the App Password is wrong,
-  2-Step Verification is off, or Google has locked the account again. The
-  system keeps working without email; fix the account or switch providers and
-  use Resend receipt for anyone who missed one. The exact error is stored on
-  the row and shown in History.
+- Email pill says "not configured": `EMAIL_PROVIDER` is empty, or it says
+  `relay` but `ZELLE_INBOUND_SECRET` is missing, or it says `gmail` but
+  `EMAIL_USER` or `EMAIL_APP_PASSWORD` is empty.
+- "Emails waiting" keeps growing: the `sendQueuedEmails` trigger is not
+  running, or the day's quota is used up. Open the script project, check
+  Executions, run `testConnection` (it prints the quota left today), and run
+  `installTriggers` again if the trigger is gone. Nothing is lost; the emails
+  go out when the script runs.
+- Rows say "code email failed" or "Emails failed" shows: the reason is in that
+  row's History. With the relay, `payments_email.sql` may not have been run
+  yet. With `gmail`, "Invalid login" or a 535 error means the App Password is
+  wrong, 2-Step Verification is off, or Google has locked the account again.
+  The system keeps working without email; fix the account or switch providers
+  and use Resend receipt for anyone who missed one.
 - Register buttons do not appear: registration is paused, the closing date has
   passed, or the page has not refreshed yet (up to one minute).
 
@@ -212,9 +248,15 @@ Cron Jobs. An EXPIRED row can still be confirmed if the money arrives late.
   raw_emails, payment_settings, audit_log).
 - Apps Script web form and admin page: replaced by /register and
   /admin/payments on the website.
-- MailApp: replaced by Gmail SMTP with an App Password (or Resend later).
+- MailApp: still sends the emails from the BPAU Gmail, but the website writes
+  them first (the outbox) and the script sends what it finds there. Gmail SMTP
+  with an App Password, or Resend with a domain, can replace it with one
+  setting.
 - Zelle email polling: still in Apps Script, but it only relays the emails.
   Parsing, matching, and confirming moved to the website.
 - The old log_only switch is now "Auto-confirm Zelle payments" in Settings.
+- The Pricing tab's pre-filled values (prices, dates, Zelle recipient, name,
+  contact email) are pre-filled here too, in Settings and in the code, so a
+  blank row never leaves members with nowhere to send money.
 - Admin alerts for short amounts and overpayments go to the contact email in
   Settings.
