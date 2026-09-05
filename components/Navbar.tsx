@@ -29,6 +29,12 @@ export default function Navbar() {
 
   useEffect(() => setOpen(false), [pathname]);
 
+  // Pages that open with a dark emerald band need light text until the
+  // glass bar appears on scroll.
+  const darkHero =
+    pathname === "/register" || /^\/events\/[^/]+$/.test(pathname);
+  const onDark = darkHero && !scrolled;
+
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
@@ -42,7 +48,11 @@ export default function Navbar() {
       >
         <Link href="/" className="flex items-center gap-3">
           <Logo uid="nav" className="h-12 w-12 shrink-0" />
-          <span className="font-heading font-black leading-tight tracking-tight text-forest">
+          <span
+            className={`font-heading font-black leading-tight tracking-tight transition-colors ${
+              onDark ? "text-ivory" : "text-forest"
+            }`}
+          >
             <span className="text-xl lg:hidden">BAU</span>
             <span className="hidden text-lg lg:inline">
               Bangladesh Association Utah{" "}
@@ -61,8 +71,12 @@ export default function Navbar() {
                 href={l.href}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-forest text-cream"
-                    : "text-forest-ink/80 hover:bg-forest/10 hover:text-forest"
+                    ? onDark
+                      ? "bg-white/15 text-ivory"
+                      : "bg-forest text-cream"
+                    : onDark
+                      ? "text-ivory/85 hover:bg-white/10 hover:text-ivory"
+                      : "text-forest-ink/80 hover:bg-forest/10 hover:text-forest"
                 }`}
               >
                 {l.label}
@@ -83,19 +97,19 @@ export default function Navbar() {
           className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 md:hidden"
         >
           <span
-            className={`h-0.5 w-6 bg-forest-ink transition-transform ${
-              open ? "translate-y-2 rotate-45" : ""
-            }`}
+            className={`h-0.5 w-6 transition-transform ${
+              onDark && !open ? "bg-ivory" : "bg-forest-ink"
+            } ${open ? "translate-y-2 rotate-45" : ""}`}
           />
           <span
-            className={`h-0.5 w-6 bg-forest-ink transition-opacity ${
-              open ? "opacity-0" : ""
-            }`}
+            className={`h-0.5 w-6 transition-opacity ${
+              onDark && !open ? "bg-ivory" : "bg-forest-ink"
+            } ${open ? "opacity-0" : ""}`}
           />
           <span
-            className={`h-0.5 w-6 bg-forest-ink transition-transform ${
-              open ? "-translate-y-2 -rotate-45" : ""
-            }`}
+            className={`h-0.5 w-6 transition-transform ${
+              onDark && !open ? "bg-ivory" : "bg-forest-ink"
+            } ${open ? "-translate-y-2 -rotate-45" : ""}`}
           />
         </button>
       </div>
