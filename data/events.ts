@@ -12,6 +12,8 @@ export type CommunityEvent = {
   description: string[];
   palette: "green" | "red" | "gold" | "teal";
   imageUrl?: string;
+  /** Set to true for members-only events. Unset means open to everyone. */
+  membersOnly?: boolean;
 };
 
 export const events: CommunityEvent[] = [

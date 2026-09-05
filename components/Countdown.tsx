@@ -46,20 +46,16 @@ export default function Countdown({
       {cells.map((c) => (
         <div
           key={c.label}
-          className={`flex min-w-16 flex-col items-center rounded-xl px-3 py-2 ${
+          className={`flex min-w-16 flex-col items-center px-3 py-2 ${
             light
-              ? "bg-white/15 text-white backdrop-blur-sm"
-              : "bg-forest text-cream"
+              ? "glass-card backdrop-blur-md text-ivory"
+              : "rounded-2xl bg-forest text-ivory"
           }`}
         >
           <span className="text-2xl font-bold tabular-nums md:text-3xl">
             {String(c.value).padStart(2, "0")}
           </span>
-          <span
-            className={`text-[10px] uppercase tracking-widest ${
-              light ? "text-white/70" : "text-cream/70"
-            }`}
-          >
+          <span className="glass-label text-[10px] uppercase tracking-widest">
             {c.label}
           </span>
         </div>

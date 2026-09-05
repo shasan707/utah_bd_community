@@ -29,12 +29,19 @@ export default function Hero() {
   const alponaRotate = useTransform(scrollYProgress, [0, 1], [0, 150]);
   const alponaRotateReverse = useTransform(scrollYProgress, [0, 1], [0, -120]);
   const glowY = useTransform(scrollYProgress, [0, 1], [0, 160]);
+  // Kantha rings: same scroll driver, one third the speed, opposite direction.
+  const ringRotateTopRight = useTransform(scrollYProgress, [0, 1], [0, -50]);
+  const ringRotateBottomLeft = useTransform(scrollYProgress, [0, 1], [0, 40]);
 
   return (
     <section
       ref={ref}
-      className="relative flex min-h-screen items-center overflow-hidden bg-cream"
+      className="relative isolate flex min-h-screen items-center overflow-hidden bg-cream"
     >
+      {/* Sunrise sky. Sits beneath every existing layer. */}
+      <div className="hero-glow" aria-hidden="true" />
+      <div className="hero-sun" aria-hidden="true" />
+
       {/* Giant watermark that scales up and dissolves as you scroll away */}
       <motion.div
         style={reduce ? undefined : { scale: wmScale, opacity: wmOpacity }}
@@ -44,7 +51,7 @@ export default function Hero() {
         className="pointer-events-none absolute inset-0 flex items-center justify-center"
         aria-hidden="true"
       >
-        <span className="font-heading select-none text-[28vw] font-black leading-none tracking-tight text-forest/6 md:text-[22vw]">
+        <span className="font-heading select-none text-[28vw] font-black leading-none tracking-tight text-forest/5 md:text-[22vw]">
           UTHA
         </span>
       </motion.div>
@@ -52,25 +59,52 @@ export default function Hero() {
       {/* Gradient glows drifting with scroll */}
       <motion.div
         style={reduce ? undefined : { y: glowY }}
-        className="pointer-events-none absolute -left-40 top-1/4 h-96 w-96 rounded-full bg-forest/15 blur-3xl"
+        className="pointer-events-none absolute -left-40 top-1/4 h-96 w-96 rounded-full bg-forest/7 blur-3xl"
       />
       <motion.div
         style={reduce ? undefined : { y: glowY }}
-        className="pointer-events-none absolute -right-32 bottom-1/4 h-80 w-80 rounded-full bg-bengal-red/15 blur-3xl"
+        className="pointer-events-none absolute -right-32 bottom-1/4 h-80 w-80 rounded-full bg-sage/12 blur-3xl"
       />
 
       {/* Alponas spinning with the scrollbar */}
       <motion.div
-        style={reduce ? undefined : { rotate: alponaRotate }}
-        className="pointer-events-none absolute right-[8%] top-[18%]"
+        style={reduce ? undefined : { rotate: ringRotateTopRight }}
+        className="pointer-events-none absolute right-6 top-[3%] hidden h-32 w-32 md:top-[9%] md:h-72 md:w-72 min-[900px]:block"
+        aria-hidden="true"
       >
-        <Alpona className="h-40 w-40 text-forest/25 md:h-56 md:w-56" />
+        <svg
+          viewBox="0 0 400 400"
+          className="absolute left-1/2 top-1/2 h-[324px] w-[324px] -translate-x-1/2 -translate-y-1/2"
+          aria-hidden="true"
+        >
+          <circle cx="200" cy="200" r="190" fill="none" stroke="#0E7C5B" strokeOpacity=".35" strokeWidth="2.5" strokeDasharray="9 7" strokeLinecap="round" />
+          <circle cx="200" cy="200" r="165" fill="none" stroke="#0E7C5B" strokeOpacity=".16" strokeWidth="1.5" strokeDasharray="6 9" strokeLinecap="round" />
+        </svg>
+      </motion.div>
+      <motion.div
+        style={reduce ? undefined : { rotate: alponaRotate }}
+        className="pointer-events-none absolute right-6 top-[3%] md:top-[9%]"
+      >
+        <Alpona className="h-32 w-32 text-forest/16 md:h-72 md:w-72" />
+      </motion.div>
+      <motion.div
+        style={reduce ? undefined : { rotate: ringRotateBottomLeft }}
+        className="pointer-events-none absolute bottom-0 left-5 hidden h-24 w-24 md:bottom-[7%] md:h-36 md:w-36 min-[900px]:block"
+        aria-hidden="true"
+      >
+        <svg
+          viewBox="0 0 200 200"
+          className="absolute left-1/2 top-1/2 h-[174px] w-[174px] -translate-x-1/2 -translate-y-1/2"
+          aria-hidden="true"
+        >
+          <circle cx="100" cy="100" r="92" fill="none" stroke="#C77B57" strokeOpacity=".4" strokeWidth="1.75" strokeDasharray="10 8" strokeLinecap="round" />
+        </svg>
       </motion.div>
       <motion.div
         style={reduce ? undefined : { rotate: alponaRotateReverse }}
-        className="pointer-events-none absolute bottom-[14%] left-[6%]"
+        className="pointer-events-none absolute bottom-0 left-5 md:bottom-[7%]"
       >
-        <Alpona className="h-32 w-32 text-bengal-red/20 md:h-44 md:w-44" />
+        <Alpona className="h-24 w-24 text-clay/18 md:h-36 md:w-36" />
       </motion.div>
 
       {/* Content slides up and fades as the page scrolls past */}
@@ -82,9 +116,18 @@ export default function Hero() {
           initial={reduce ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="text-lg font-semibold text-bengal-red md:text-xl"
+          className="text-lg font-semibold text-forest md:text-xl"
         >
           Utha means to rise ✦ Bangladeshi Community of Salt Lake City, Utah
+        </motion.p>
+
+        <motion.p
+          initial={reduce ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.28 }}
+          className="mt-3 text-xl text-forest-ink/70 md:text-2xl"
+        >
+          স্বাগতম — Welcome home.
         </motion.p>
 
         <h1 className="mt-4 text-6xl font-black leading-[0.95] tracking-tight text-forest-ink md:text-8xl lg:text-9xl">
@@ -102,7 +145,7 @@ export default function Hero() {
                 i === 2 ? "text-bengal-red" : ""
               }`}
             >
-              {word}
+              {i < headline.length - 1 ? `${word} ` : word}
             </motion.span>
           ))}
         </h1>
@@ -115,7 +158,7 @@ export default function Hero() {
         >
           From Boishakhi Mela to Victory Day, from pitha nights to summer
           picnics, Utha USA brings Bangladeshi families together in the heart
-          of Utah.
+          of Utah, and there&apos;s always room for one more.
         </motion.p>
 
         <motion.div
@@ -126,13 +169,13 @@ export default function Hero() {
         >
           <Link
             href="/events"
-            className="rounded-full bg-forest px-8 py-4 font-semibold text-cream shadow-lg shadow-forest/25 transition-transform hover:scale-105"
+            className="rounded-full bg-forest px-8 py-4 font-semibold text-ivory shadow-sm shadow-forest/15 transition-colors hover:bg-forest-deep"
           >
             See Upcoming Events
           </Link>
           <Link
             href="/membership"
-            className="rounded-full border-2 border-bengal-red px-8 py-4 font-semibold text-bengal-red transition-colors hover:bg-bengal-red hover:text-white"
+            className="rounded-full border border-forest/30 px-8 py-4 font-semibold text-forest transition-colors hover:bg-forest hover:text-ivory"
           >
             Become a Member
           </Link>
@@ -141,7 +184,12 @@ export default function Hero() {
 
       {/* Wasatch mountain ridge, the Utah half of the brand */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 text-forest/15">
-        <Mountains className="h-28 w-full md:h-44" />
+        <Mountains
+          className="h-28 w-full md:h-44"
+          back="#E3EDE7"
+          mid="#C8DAD0"
+          front="#93BFA4"
+        />
       </div>
     </section>
   );

@@ -16,9 +16,10 @@ export default function Footer() {
         <div className="grid gap-10 md:grid-cols-3">
           <div>
             <div className="flex items-center gap-3">
-              <Logo uid="ft" className="h-14 w-14 rounded-full bg-cream p-1" />
-              <div className="font-heading text-4xl font-black tracking-tight text-cream">
-                UTHA
+              <Logo uid="ft" className="h-16 w-16 shrink-0" />
+              <div className="font-heading text-2xl font-black leading-tight tracking-tight text-cream">
+                Bangladesh Association Utah{" "}
+                <span className="text-bengal-red">(BAU)</span>
               </div>
             </div>
             <p className="mt-4 max-w-xs text-sm text-cream/70">
@@ -64,7 +65,11 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-cream/10 pt-6 text-xs text-cream/50 md:flex-row">
+        <p className="mt-12 text-xs text-cream/50">
+          Utha is a community initiative of Bangladesh Association Utah (BAU).
+        </p>
+
+        <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-cream/10 pt-6 text-xs text-cream/50 md:flex-row">
           <span>© {new Date().getFullYear()} Utha USA. All rights reserved.</span>
           <span>From the Padma to the Great Salt Lake, one family</span>
         </div>

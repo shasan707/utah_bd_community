@@ -12,6 +12,7 @@ import Alpona from "@/components/Alpona";
 import { events } from "@/data/events";
 import { paletteGradient } from "@/lib/palette";
 import { formatDateShort } from "@/lib/format";
+import { HOME_VENUE, homeDateNote, homeTitle } from "@/lib/home-copy";
 
 function Panel({ index }: { index: number }) {
   const e = events[index];
@@ -34,9 +35,12 @@ function Panel({ index }: { index: number }) {
         <div className="text-4xl font-black leading-tight md:text-5xl">
           {e.banglaTitle}
         </div>
-        <div className="mt-2 text-lg font-semibold text-white/85 md:text-xl">{e.title}</div>
+        <div className="mt-2 text-lg font-semibold text-white/85 md:text-xl">
+          {homeTitle(e)}
+        </div>
         <div className="mt-3 text-sm text-white/75">
-          {formatDateShort(e.date)} · {e.venue}
+          {formatDateShort(e.date)}
+          {homeDateNote(e)} · {HOME_VENUE}
         </div>
         <div className="mt-5 inline-block rounded-full bg-white/15 px-5 py-2 text-sm font-semibold backdrop-blur-sm transition-colors group-hover:bg-white group-hover:text-forest-ink">
           Explore →
@@ -58,13 +62,13 @@ export default function HorizontalShowcase() {
 
   if (reduce) {
     return (
-      <section className="bg-forest-ink py-20">
+      <section className="bg-cream py-20">
         <div className="mx-auto max-w-6xl px-5 pb-8">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-bengal-red">
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
             ✦ A Year of Festivals
           </p>
-          <h2 className="mt-2 text-3xl font-bold text-cream md:text-5xl">
-            One Year, All Our Festivals
+          <h2 className="mt-2 text-3xl font-bold text-forest-ink md:text-5xl">
+            The Utha year.
           </h2>
         </div>
         <div className="flex gap-6 overflow-x-auto px-5 pb-6">
@@ -77,16 +81,16 @@ export default function HorizontalShowcase() {
   }
 
   return (
-    <section ref={targetRef} className="relative h-[340vh] bg-forest-ink">
+    <section ref={targetRef} className="relative h-[340vh] bg-cream">
       <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
         <div className="mx-auto w-full max-w-6xl px-5 pb-8">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-bengal-red">
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
             ✦ A Year of Festivals
           </p>
-          <h2 className="mt-2 text-3xl font-bold text-cream md:text-5xl">
-            One Year, All Our Festivals
+          <h2 className="mt-2 text-3xl font-bold text-forest-ink md:text-5xl">
+            The Utha year.
           </h2>
-          <p className="mt-2 text-sm text-cream/50">
+          <p className="mt-2 text-sm text-muted-ink">
             Keep scrolling. The year moves with you.
           </p>
         </div>
@@ -97,7 +101,7 @@ export default function HorizontalShowcase() {
           <div className="flex h-[58vh] w-[40vw] shrink-0 items-center justify-center md:h-[62vh]">
             <Link
               href="/events"
-              className="rounded-full border-2 border-cream px-8 py-4 font-semibold text-cream transition-colors hover:bg-cream hover:text-forest-ink"
+              className="rounded-full border border-forest/30 px-8 py-4 font-semibold text-forest transition-colors hover:bg-forest hover:text-ivory"
             >
               All Events →
             </Link>

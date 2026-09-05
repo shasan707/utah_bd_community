@@ -18,15 +18,22 @@ import Honeycomb from "@/components/Honeycomb";
 import Mountains from "@/components/Mountains";
 import { getEvents, getGallery, next, upcoming } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
+import {
+  GALLERY_PLACEHOLDER_NOTE,
+  HOME_VENUE,
+  OPENNESS_NOTE,
+  homeEvent,
+  homeOpenness,
+} from "@/lib/home-copy";
 import { getRegistrationStatus } from "@/lib/payments/settings";
 
 export const revalidate = 60;
 
 const stats = [
-  { value: 500, suffix: "+", label: "Community families" },
+  { value: 500, suffix: "+", label: "families like yours" },
   { value: 12, suffix: "", label: "Events every year" },
   { value: 30, suffix: "+", label: "Volunteers" },
-  { value: 1, suffix: "", label: "Family, united as one" },
+  { value: 1, suffix: "", label: "family. All of us." },
 ];
 
 export default async function HomePage() {
@@ -42,8 +49,8 @@ export default async function HomePage() {
 
       {/* Stats */}
       <section className="relative overflow-hidden border-y border-sand bg-cream-dim">
-        <Honeycomb className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 text-forest/10" />
-        <Honeycomb className="pointer-events-none absolute -bottom-10 -left-10 h-36 w-36 text-bengal-red/10" />
+        <Honeycomb className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 text-forest/8" />
+        <Honeycomb className="pointer-events-none absolute -bottom-10 -left-10 h-36 w-36 text-sage/12" />
         <div className="relative mx-auto grid max-w-6xl grid-cols-2 gap-8 px-5 py-14 md:grid-cols-4">
           {stats.map((s, i) => (
             <Reveal key={s.label} delay={i * 0.1} className="text-center">
@@ -61,49 +68,50 @@ export default async function HomePage() {
 
       {/* Featured next event with countdown */}
       <ScaleIn>
-      <section className="relative overflow-hidden bg-forest py-20 text-cream md:mx-6 md:rounded-[2.5rem]">
-        <Alpona className="absolute -right-24 -top-24 h-96 w-96 text-cream/10" />
-        <Alpona className="drift-slow absolute -bottom-28 -left-20 h-80 w-80 text-cream/5" />
+      <section className="emerald-panel relative overflow-hidden py-20 text-ivory md:mx-6 md:rounded-[2.5rem]">
+        <Alpona className="floral-soft absolute -right-24 -top-24 h-96 w-96" />
+        <Alpona className="floral-soft drift-slow absolute -bottom-28 -left-20 h-80 w-80" />
         <div className="relative mx-auto max-w-6xl px-5">
           <Reveal>
-            <span className="text-sm font-bold uppercase tracking-[0.2em] text-cream/80">
+            <span className="text-sm font-bold uppercase tracking-[0.2em] text-mint">
               ✦ Next Event
             </span>
             <h2 className="mt-2 text-3xl font-bold md:text-5xl">
-              Next Up: {featured.title}
+              {featured.title}
             </h2>
           </Reveal>
           <div className="mt-8 grid items-center gap-10 md:grid-cols-2">
             <Reveal delay={0.1}>
-              <p className="text-lg text-cream/85">{featured.blurb}</p>
-              <div className="mt-5 space-y-2 text-sm text-cream/70">
+              <p className="text-lg text-ivory-dim">{featured.blurb}</p>
+              <div className="mt-5 space-y-2 text-sm text-ivory-dim">
                 <div className="flex items-center gap-2.5">
-                  <Icon name="calendar" />
+                  <Icon name="calendar" className="h-4 w-4 text-mint" />
                   <span>{formatDate(featured.date)}</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <Icon name="clock" />
+                  <Icon name="clock" className="h-4 w-4 text-mint" />
                   <span>
                     {formatTime(featured.date)}
                     {featured.endTime ? ` to ${featured.endTime}` : ""}
                   </span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <Icon name="pin" />
+                  <Icon name="pin" className="h-4 w-4 text-mint" />
                   <span>
-                    {featured.venue}, {featured.city}
+                    {HOME_VENUE}, {featured.city}
                   </span>
                 </div>
               </div>
               <Link
                 href={`/events/${featured.slug}`}
-                className="mt-7 inline-block rounded-full bg-bengal-red px-7 py-3.5 font-semibold text-white transition-transform hover:scale-105"
+                className="cta-accent mt-7 inline-block rounded-full px-7 py-3.5 font-semibold"
               >
                 Event Details
               </Link>
+              <p className="mt-4 text-sm text-mint">{OPENNESS_NOTE}</p>
             </Reveal>
             <Reveal delay={0.2} className="md:justify-self-end">
-              <div className="text-xs font-semibold uppercase tracking-widest text-cream/60">
+              <div className="text-xs font-semibold uppercase tracking-widest text-mint">
                 Counting down
               </div>
               <Countdown target={featured.date} light className="mt-3" />
@@ -132,7 +140,7 @@ export default async function HomePage() {
             </ScrollZoom>
           </ParallaxBlock>
           <Reveal>
-            <span className="text-sm font-bold uppercase tracking-[0.2em] text-bengal-red">
+            <span className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
               ✦ Our Festivals
             </span>
             <h2 className="mt-2 text-3xl font-bold text-forest-ink md:text-4xl">
@@ -149,11 +157,11 @@ export default async function HomePage() {
 
         <div className="grid items-center gap-10 md:grid-cols-2">
           <Reveal className="md:order-1">
-            <span className="text-sm font-bold uppercase tracking-[0.2em] text-bengal-red">
+            <span className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
               ✦ Next Generation
             </span>
             <h2 className="mt-2 text-3xl font-bold text-forest-ink md:text-4xl">
-              Raising the next generation Bangali
+              Born in America, Bangali at heart
             </h2>
             <p className="mt-4 text-forest-ink/70">
               Bangla poetry on Ekushey February, freedom songs on Victory Day,
@@ -167,7 +175,7 @@ export default async function HomePage() {
               <PlaceholderImage
                 palette="green"
                 banglaCaption="Ekushey February"
-                caption="Language Day"
+                caption="International Mother Language Day"
                 className="h-full"
               />
             </ScrollZoom>
@@ -245,7 +253,7 @@ export default async function HomePage() {
           <div className="mt-10 grid gap-7 md:grid-cols-3">
             {upcomingList.map((e, i) => (
               <Reveal key={e.slug} delay={i * 0.12}>
-                <EventCard event={e} />
+                <EventCard event={homeEvent(e)} openness={homeOpenness(e)} />
               </Reveal>
             ))}
           </div>
@@ -257,7 +265,7 @@ export default async function HomePage() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <SectionHeading
             bangla="Memories"
-            title="Moments We Made"
+            title="Moments we make together"
             subtitle="A glimpse of the colors, faces, and celebrations."
           />
           <Reveal delay={0.15}>
@@ -275,7 +283,9 @@ export default async function HomePage() {
               <PlaceholderImage
                 palette={g.palette}
                 banglaCaption={g.banglaCaption}
-                caption={g.caption}
+                caption={
+                  g.src ? g.caption : `${g.caption} · ${GALLERY_PLACEHOLDER_NOTE}`
+                }
                 src={g.src}
                 className="h-44 rounded-2xl md:h-56"
               />
@@ -285,32 +295,32 @@ export default async function HomePage() {
       </section>
 
       {/* Join CTA */}
-      <section className="relative overflow-hidden bg-bengal-red py-20 text-white">
-        <Alpona className="drift absolute -left-16 -top-16 h-64 w-64 text-white/15" />
-        <Alpona className="absolute -bottom-20 -right-16 h-72 w-72 text-white/10" />
+      <section className="emerald-panel relative overflow-hidden py-20 text-ivory">
+        <Alpona className="floral-soft drift absolute -left-16 -top-16 h-64 w-64" />
+        <Alpona className="floral-soft absolute -bottom-20 -right-16 h-72 w-72" />
         <div className="relative mx-auto max-w-4xl px-5 text-center">
           <Reveal>
-            <div className="text-sm font-bold uppercase tracking-[0.2em] text-white/85">
+            <div className="text-sm font-bold uppercase tracking-[0.2em] text-mint">
               ✦ Join Us
             </div>
             <h2 className="mt-3 text-4xl font-black md:text-5xl">
               Be part of the Utha USA family
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-white/85">
+            <p className="mx-auto mt-4 max-w-xl text-ivory-dim">
               Membership means free entry to our biggest events, a voice in the
               community, and a family of hundreds who celebrate the way you do.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link
                 href="/membership"
-                className="inline-block rounded-full bg-white px-9 py-4 font-bold text-bengal-red shadow-xl transition-transform hover:scale-105"
+                className="cta-accent inline-block rounded-full px-9 py-4 font-bold"
               >
                 Learn About Membership
               </Link>
               {registration.open && (
                 <Link
                   href="/register"
-                  className="inline-block rounded-full border-2 border-white px-9 py-4 font-bold text-white transition-colors hover:bg-white hover:text-bengal-red"
+                  className="inline-block rounded-full border border-ivory/35 px-9 py-4 font-bold text-ivory transition-colors hover:bg-ivory hover:text-forest"
                 >
                   Register &amp; Pay
                 </Link>

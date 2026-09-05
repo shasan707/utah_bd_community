@@ -69,7 +69,7 @@ export default function ScrollStatement() {
 
   return (
     <section ref={ref} className="mx-auto max-w-5xl px-5 py-32 md:py-44">
-      <p className="text-sm font-bold uppercase tracking-[0.2em] text-bengal-red">
+      <p className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
         ✦ Why Utha
       </p>
       <p className="mt-4 text-3xl font-bold leading-snug text-forest-ink md:text-5xl md:leading-snug">

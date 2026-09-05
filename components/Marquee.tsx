@@ -13,14 +13,14 @@ const items = [
 export default function Marquee() {
   const row = [...items, ...items];
   return (
-    <div className="overflow-hidden border-y border-sand bg-forest-ink py-5">
+    <div className="festival-band relative overflow-hidden py-5">
       <div className="marquee-track flex w-max items-center gap-10">
         {row.map((item, i) => (
           <span key={i} className="flex items-center gap-10 whitespace-nowrap">
-            <span className="text-2xl font-bold text-cream md:text-3xl">
+            <span className="text-2xl font-bold text-band-ink md:text-3xl">
               {item}
             </span>
-            <span className="text-bengal-red text-xl">✦</span>
+            <span className="text-clay text-xl">✦</span>
           </span>
         ))}
       </div>

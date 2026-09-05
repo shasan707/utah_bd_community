@@ -1,19 +1,35 @@
 @import "tailwindcss";
 
 @theme {
-  --color-forest: #006a4e;
-  --color-forest-deep: #004a37;
-  --color-forest-ink: #16211c;
-  --color-bengal-red: #f42a41;
-  --color-bengal-red-deep: #c71f33;
-  --color-cream: #faf7f0;
-  --color-cream-dim: #f3eee2;
-  --color-sand: #e4ddcc;
-  --color-sage: #8aa89b;
+  /* Emerald - the one deep brand surface */
+  --color-forest: #0d4f42;
+  --color-forest-mid: #104a40;
+  --color-forest-deep: #123f38;
+  --color-mint: #b8cbc4;
+  --color-sage: #7eb29e;
+
+  /* Ink on light surfaces */
+  --color-forest-ink: #1d1d1f;
+  --color-muted-ink: #676d68;
+  --color-band-ink: #173b33;
+
+  /* Single warm accent, used sparingly */
+  --color-bengal-red: #e4574f;
+  --color-bengal-red-deep: #cc463f;
+  --color-clay: #b86f52;
+
+  /* Light surfaces */
+  --color-cream: #f4f1ea;
+  --color-cream-dim: #ede8de;
+  --color-pearl: #ede8de;
+  --color-ivory: #fafaf8;
+  --color-ivory-dim: #d7e1dd;
+  --color-sand: #dfd8cb;
 
   --font-sans: var(--font-body), "Segoe UI", system-ui, sans-serif;
   --font-heading: var(--font-mont), "Segoe UI", system-ui, sans-serif;
 }
+
 
 h1,
 h2,
@@ -37,14 +53,130 @@ body {
 
 ::selection {
   background: var(--color-forest);
-  color: var(--color-cream);
+  color: var(--color-ivory);
 }
 
 /* Glassmorphism surface */
 .glass {
-  background: rgba(250, 247, 240, 0.72);
+  background: rgba(244, 241, 234, 0.82);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+}
+
+/* Hero sunrise sky. Two decorative layers that sit under everything in the
+   hero: the soft corner/dawn washes, then the sun disc behind the ridge. */
+.hero-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    /* green, top-left */
+    radial-gradient(
+      75% 115% at 0% 0%,
+      rgba(14, 124, 91, 0.32) 0%,
+      rgba(14, 124, 91, 0.12) 50%,
+      transparent 78%
+    ),
+    /* green, top-right - the flower lives here, so keep it lighter */
+    radial-gradient(
+      66% 100% at 100% 0%,
+      rgba(14, 124, 91, 0.24) 0%,
+      rgba(14, 124, 91, 0.09) 50%,
+      transparent 78%
+    ),
+    /* dawn wash, bottom centre - kept clear of the paragraph */
+    radial-gradient(62% 56% at 50% 112%, rgba(255, 90, 100, 0.2) 0%, transparent 70%),
+    /* halo around the sun */
+    radial-gradient(30% 44% at 50% 100%, rgba(255, 110, 110, 0.34) 0%, transparent 70%),
+    var(--color-cream);
+}
+
+.hero-sun {
+  --sun-opacity: 0.52;
+  position: absolute;
+  left: 50%;
+  top: 97%;
+  z-index: 0;
+  width: min(13vw, 270px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #f42a41;
+  opacity: var(--sun-opacity);
+  filter: blur(10px);
+  pointer-events: none;
+  will-change: transform;
+  transform: translate(-50%, -50%);
+  animation: hero-sunrise 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.25s both;
+}
+
+@keyframes hero-sunrise {
+  from {
+    transform: translate(-50%, calc(-50% + 44px));
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%);
+    opacity: var(--sun-opacity);
+  }
+}
+
+@media (max-width: 899px) {
+  .hero-sun {
+    --sun-opacity: 0.38;
+    width: min(16vw, 120px);
+  }
+}
+
+/* Deep emerald material - hero / featured event.
+   The gradient is intentionally near-invisible; it should read as solid. */
+.emerald-panel {
+  background: linear-gradient(
+    135deg,
+    var(--color-forest) 0%,
+    var(--color-forest-mid) 55%,
+    var(--color-forest-deep) 100%
+  );
+}
+
+/* Frosted pearl band - a featured navigation surface, lifted off the page */
+.festival-band {
+  background: linear-gradient(180deg, #f1ede4 0%, #e9e4d9 100%);
+  border-top: 1px solid rgba(23, 59, 51, 0.1);
+  border-bottom: 1px solid rgba(23, 59, 51, 0.1);
+  box-shadow: 0 8px 30px rgba(20, 45, 38, 0.06);
+}
+
+/* Glass material for countdown cells on the emerald surface */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(18, 63, 56, 0.12);
+}
+
+.glass-label {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* Decorative florals that almost disappear into the emerald */
+.floral-soft {
+  color: rgba(126, 178, 158, 0.14);
+}
+
+/* The single warm call to action */
+.cta-accent {
+  background: var(--color-bengal-red);
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(29, 29, 31, 0.1);
+  transition:
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.cta-accent:hover {
+  background: var(--color-bengal-red-deep);
+  box-shadow: 0 3px 10px rgba(204, 70, 63, 0.22);
 }
 
 /* Infinite marquee */
@@ -79,6 +211,11 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .hero-sun {
+    animation: none;
+    transform: translate(-50%, -50%);
+    opacity: var(--sun-opacity);
+  }
   .marquee-track,
   .drift,
   .drift-slow {

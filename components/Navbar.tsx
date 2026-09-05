@@ -40,10 +40,14 @@ export default function Navbar() {
           scrolled ? "py-3" : "py-5"
         }`}
       >
-        <Link href="/" className="flex items-center gap-2.5">
-          <Logo uid="nav" className="h-10 w-10" />
-          <span className="font-heading text-xl font-black tracking-tight text-forest">
-            UTHA <span className="text-bengal-red">USA</span>
+        <Link href="/" className="flex items-center gap-3">
+          <Logo uid="nav" className="h-12 w-12 shrink-0" />
+          <span className="font-heading font-black leading-tight tracking-tight text-forest">
+            <span className="text-xl lg:hidden">BAU</span>
+            <span className="hidden text-lg lg:inline">
+              Bangladesh Association Utah{" "}
+              <span className="text-bengal-red">(BAU)</span>
+            </span>
           </span>
         </Link>
 
