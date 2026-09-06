@@ -6,6 +6,7 @@ import { CODE_ALPHABET } from "./codes";
 import { money, roundCents } from "./pricing";
 import { appendNote, deliverReceipt, getRegistration } from "./registrations";
 import { getSettings, type Settings } from "./settings";
+import { parseZelleEmail, type ParsedZelle } from "./zelle-parse";
 import {
   parsePayment,
   parseRegistration,
@@ -26,28 +27,7 @@ const PAYMENTS = "payments";
 const RAW = "raw_emails";
 const MAX_BODY = 40_000;
 
-export type ParsedZelle = {
-  amount: number;
-  sender_name: string;
-  confirmation: string;
-  memo_raw: string;
-};
-
-/** Reads the Wells Fargo style "X sent you $Y" alert. Null when it is not one. */
-export function parseZelleEmail(body: string): ParsedZelle | null {
-  const text = String(body);
-  const amount = /sent you \$([\d,]+\.\d{2})/.exec(text);
-  const sender = /^(.+?)\s+sent you \$/m.exec(text);
-  const confirm = /Confirmation:\s*(\S+)/i.exec(text);
-  const memo = /Memo:\s*(.+)/i.exec(text);
-  if (!amount || !confirm) return null;
-  return {
-    amount: parseFloat(amount[1].replace(/,/g, "")),
-    sender_name: sender ? sender[1].trim() : "",
-    confirmation: confirm[1].trim(),
-    memo_raw: memo ? memo[1].trim() : "",
-  };
-}
+export { parseZelleEmail, type ParsedZelle } from "./zelle-parse";
 
 /**
  * Every 4 and 5 character window of the memo with spaces and punctuation
@@ -351,7 +331,7 @@ export async function ingestEmails(messages: InboundMessage[]): Promise<{
       throw new ApiError(500, `Could not store the email: ${ins.error.message}`);
     }
 
-    const parsed = parseZelleEmail(m.body);
+    const parsed = parseZelleEmail(m.body, m.subject, m.message_id);
     if (!parsed) {
       results.push({ message_id: m.message_id, status: "not_zelle" });
       continue;

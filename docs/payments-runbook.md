@@ -19,9 +19,10 @@ confirm payments by hand until it is back.
    them a short code such as R-7X3M, and queues the code email with the Zelle
    instructions. The Gmail script sends it within about a minute.
 2. The member sends the Zelle with the code in the memo.
-3. Wells Fargo emails a "sent you $25.00" alert. A Gmail filter labels it
-   BPAU-Zelle. Every 5 minutes the relay script hands new labeled emails to
-   the website.
+3. Wells Fargo emails a "sent you $25.00" alert. Every 5 minutes the relay
+   script looks for new emails from Wells Fargo or Zelle (or anything
+   carrying the BPAU-Zelle label), keeps the ones that read like a Zelle
+   alert, and hands them to the website.
 4. The website reads the amount, the sender, the confirmation number, and the
    memo, and looks for a code among the unpaid registrations.
    - One code, full amount: matched. With auto-confirm on, the registration
@@ -146,8 +147,8 @@ When a week looks right, tick "Auto-confirm Zelle payments" in Settings.
 ## Treasurer's daily flow
 
 1. Open /admin/payments. The header shows when the last bank email arrived.
-   If it says "none yet" during an open registration window, check the Gmail
-   filter and the trigger (see below).
+   If it says "none yet" during an open registration window, run
+   `listRecentBankEmails` in the script project (see below).
 2. The Zelle tab lists anything that needs a look: payments with no code,
    short amounts, or (with auto-confirm off) matches waiting for a click.
 3. The Pending tab lists everyone who has not paid yet, newest first. Rows
@@ -219,10 +220,13 @@ Cron Jobs. An EXPIRED row can still be confirmed if the money arrives late.
   when `payments_zelle.sql` is missing.
 - "The payment system is not configured on the server": the service role key is
   missing on Vercel. Add it and redeploy.
-- Header says "Last bank email: none yet" while payments are coming in: the
-  Gmail filter is not labeling the alerts, the forwarding rule is off, or the
-  trigger is gone. Open the script project, check Executions, and run
-  `testConnection`.
+- Header says "Last bank email: none yet" while payments are coming in: open
+  the script project and run `listRecentBankEmails`. If it logs no bank
+  emails, the alerts go to another mailbox and that mailbox must forward
+  them to the BPAU Gmail. If it lists them as "not a Zelle alert", run
+  `showNewestAlertText` and send the text to the developer so the parser can
+  learn that wording. If it lists them as Zelle alerts and nothing arrives,
+  check Triggers (the relay must be listed) and Executions for errors.
 - Header says "Zelle relay secret missing": `ZELLE_INBOUND_SECRET` is not set
   on Vercel. The relay gets 401 until it is, and retries later.
 - Email pill says "not configured": `EMAIL_PROVIDER` is empty, or it says

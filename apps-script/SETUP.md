@@ -52,10 +52,19 @@ On the personal Gmail that receives the Wells Fargo alerts:
 3. Settings > Filters > Create filter: From the Wells Fargo alerts sender,
    Subject contains `sent you`, action Forward to the BPAU Gmail. Do not delete.
 
-On the BPAU Gmail:
-1. Settings > Filters > Create filter: From the Wells Fargo alerts sender,
-   Subject contains `sent you`, action Apply label `BPAU-Zelle` (create it in
-   the dialog).
+On the BPAU Gmail, a filter is optional. The relay looks at every email from
+wellsfargo.com, zellepay.com, or zelle.com on its own, plus anything carrying
+the label `BPAU-Zelle`, and only passes on the ones that read like a Zelle
+alert. The label is still useful if the bank ever writes from another
+address: Settings > Filters > Create filter, action Apply label `BPAU-Zelle`.
+
+Two diagnostics you can run from the editor at any time:
+- `listRecentBankEmails`: every bank or Zelle email of the last 30 days, with
+  its sender, subject, labels, and whether the relay would pick it up. If it
+  logs "No email from Wells Fargo or Zelle", the alerts are going to another
+  mailbox and that mailbox needs to forward them here.
+- `showNewestAlertText`: the text of the newest alert, to compare with what
+  the website expects.
 
 ## 5. Test and start
 

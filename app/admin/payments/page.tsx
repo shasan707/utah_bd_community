@@ -582,6 +582,15 @@ export default function AdminPayments() {
                   : " Auto-confirm is off, so matches wait for your click."}
               </p>
             </div>
+            {zelleReady && !lastEmailAt && (
+              <p className="mb-4 rounded-2xl bg-amber-100 px-5 py-3 text-sm text-amber-800">
+                No bank email has reached the website yet, so nothing can confirm
+                itself. In the Google script project, run{" "}
+                <span className="font-mono font-semibold">listRecentBankEmails</span> and
+                read the log: it shows whether Wells Fargo alerts land in this mailbox
+                and whether the relay would pick them up.
+              </p>
+            )}
             {attention.length > 0 && (
               <>
                 <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-forest-ink/60">
