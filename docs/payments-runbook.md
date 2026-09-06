@@ -40,7 +40,8 @@ confirm payments by hand until it is back.
 
 In the Supabase dashboard open SQL Editor and run, once each and in this order:
 `supabase/payments.sql`, then `supabase/payments_zelle.sql`, then
-`supabase/payments_email.sql`.
+`supabase/payments_email.sql`, then `supabase/payments_email_html.sql` (the
+ticket-style emails; until it is run, emails go out as plain text).
 
 Then Authentication, Providers, Email: turn off "Allow new users to sign up".
 Anyone who can sign in to /admin can see every registration, so accounts must
@@ -100,6 +101,15 @@ If you later own a domain, Resend is the cleaner option: verify the domain
 there, then set `EMAIL_PROVIDER=resend`, `EMAIL_API_KEY`, and `EMAIL_FROM` on
 that domain. No code change.
 
+What the two emails look like: the code email is a payment card (the code,
+the amount, the three Zelle steps, what the amount covers) and the receipt
+is an admission ticket (a greeting, the event name, date, time, and venue,
+the ticket holder, who it admits, the ticket number, and what was paid).
+Both carry a "track your registration" link to /register/status, where a
+member enters the code and their email and sees the three steps: registered,
+Zelle received, ticket sent. The same tracker updates by itself on the screen
+right after registering.
+
 ### 4. The Gmail script (emails out, Zelle alerts in)
 
 Follow `apps-script/SETUP.md`: push `Zelle.gs` and `appsscript.json` to the
@@ -119,6 +129,13 @@ replies and alerts. A blank row in the database falls back to the same values.
 Change them in Settings on /admin/payments only if the alias enrolled in Zelle
 at the bank changes (a phone number, or an address Google cannot lock, is the
 safer long-term choice) or if the committee wants replies in another inbox.
+
+### 5b. Event details on the ticket
+
+Settings has an event time and a venue field. Both are blank until you fill
+them; the ticket, the tracking page, and the register page show them as soon
+as you save. For a new event, change the name, date, time, venue, closing
+date, and prices there and every new email carries the new details.
 
 ### 6. Turn it on
 
@@ -146,7 +163,13 @@ When a week looks right, tick "Auto-confirm Zelle payments" in Settings.
 
 ## Treasurer's daily flow
 
-1. Open /admin/payments. The header shows when the last bank email arrived.
+1. Open /admin/payments. The Overview tab is the dashboard: paid and waiting
+   counts with the money collected and expected, people attending and food
+   coupons sold, the four-step progress of all registrations (registered,
+   code emailed, paid, ticket sent), registrations per day for two weeks,
+   a "needs your attention" list that jumps to the right tab, and the recent
+   activity. Every registration row also shows its own four steps.
+   The header shows when the last bank email arrived.
    If it says "none yet" during an open registration window, run
    `listRecentBankEmails` in the script project (see below).
 2. The Zelle tab lists anything that needs a look: payments with no code,

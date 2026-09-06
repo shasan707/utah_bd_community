@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Alpona from "@/components/Alpona";
 import Icon from "@/components/Icon";
+import RegistrationTracker, { type TrackerStatus } from "@/components/RegistrationTracker";
 import {
   breakdownLines,
   computeAmount,
@@ -112,6 +113,8 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState<Confirmation | null>(null);
+  const [doneEmail, setDoneEmail] = useState("");
+  const [live, setLive] = useState<TrackerStatus | null>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -143,6 +146,8 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || "Something went wrong.");
+      setDoneEmail(form.email.trim().toLowerCase());
+      setLive(null);
       setDone(data.result as Confirmation);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -166,6 +171,8 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
 
   const reset = () => {
     setDone(null);
+    setDoneEmail("");
+    setLive(null);
     setForm(emptyForm);
     setStartedAt(Date.now());
   };
@@ -193,6 +200,9 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
         .
       </>
     );
+
+    const paid = live?.status === "PAID";
+    const trackHref = `/register/status?code=${encodeURIComponent(done.code)}`;
 
     return (
       <div className="mx-auto max-w-2xl space-y-6">
@@ -223,7 +233,13 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-sand bg-white p-7 shadow-sm md:p-8">
+        <RegistrationTracker code={done.code} email={doneEmail} onStatus={setLive} />
+
+        <div
+          className={`rounded-3xl border border-sand bg-white p-7 shadow-sm md:p-8 ${
+            paid ? "hidden" : ""
+          }`}
+        >
           <h2 className="text-xl font-bold text-forest-ink">Now send the Zelle</h2>
           <ol className="mt-5 space-y-4">
             {[
@@ -296,6 +312,13 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
           )}
         </div>
 
+        <p className="text-center text-sm text-muted-ink">
+          Closing this page is fine. Check later at{" "}
+          <a href={trackHref} className="font-semibold text-forest underline">
+            track your registration
+          </a>{" "}
+          with your code and email.
+        </p>
         <p className="text-center text-sm text-muted-ink">
           Registering for someone else too?{" "}
           <button

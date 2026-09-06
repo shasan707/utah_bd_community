@@ -44,6 +44,61 @@ function emailState(r: RegistrationRow): { label: string; tone: string } {
   return { label: "code email failed", tone: "text-bengal-red" };
 }
 
+type StepState = "done" | "wait" | "fail" | "todo";
+
+/** The four stages of one registration, as small dots with labels. */
+function Progress({ r }: { r: RegistrationRow }) {
+  const emailed: StepState = r.pending_email_sent_at
+    ? "done"
+    : r.email_error === "queued"
+      ? "wait"
+      : r.status === "PAID"
+        ? "todo"
+        : !r.email
+          ? "todo"
+          : "fail";
+  const paid: StepState =
+    r.status === "PAID"
+      ? "done"
+      : r.status === "PENDING" || r.status === "EXPIRED"
+        ? "wait"
+        : "fail";
+  const receipt: StepState =
+    r.status !== "PAID"
+      ? "todo"
+      : r.receipt_sent_at
+        ? "done"
+        : r.email_error === "queued"
+          ? "wait"
+          : "fail";
+  const steps: { label: string; state: StepState }[] = [
+    { label: "Registered", state: "done" },
+    { label: "Code emailed", state: emailed },
+    { label: "Paid", state: paid },
+    { label: "Ticket sent", state: receipt },
+  ];
+  const dot: Record<StepState, string> = {
+    done: "bg-forest",
+    wait: "bg-amber-400",
+    fail: "bg-bengal-red",
+    todo: "bg-sand",
+  };
+  return (
+    <ol className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1" aria-label="Progress">
+      {steps.map((s, i) => (
+        <li key={s.label} className="flex items-center gap-1.5 text-[11px] text-forest-ink/60">
+          {i > 0 && <span className="h-px w-3 bg-sand" aria-hidden="true" />}
+          <span className={`inline-block h-2 w-2 rounded-full ${dot[s.state]}`} aria-hidden="true" />
+          <span className={s.state === "done" ? "text-forest-ink/80" : ""}>
+            {s.label}
+            {s.state === "wait" ? " (waiting)" : s.state === "fail" ? " (failed)" : ""}
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 function Btn({
   children,
   onClick,
@@ -143,6 +198,7 @@ export default function RegistrationTable({
                 </span>
               )}
             </div>
+            <Progress r={r} />
             <div className="mt-3 flex flex-wrap gap-2">
               {canPay && (
                 <Btn primary onClick={() => onAction("mark_paid", r)}>

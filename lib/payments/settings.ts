@@ -19,6 +19,8 @@ export { DEFAULT_SETTINGS, SETTING_KEYS, type SettingKey } from "./defaults";
 export type Settings = {
   event_name: string;
   event_date: string;
+  event_time: string;
+  event_venue: string;
   registration_closes: string;
   registration_open: boolean;
   price_adult: number;
@@ -50,6 +52,8 @@ export function parseSettings(raw: Partial<Record<string, string>>): Settings {
   return {
     event_name: get("event_name").trim(),
     event_date: get("event_date").trim(),
+    event_time: get("event_time").trim(),
+    event_venue: get("event_venue").trim(),
     registration_closes: get("registration_closes").trim(),
     registration_open: toBool(get("registration_open")),
     price_adult: toNumber(get("price_adult"), Number(d.price_adult)),
@@ -92,6 +96,8 @@ export function publicPricing(s: Settings): Pricing {
   return {
     event_name: s.event_name,
     event_date: formatDateOnly(s.event_date),
+    event_time: s.event_time,
+    event_venue: s.event_venue,
     registration_closes: formatDateOnly(s.registration_closes),
     price_adult: s.price_adult,
     price_child: s.price_child,

@@ -195,6 +195,7 @@ function sendQueuedEmails() {
       try {
         var options = { name: m.from_name || SENDER_NAME };
         if (m.reply_to) options.replyTo = m.reply_to;
+        if (m.html) options.htmlBody = m.html; // the ticket; the text stays as the fallback
         MailApp.sendEmail(m.to, m.subject, m.text, options);
         return { id: m.id, ok: true };
       } catch (err) {

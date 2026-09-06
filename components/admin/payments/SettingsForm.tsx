@@ -18,6 +18,18 @@ const groups: { title: string; fields: Field[] }[] = [
       { key: "event_name", label: "Event name", type: "text" },
       { key: "event_date", label: "Event date", type: "date" },
       {
+        key: "event_time",
+        label: "Event time",
+        type: "text",
+        help: "Printed on the ticket, for example 6:00 PM to 10:00 PM.",
+      },
+      {
+        key: "event_venue",
+        label: "Venue and address",
+        type: "text",
+        help: "Printed on the ticket and the tracking page.",
+      },
+      {
         key: "registration_closes",
         label: "Registration closes",
         type: "date",

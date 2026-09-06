@@ -17,6 +17,8 @@ export type PriceTable = {
 export type Pricing = PriceTable & {
   event_name: string;
   event_date: string;
+  event_time: string;
+  event_venue: string;
   registration_closes: string;
   zelle_recipient: string;
   zelle_recipient_name: string;

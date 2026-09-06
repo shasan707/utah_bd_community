@@ -6,6 +6,7 @@ import ActionDialog, {
   type DialogSpec,
 } from "@/components/admin/payments/ActionDialog";
 import AuditDrawer from "@/components/admin/payments/AuditDrawer";
+import Dashboard, { type DashboardJump } from "@/components/admin/payments/Dashboard";
 import NewEntryForm from "@/components/admin/payments/NewEntryForm";
 import PaymentTable, {
   needsAttention,
@@ -23,13 +24,15 @@ import { withDefaults } from "@/lib/payments/defaults";
 import { money } from "@/lib/payments/pricing";
 import {
   METHODS,
+  STATUSES,
   parsePayment,
   parseRegistration,
+  type AuditRow,
   type PaymentRow,
   type RegistrationRow,
 } from "@/lib/payments/types";
 
-type Tab = "pending" | "all" | "zelle" | "settings";
+type Tab = "overview" | "pending" | "all" | "zelle" | "settings";
 
 type ServerStatus = {
   admin_email: string;
@@ -73,8 +76,10 @@ export default function AdminPayments() {
   const [outbox, setOutbox] = useState<{ waiting: number; failed: number } | null>(null);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [server, setServer] = useState<ServerStatus | null>(null);
-  const [tab, setTab] = useState<Tab>("pending");
+  const [tab, setTab] = useState<Tab>("overview");
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [auditRows, setAuditRows] = useState<AuditRow[]>([]);
   const [message, setMessage] = useState("");
   const [loadError, setLoadError] = useState("");
   const [dialog, setDialog] = useState<DialogSpec | null>(null);
@@ -83,7 +88,7 @@ export default function AdminPayments() {
 
   const load = useCallback(async () => {
     const supabase = getSupabase();
-    const [regs, sets, pays, raw, box] = await Promise.all([
+    const [regs, sets, pays, raw, box, aud] = await Promise.all([
       supabase
         .from("registrations")
         .select("*")
@@ -104,7 +109,9 @@ export default function AdminPayments() {
         .select("status")
         .in("status", ["queued", "sending", "failed"])
         .limit(1000),
+      supabase.from("audit_log").select("*").order("id", { ascending: false }).limit(12),
     ]);
+    setAuditRows(aud.error ? [] : ((aud.data as AuditRow[]) ?? []));
     if (regs.error || sets.error) {
       setLoadError((regs.error || sets.error)?.message || "Could not load.");
       return;
@@ -146,21 +153,27 @@ export default function AdminPayments() {
 
   const pending = useMemo(() => rows.filter((r) => r.status === "PENDING"), [rows]);
   const paid = useMemo(() => rows.filter((r) => r.status === "PAID"), [rows]);
-  const collected = paid.reduce((s, r) => s + (r.amount_received ?? 0), 0);
-  const expiredCount = rows.filter((r) => r.status === "EXPIRED").length;
   const attention = useMemo(() => payments.filter(needsAttention), [payments]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(
-      (r) =>
+    return rows.filter((r) => {
+      if (statusFilter && r.status !== statusFilter) return false;
+      if (!q) return true;
+      return (
         r.code.toLowerCase().includes(q) ||
         r.name.toLowerCase().includes(q) ||
         r.email.includes(q) ||
         r.phone.includes(q)
-    );
-  }, [rows, search]);
+      );
+    });
+  }, [rows, search, statusFilter]);
+
+  const jump = (to: DashboardJump) => {
+    setTab(to.tab);
+    if (to.tab === "all") setStatusFilter(to.status ?? "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const openLabel = (() => {
     if (settings.registration_open !== "true") return "Paused";
@@ -478,23 +491,6 @@ export default function AdminPayments() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-3xl border border-sand bg-white p-5">
-          <div className="text-3xl font-black text-forest">{pending.length}</div>
-          <div className="text-sm font-semibold text-forest-ink/70">waiting for payment</div>
-        </div>
-        <div className="rounded-3xl border border-sand bg-white p-5">
-          <div className="text-3xl font-black text-forest">{paid.length}</div>
-          <div className="text-sm font-semibold text-forest-ink/70">
-            paid, {money(collected)} collected
-          </div>
-        </div>
-        <div className="rounded-3xl border border-sand bg-white p-5">
-          <div className="text-3xl font-black text-forest">{expiredCount}</div>
-          <div className="text-sm font-semibold text-forest-ink/70">expired unpaid</div>
-        </div>
-      </div>
-
       {settings.registration_open === "true" && !settings.zelle_recipient?.trim() && (
         <p className="mt-4 rounded-2xl bg-bengal-red/10 px-5 py-3 text-sm font-medium text-bengal-red">
           Registration is open but the Zelle recipient is empty. Set it in Settings.
@@ -502,6 +498,7 @@ export default function AdminPayments() {
       )}
 
       <div className="mt-6 flex flex-wrap items-center gap-2">
+        {tabBtn("overview", "Overview")}
         {tabBtn("pending", `Pending (${pending.length})`)}
         {tabBtn("all", `All registrations (${rows.length})`)}
         {tabBtn("zelle", `Zelle${attention.length ? ` (${attention.length} to check)` : ""}`)}
@@ -545,6 +542,15 @@ export default function AdminPayments() {
       )}
 
       <div className="mt-6">
+        {tab === "overview" && (
+          <Dashboard
+            rows={rows}
+            payments={payments}
+            audit={auditRows}
+            outbox={outbox}
+            onJump={jump}
+          />
+        )}
         {tab === "pending" && (
           <RegistrationTable
             rows={pending}
@@ -555,12 +561,27 @@ export default function AdminPayments() {
         )}
         {tab === "all" && (
           <>
-            <input
-              placeholder="Search name, code, email, or phone"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className={`${inputCls} mb-4 max-w-md`}
-            />
+            <div className="mb-4 flex flex-wrap gap-3">
+              <input
+                placeholder="Search name, code, email, or phone"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className={`${inputCls} max-w-md`}
+              />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className={`${inputCls} w-auto`}
+                aria-label="Filter by status"
+              >
+                <option value="">All statuses</option>
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
             <RegistrationTable
               rows={filtered}
               mode="all"

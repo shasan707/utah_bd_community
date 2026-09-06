@@ -9,6 +9,8 @@
 export const SETTING_KEYS = [
   "event_name",
   "event_date",
+  "event_time",
+  "event_venue",
   "registration_closes",
   "registration_open",
   "price_adult",
@@ -29,6 +31,8 @@ export type SettingKey = (typeof SETTING_KEYS)[number];
 export const DEFAULT_SETTINGS: Record<SettingKey, string> = {
   event_name: "BPAU Eid Reunion 2026",
   event_date: "2026-10-18",
+  event_time: "",
+  event_venue: "",
   registration_closes: "2026-10-11",
   registration_open: "false",
   price_adult: "25",

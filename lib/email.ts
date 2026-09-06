@@ -38,6 +38,8 @@ export type EmailMessage = {
   to: string;
   subject: string;
   text: string;
+  /** Optional HTML version (the ticket). The text version is always kept as a fallback. */
+  html?: string;
   replyTo?: string;
   kind?: EmailKind;
   /** The registration code the email belongs to, when it belongs to one. */
@@ -91,21 +93,28 @@ function failure(provider: EmailProvider, detail: string): EmailResult {
 
 /** Writes the email to the outbox for the Gmail script to send. */
 async function queueViaRelay(msg: EmailMessage): Promise<EmailResult> {
+  const row = {
+    to_email: msg.to,
+    subject: msg.subject,
+    body: msg.text,
+    reply_to: msg.replyTo ?? "",
+    kind: msg.kind ?? "other",
+    code: msg.code ?? null,
+  };
   try {
-    const { data, error } = await getServiceClient()
+    const db = getServiceClient();
+    let res = await db
       .from("email_outbox")
-      .insert({
-        to_email: msg.to,
-        subject: msg.subject,
-        body: msg.text,
-        reply_to: msg.replyTo ?? "",
-        kind: msg.kind ?? "other",
-        code: msg.code ?? null,
-      })
+      .insert({ ...row, html: msg.html ?? null })
       .select("id")
       .single();
-    if (error) return failure("relay", error.message);
-    return { sent: false, reason: "queued", provider: "relay", id: String(data.id) };
+    // Until supabase/payments_email_html.sql has been run the outbox has no
+    // html column; fall back to the text version rather than lose the email.
+    if (res.error && /html/i.test(res.error.message)) {
+      res = await db.from("email_outbox").insert(row).select("id").single();
+    }
+    if (res.error) return failure("relay", res.error.message);
+    return { sent: false, reason: "queued", provider: "relay", id: String(res.data.id) };
   } catch (err) {
     return failure("relay", err instanceof Error ? err.message : String(err));
   }
@@ -129,6 +138,7 @@ async function sendViaGmail(msg: EmailMessage): Promise<EmailResult> {
       to: msg.to,
       subject: msg.subject,
       text: msg.text,
+      ...(msg.html ? { html: msg.html } : {}),
       ...(msg.replyTo ? { replyTo: msg.replyTo } : {}),
     });
     return { sent: true, provider: "gmail", id: info.messageId };
@@ -162,6 +172,7 @@ async function sendViaHttp(
           to: [msg.to],
           subject: msg.subject,
           text: msg.text,
+          ...(msg.html ? { html: msg.html } : {}),
           ...(msg.replyTo ? { reply_to: msg.replyTo } : {}),
         }),
         signal: controller.signal,
@@ -179,6 +190,7 @@ async function sendViaHttp(
           to: [{ email: msg.to }],
           subject: msg.subject,
           textContent: msg.text,
+          ...(msg.html ? { htmlContent: msg.html } : {}),
           ...(msg.replyTo ? { replyTo: { email: msg.replyTo } } : {}),
         }),
         signal: controller.signal,

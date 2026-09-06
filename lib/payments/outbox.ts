@@ -19,6 +19,8 @@ export type OutboxMessage = {
   to: string;
   subject: string;
   text: string;
+  /** HTML version when the email is a ticket; the script sends it as htmlBody. */
+  html: string | null;
   reply_to: string;
   from_name: string;
 };
@@ -36,6 +38,7 @@ type OutboxRow = {
   to_email: string;
   subject: string;
   body: string;
+  html?: string | null;
   reply_to: string;
   kind: string;
   code: string | null;
@@ -88,6 +91,7 @@ export async function claimQueued(limit: number): Promise<OutboxMessage[]> {
       to: row.to_email,
       subject: row.subject,
       text: row.body,
+      html: row.html ?? null,
       reply_to: row.reply_to,
       from_name: fromName,
     });
