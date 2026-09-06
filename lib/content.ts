@@ -5,6 +5,7 @@ import {
   committee as fallbackCommittee,
   type CommitteeMember,
 } from "@/data/committee";
+import { posts as fallbackPosts, type BlogPost } from "@/data/posts";
 import type { Palette } from "@/lib/palette";
 
 const palettes: Palette[] = ["green", "red", "gold", "teal"];
@@ -116,4 +117,35 @@ export async function getCommittee(): Promise<CommitteeMember[]> {
   } catch {
     return fallbackCommittee;
   }
+}
+
+/** Published blog posts, newest first. Sample posts until the first real one. */
+export async function getPosts(): Promise<BlogPost[]> {
+  if (!supabaseConfigured) return fallbackPosts;
+  try {
+    const { data, error } = await getSupabase()
+      .from("posts")
+      .select("*")
+      .eq("published", true)
+      .order("published_at", { ascending: false });
+    if (error || !data || data.length === 0) return fallbackPosts;
+    return data.map((row, i) => ({
+      slug: row.slug,
+      title: row.title,
+      excerpt: row.excerpt || "",
+      body: row.body || "",
+      author: row.author || "Utha USA",
+      publishedAt: row.published_at,
+      palette: asPalette(row.palette, palettes[i % palettes.length]),
+      coverUrl: row.cover_url || undefined,
+      tag: row.tag || undefined,
+    }));
+  } catch {
+    return fallbackPosts;
+  }
+}
+
+export async function getPostBySlug(slug: string): Promise<BlogPost | undefined> {
+  const all = await getPosts();
+  return all.find((p) => p.slug === slug);
 }

@@ -14,6 +14,7 @@ const nav = [
   { href: "/admin/photos", label: "Photos" },
   { href: "/admin/events", label: "Events" },
   { href: "/admin/committee", label: "Committee" },
+  { href: "/admin/blog", label: "Blog" },
   { href: "/admin/payments", label: "Payments" },
 ];
 

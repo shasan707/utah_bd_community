@@ -8,6 +8,7 @@ type Counts = {
   photos: number;
   events: number;
   committee: number;
+  posts: number;
   pending: number;
   paid: number;
   collected: number;
@@ -53,9 +54,10 @@ export default function AdminDashboard() {
       count("gallery_items"),
       count("events"),
       count("committee_members"),
+      count("posts"),
       payments(),
-    ]).then(([photos, events, committee, pay]) =>
-      setCounts({ photos, events, committee, ...pay })
+    ]).then(([photos, events, committee, posts, pay]) =>
+      setCounts({ photos, events, committee, posts, ...pay })
     );
   }, []);
 
@@ -63,6 +65,7 @@ export default function AdminDashboard() {
     { href: "/admin/photos", label: "Gallery photos", value: counts?.photos },
     { href: "/admin/events", label: "Events", value: counts?.events },
     { href: "/admin/committee", label: "Committee members", value: counts?.committee },
+    { href: "/admin/blog", label: "Blog posts", value: counts?.posts },
   ];
 
   return (
@@ -71,7 +74,7 @@ export default function AdminDashboard() {
       <p className="mt-1 text-forest-ink/60">
         What you change here appears on the public website within a minute.
       </p>
-      <div className="mt-8 grid gap-5 sm:grid-cols-3">
+      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
           <Link
             key={c.href}
