@@ -189,7 +189,7 @@ Your registration is saved. One more step: send the Zelle below and your ticket 
     `<tr><td style="padding:8px 32px 20px;">${codeBlock("Your payment code", row.code, amount)}</td></tr>`,
     `<tr><td style="padding:0 32px 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.forest};font-weight:700;">Now send the Zelle</td></tr>`,
     `<tr><td style="padding:0 32px 16px;">${stepList([
-      "Open your bank app and choose Zelle.",
+      `Open your bank app and choose <strong style="color:#6D1ED4;">Zelle</strong>.`,
       `Send <strong>${esc(amount)}</strong> to <strong>${esc(s.zelle_recipient)}</strong>${
         s.zelle_recipient_name ? ` <span style="color:${COLORS.muted};">(${esc(s.zelle_recipient_name)})</span>` : ""
       }.`,

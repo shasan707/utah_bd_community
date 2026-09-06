@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Alpona from "@/components/Alpona";
 import Icon from "@/components/Icon";
 import RegistrationTracker, { type TrackerStatus } from "@/components/RegistrationTracker";
+import ZelleLogo from "@/components/ZelleLogo";
 import {
   breakdownLines,
   computeAmount,
@@ -30,7 +31,8 @@ const labelCls = "mb-1.5 block text-sm font-semibold text-forest-ink";
 const helpCls = "mt-1.5 text-xs text-muted-ink";
 
 const emptyForm = {
-  name: "",
+  first_name: "",
+  last_name: "",
   phone: "",
   email: "",
   adults: 1,
@@ -142,7 +144,11 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, started_at: startedAt }),
+        body: JSON.stringify({
+          ...form,
+          name: `${form.first_name.trim()} ${form.last_name.trim()}`.trim(),
+          started_at: startedAt,
+        }),
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || "Something went wrong.");
@@ -240,10 +246,14 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
             paid ? "hidden" : ""
           }`}
         >
-          <h2 className="text-xl font-bold text-forest-ink">Now send the Zelle</h2>
+          <h2 className="flex flex-wrap items-center gap-2 text-xl font-bold text-forest-ink">
+            Now send with <ZelleLogo size="md" />
+          </h2>
           <ol className="mt-5 space-y-4">
             {[
-              <>Open your bank app and choose Zelle.</>,
+              <>
+                Open your bank app and choose <ZelleLogo size="sm" />.
+              </>,
               payLine,
               <>
                 Type <b className="text-bengal-red">{done.code}</b> in the memo
@@ -347,35 +357,55 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
         <div className="space-y-8">
           <div className="space-y-4">
             <SectionTitle>Your details</SectionTitle>
-            <div>
-              <label htmlFor="reg-name" className={labelCls}>
-                Full name
-              </label>
-              <input
-                id="reg-name"
-                required
-                autoComplete="name"
-                value={form.name}
-                onChange={(e) => set({ name: e.target.value })}
-                className={inputCls}
-                placeholder="Rahim Uddin"
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="reg-first" className={labelCls}>
+                  First name
+                </label>
+                <input
+                  id="reg-first"
+                  required
+                  autoComplete="given-name"
+                  value={form.first_name}
+                  onChange={(e) => set({ first_name: e.target.value })}
+                  className={inputCls}
+                  placeholder="Rahim"
+                />
+              </div>
+              <div>
+                <label htmlFor="reg-last" className={labelCls}>
+                  Last name
+                </label>
+                <input
+                  id="reg-last"
+                  required
+                  autoComplete="family-name"
+                  value={form.last_name}
+                  onChange={(e) => set({ last_name: e.target.value })}
+                  className={inputCls}
+                  placeholder="Uddin"
+                />
+              </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="reg-phone" className={labelCls}>
                   Phone
                 </label>
-                <input
-                  id="reg-phone"
-                  required
-                  inputMode="tel"
-                  autoComplete="tel"
-                  value={form.phone}
-                  onChange={(e) => set({ phone: e.target.value })}
-                  className={inputCls}
-                  placeholder="801 555 0123"
-                />
+                <div className="flex items-center rounded-xl border border-sand bg-ivory focus-within:border-forest focus-within:bg-white">
+                  <span className="pl-4 text-sm font-semibold text-forest-ink/50">+1</span>
+                  <input
+                    id="reg-phone"
+                    required
+                    inputMode="tel"
+                    autoComplete="tel-national"
+                    value={form.phone}
+                    onChange={(e) => set({ phone: e.target.value })}
+                    className="w-full bg-transparent px-3 py-3 text-forest-ink outline-none placeholder:text-muted-ink/60"
+                    placeholder="(801) 555-0123"
+                  />
+                </div>
+                <p className={helpCls}>US mobile number, so we can reach you about the event.</p>
               </div>
               <div>
                 <label htmlFor="reg-email" className={labelCls}>
@@ -561,8 +591,10 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
               )}
             </ul>
             <div className="mt-5 border-t border-white/15 pt-4">
-              <div className="glass-label text-xs uppercase tracking-widest">
-                Pay by Zelle to
+              <div className="flex items-center gap-2">
+                <span className="glass-label text-xs uppercase tracking-widest">Pay with</span>
+                <ZelleLogo size="sm" pill />
+                <span className="glass-label text-xs uppercase tracking-widest">to</span>
               </div>
               <div className="mt-1 font-semibold text-ivory">
                 {pricing.zelle_recipient || "Shown with your code"}

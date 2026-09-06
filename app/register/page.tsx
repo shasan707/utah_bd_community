@@ -4,6 +4,7 @@ import Alpona from "@/components/Alpona";
 import Icon from "@/components/Icon";
 import Reveal from "@/components/Reveal";
 import RegisterForm from "@/components/RegisterForm";
+import ZelleLogo from "@/components/ZelleLogo";
 import {
   getRegistrationStatus,
   type RegistrationStatus,
@@ -25,7 +26,8 @@ const steps = [
   },
   {
     n: "2",
-    title: "Send the Zelle",
+    title: "Send with",
+    zelle: true,
     text: "Send the exact amount and put your code in the memo.",
   },
   {
@@ -102,8 +104,11 @@ export default async function RegisterPage() {
                   <Icon name="clock" className="h-4 w-4 text-mint" />
                   Registration closes {pricing.registration_closes}
                 </span>
-                <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-ivory">
-                  Pay by Zelle
+                <span className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-ivory">
+                    Pay with
+                  </span>
+                  <ZelleLogo size="sm" pill />
                 </span>
               </div>
             )}
@@ -116,7 +121,10 @@ export default async function RegisterPage() {
                     {s.n}
                   </span>
                   <div>
-                    <div className="font-bold text-ivory">{s.title}</div>
+                    <div className="flex flex-wrap items-center gap-2 font-bold text-ivory">
+                      {s.title}
+                      {"zelle" in s && s.zelle && <ZelleLogo size="sm" pill />}
+                    </div>
                     <div className="glass-label mt-1 text-sm leading-relaxed">
                       {s.text}
                     </div>
