@@ -10,6 +10,7 @@ import {
 } from "framer-motion";
 import Alpona from "@/components/Alpona";
 import Mountains from "@/components/Mountains";
+import { MEMBERSHIP_HREF } from "@/lib/links";
 
 const headline = ["Rise.", "Celebrate.", "Together."];
 
@@ -36,7 +37,7 @@ export default function Hero() {
   return (
     <section
       ref={ref}
-      className="relative isolate flex min-h-screen items-center overflow-hidden bg-cream"
+      className="relative isolate flex min-h-screen items-center overflow-hidden bg-page-cream"
     >
       {/* Sunrise sky. Sits beneath every existing layer. */}
       <div className="hero-glow" aria-hidden="true" />
@@ -52,7 +53,7 @@ export default function Hero() {
         aria-hidden="true"
       >
         <span className="font-heading select-none text-[28vw] font-black leading-none tracking-tight text-forest/5 md:text-[22vw]">
-          UTHA
+          UTAH
         </span>
       </motion.div>
 
@@ -118,7 +119,8 @@ export default function Hero() {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="text-lg font-semibold text-forest md:text-xl"
         >
-          Utha means to rise ✦ Bangladeshi Community of Salt Lake City, Utah
+          Far From Home, Still Home ✦ Bangladeshi Community of Salt Lake City,
+          Utah
         </motion.p>
 
         <motion.p
@@ -157,7 +159,7 @@ export default function Hero() {
           className="mt-6 max-w-xl text-lg text-forest-ink/70 md:text-xl"
         >
           From Boishakhi Mela to Victory Day, from pitha nights to summer
-          picnics, Utha USA brings Bangladeshi families together in the heart
+          picnics, BAU brings Bangladeshi families together in the heart
           of Utah, and there&apos;s always room for one more.
         </motion.p>
 
@@ -169,13 +171,13 @@ export default function Hero() {
         >
           <Link
             href="/events"
-            className="rounded-full bg-forest px-8 py-4 font-semibold text-ivory shadow-sm shadow-forest/15 transition-colors hover:bg-forest-deep"
+            className="rounded-full bg-brand-green px-8 py-4 font-semibold text-ivory shadow-sm shadow-forest/15 transition-colors hover:bg-deep-green"
           >
             See Upcoming Events
           </Link>
           <Link
-            href="/membership"
-            className="rounded-full border border-forest/30 px-8 py-4 font-semibold text-forest transition-colors hover:bg-forest hover:text-ivory"
+            href={MEMBERSHIP_HREF}
+            className="rounded-full border-[1.5px] border-brand-green bg-transparent px-8 py-4 font-semibold text-deep-green transition-colors hover:bg-brand-green hover:text-ivory"
           >
             Become a Member
           </Link>
@@ -186,9 +188,9 @@ export default function Hero() {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 text-forest/15">
         <Mountains
           className="h-28 w-full md:h-44"
-          back="#E3EDE7"
-          mid="#C8DAD0"
-          front="#93BFA4"
+          back="#DCEEE1"
+          mid="#9ACCB2"
+          front="#4BA57E"
         />
       </div>
     </section>

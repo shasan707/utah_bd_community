@@ -3,35 +3,29 @@ import Hero from "@/components/Hero";
 import Reveal from "@/components/Reveal";
 import Counter from "@/components/Counter";
 import Countdown from "@/components/Countdown";
-import Marquee from "@/components/Marquee";
-import ParallaxBlock from "@/components/ParallaxBlock";
 import ScrollStatement from "@/components/ScrollStatement";
-import HorizontalShowcase from "@/components/HorizontalShowcase";
-import ScrollZoom from "@/components/ScrollZoom";
 import ScaleIn from "@/components/ScaleIn";
 import PlaceholderImage from "@/components/PlaceholderImage";
-import EventCard from "@/components/EventCard";
 import SectionHeading from "@/components/SectionHeading";
 import Alpona from "@/components/Alpona";
+import Mandala from "@/components/Mandala";
 import Icon from "@/components/Icon";
 import Honeycomb from "@/components/Honeycomb";
 import Mountains from "@/components/Mountains";
-import { getEvents, getGallery, next, upcoming } from "@/lib/content";
+import { getEvents, getGallery, next } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
 import {
   GALLERY_PLACEHOLDER_NOTE,
-  HOME_VENUE,
   OPENNESS_NOTE,
-  homeEvent,
-  homeOpenness,
 } from "@/lib/home-copy";
 import { getRegistrationStatus } from "@/lib/payments/settings";
+import { MEMBERSHIP_HREF } from "@/lib/links";
 
 export const revalidate = 60;
 
 const stats = [
   { value: 500, suffix: "+", label: "families like yours" },
-  { value: 12, suffix: "", label: "Events every year" },
+  { value: 8, suffix: "", label: "Events every year" },
   { value: 30, suffix: "+", label: "Volunteers" },
   { value: 1, suffix: "", label: "family. All of us." },
 ];
@@ -40,7 +34,6 @@ export default async function HomePage() {
   const allEvents = await getEvents();
   const registration = await getRegistrationStatus();
   const featured = next(allEvents);
-  const upcomingList = upcoming(allEvents).slice(0, 3);
   const galleryPreview = (await getGallery()).slice(0, 6);
 
   return (
@@ -48,29 +41,30 @@ export default async function HomePage() {
       <Hero />
 
       {/* Stats */}
-      <section className="relative overflow-hidden border-y border-sand bg-cream-dim">
-        <Honeycomb className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 text-forest/8" />
-        <Honeycomb className="pointer-events-none absolute -bottom-10 -left-10 h-36 w-36 text-sage/12" />
+      <section className="relative overflow-hidden bg-stat-band">
+        <Honeycomb className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 text-sand-pattern" />
+        <Honeycomb className="pointer-events-none absolute -bottom-10 -left-10 h-36 w-36 text-sand-pattern" />
         <div className="relative mx-auto grid max-w-6xl grid-cols-2 gap-8 px-5 py-14 md:grid-cols-4">
           {stats.map((s, i) => (
             <Reveal key={s.label} delay={i * 0.1} className="text-center">
-              <div className="text-4xl font-black text-forest md:text-5xl">
+              <div className="text-4xl font-black text-deep-green md:text-5xl">
                 <Counter to={s.value} suffix={s.suffix} />
               </div>
-              <div className="mt-2 text-sm text-forest-ink/60">{s.label}</div>
+              <div className="mt-2 text-sm text-stat-label">{s.label}</div>
             </Reveal>
           ))}
         </div>
       </section>
 
       {/* Scroll-driven word-by-word statement */}
-      <ScrollStatement />
+      <div className="bg-page-cream">
+        <ScrollStatement />
+      </div>
 
       {/* Featured next event with countdown */}
       <ScaleIn>
       <section className="emerald-panel relative overflow-hidden py-20 text-ivory md:mx-6 md:rounded-[2.5rem]">
-        <Alpona className="floral-soft absolute -right-24 -top-24 h-96 w-96" />
-        <Alpona className="floral-soft drift-slow absolute -bottom-28 -left-20 h-80 w-80" />
+        <Mandala className="floral-soft absolute -right-28 -top-40 h-[34rem] w-[34rem]" />
         <div className="relative mx-auto max-w-6xl px-5">
           <Reveal>
             <span className="text-sm font-bold uppercase tracking-[0.2em] text-mint">
@@ -98,7 +92,19 @@ export default async function HomePage() {
                 <div className="flex items-center gap-2.5">
                   <Icon name="pin" className="h-4 w-4 text-mint" />
                   <span>
-                    {HOME_VENUE}, {featured.city}
+                    {featured.mapUrl ? (
+                      <a
+                        href={featured.mapUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline decoration-mint/50 underline-offset-4 transition-colors hover:decoration-ivory"
+                      >
+                        {featured.venue}
+                      </a>
+                    ) : (
+                      featured.venue
+                    )}
+                    {`, ${featured.city}`}
                   </span>
                 </div>
               </div>
@@ -121,74 +127,13 @@ export default async function HomePage() {
       </section>
       </ScaleIn>
 
-      <Marquee />
-
-      {/* Pinned horizontal-scroll festival showcase */}
-      <HorizontalShowcase />
-
-      {/* Culture parallax sections */}
-      <section className="mx-auto max-w-6xl space-y-24 px-5 py-24">
-        <div className="grid items-center gap-10 md:grid-cols-2">
-          <ParallaxBlock drift={40}>
-            <ScrollZoom className="h-80 rounded-3xl md:h-96">
-              <PlaceholderImage
-                palette="red"
-                banglaCaption="Boishakhi Mela"
-                caption="Our biggest day of the year"
-                className="h-full"
-              />
-            </ScrollZoom>
-          </ParallaxBlock>
-          <Reveal>
-            <span className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
-              ✦ Our Festivals
-            </span>
-            <h2 className="mt-2 text-3xl font-bold text-forest-ink md:text-4xl">
-              Festivals that feel like home
-            </h2>
-            <p className="mt-4 text-forest-ink/70">
-              Pohela Boishakh under an American sky, panta-ilish shared between
-              neighbors, kids in red and white running past alpona-painted
-              walkways. We recreate the sounds, colors, and tastes of home,
-              so no one has to miss Bangladesh alone.
-            </p>
-          </Reveal>
-        </div>
-
-        <div className="grid items-center gap-10 md:grid-cols-2">
-          <Reveal className="md:order-1">
-            <span className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
-              ✦ Next Generation
-            </span>
-            <h2 className="mt-2 text-3xl font-bold text-forest-ink md:text-4xl">
-              Born in America, Bangali at heart
-            </h2>
-            <p className="mt-4 text-forest-ink/70">
-              Bangla poetry on Ekushey February, freedom songs on Victory Day,
-              first Bangla letters written at our children&apos;s corner. Our
-              American-born kids grow up knowing exactly where their story
-              began, and proud of it.
-            </p>
-          </Reveal>
-          <ParallaxBlock drift={40} className="md:order-2">
-            <ScrollZoom className="h-80 rounded-3xl md:h-96">
-              <PlaceholderImage
-                palette="green"
-                banglaCaption="Ekushey February"
-                caption="International Mother Language Day"
-                className="h-full"
-              />
-            </ScrollZoom>
-          </ParallaxBlock>
-        </div>
-      </section>
-
       {/* Bangladesh x Utah, two homes one heart */}
-      <section className="mx-auto max-w-6xl px-5 pb-24">
+      <div className="bg-green-tint">
+      <section className="mx-auto max-w-6xl px-5 pt-32 pb-24 md:pt-40">
         <SectionHeading
           bangla="Bangladesh × Utah"
           title="Two Homes, One Heart"
-          subtitle="Rooted in the delta, growing in the mountains. Utha carries both."
+          subtitle="Rooted in the delta, growing in the mountains. Utah carries both."
           align="center"
         />
         <div className="mt-10 grid gap-6 md:grid-cols-2">
@@ -202,7 +147,7 @@ export default async function HomePage() {
               <p className="mt-4 max-w-sm text-cream/85">
                 The rivers, the rain, the songs, the language of 1952. The
                 green and red we carry in everything we do. Our festivals keep
-                the delta alive in every Utha family.
+                the delta alive in every Utah family.
               </p>
             </div>
           </Reveal>
@@ -232,35 +177,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Upcoming events preview */}
-      <section className="bg-cream-dim py-24">
-        <div className="mx-auto max-w-6xl px-5">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <SectionHeading
-              bangla="What's Coming"
-              title="Upcoming Events"
-              subtitle="Mark your calendar. The community is gathering."
-            />
-            <Reveal delay={0.15}>
-              <Link
-                href="/events"
-                className="rounded-full border-2 border-forest px-6 py-3 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-cream"
-              >
-                All Events →
-              </Link>
-            </Reveal>
-          </div>
-          <div className="mt-10 grid gap-7 md:grid-cols-3">
-            {upcomingList.map((e, i) => (
-              <Reveal key={e.slug} delay={i * 0.12}>
-                <EventCard event={homeEvent(e)} openness={homeOpenness(e)} />
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      </div>
 
       {/* Gallery preview */}
+      <div className="bg-white">
       <section className="mx-auto max-w-6xl px-5 py-24">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <SectionHeading
@@ -294,25 +214,27 @@ export default async function HomePage() {
         </div>
       </section>
 
+      </div>
+
       {/* Join CTA */}
-      <section className="emerald-panel relative overflow-hidden py-20 text-ivory">
+      <section className="relative overflow-hidden bg-warm-sand py-20 text-forest-ink">
         <Alpona className="floral-soft drift absolute -left-16 -top-16 h-64 w-64" />
         <Alpona className="floral-soft absolute -bottom-20 -right-16 h-72 w-72" />
         <div className="relative mx-auto max-w-4xl px-5 text-center">
           <Reveal>
-            <div className="text-sm font-bold uppercase tracking-[0.2em] text-mint">
+            <div className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
               ✦ Join Us
             </div>
             <h2 className="mt-3 text-4xl font-black md:text-5xl">
-              Be part of the Utha USA family
+              Be part of the BAU family
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-ivory-dim">
+            <p className="mx-auto mt-4 max-w-xl text-forest-ink/75">
               Membership means free entry to our biggest events, a voice in the
               community, and a family of hundreds who celebrate the way you do.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link
-                href="/membership"
+                href={MEMBERSHIP_HREF}
                 className="cta-accent inline-block rounded-full px-9 py-4 font-bold"
               >
                 Learn About Membership
@@ -320,7 +242,7 @@ export default async function HomePage() {
               {registration.open && (
                 <Link
                   href="/register"
-                  className="inline-block rounded-full border border-ivory/35 px-9 py-4 font-bold text-ivory transition-colors hover:bg-ivory hover:text-forest"
+                  className="inline-block rounded-full border border-forest/30 px-9 py-4 font-bold text-forest transition-colors hover:bg-forest hover:text-ivory"
                 >
                   Register &amp; Pay
                 </Link>

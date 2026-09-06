@@ -70,7 +70,7 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-forest-ink">Utha USA Admin</h1>
+      <h1 className="text-3xl font-bold text-forest-ink">BAU Admin</h1>
       <p className="mt-1 text-forest-ink/60">
         What you change here appears on the public website within a minute.
       </p>

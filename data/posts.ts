@@ -19,11 +19,11 @@ export type BlogPost = {
  */
 export const posts: BlogPost[] = [
   {
-    slug: "welcome-to-the-utha-blog",
-    title: "Welcome to the Utha blog",
+    slug: "welcome-to-the-utah-blog",
+    title: "Welcome to the Utah blog",
     excerpt:
       "A place for our stories: event recaps, recipes from the pitha table, notes from the committee, and voices from the next generation.",
-    body: `Utha means to rise, and this blog is where we write down what rising looks like for Bangladeshi families in Utah.
+    body: `Utah means to rise, and this blog is where we write down what rising looks like for Bangladeshi families in Utah.
 
 ## What you will find here
 
@@ -37,7 +37,7 @@ export const posts: BlogPost[] = [
 Every member is welcome to contribute. Send a few paragraphs and a photo through the contact page, and the committee will publish it here with your name.
 
 > This is a sample post. Real posts from the committee will replace it soon.`,
-    author: "Utha USA",
+    author: "Bangladeshi Association of Utah",
     publishedAt: "2026-08-20T10:00:00",
     palette: "green",
     tag: "Announcement",
@@ -87,7 +87,7 @@ Any pitha counts: bhapa, patishapta, chitoi, dudh puli, nakshi, or your own fami
 There is a recitation corner and a colouring table, so parents can enjoy their cha and adda late into the night.
 
 > This is a sample post. Real posts from the committee will replace it soon.`,
-    author: "Utha USA",
+    author: "Bangladeshi Association of Utah",
     publishedAt: "2026-09-02T10:00:00",
     palette: "gold",
     tag: "Events",

@@ -5,7 +5,7 @@ type LogoProps = {
 };
 
 /**
- * Bangladesh Association Utah badge: the red sun and Wasatch peaks
+ * Bangladeshi Association of Utah badge: the red sun and Wasatch peaks
  * standing over the Great Salt Lake, inside a deep green ring.
  */
 export default function Logo({ className = "", uid = "a" }: LogoProps) {
@@ -23,7 +23,7 @@ export default function Logo({ className = "", uid = "a" }: LogoProps) {
       aria-labelledby={`${titleId} ${descId}`}
     >
       <title id={titleId}>
-        Bangladesh Association Utah, Salt Lake City logo
+        Bangladeshi Association of Utah, Salt Lake City logo
       </title>
       <desc id={descId}>
         Circular green association badge with a red sun, green outlined mountain

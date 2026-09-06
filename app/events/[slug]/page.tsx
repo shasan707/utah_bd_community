@@ -55,7 +55,19 @@ export default async function EventDetailPage({
               </span>
               <span className="flex items-center gap-2">
                 <Icon name="pin" />
-                {event.venue}, {event.city}
+                {event.mapUrl ? (
+                  <a
+                    href={event.mapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline decoration-white/40 underline-offset-4 transition-colors hover:decoration-white"
+                  >
+                    {event.venue}
+                  </a>
+                ) : (
+                  event.venue
+                )}
+                {`, ${event.city}`}
               </span>
               <span className="rounded-full bg-white/20 px-3 py-0.5 font-semibold">
                 {event.free ? "Free entry" : "Ticketed"}
@@ -82,7 +94,7 @@ export default async function EventDetailPage({
               <div className="mt-8 rounded-2xl border border-sand bg-cream-dim p-5 text-sm text-forest-ink/70">
                 <strong className="text-forest">Note:</strong> this is a sample
                 event with placeholder details. Real dates, venues, and
-                registration will appear here once Utha USA announces them.
+                registration will appear here once BAU announces them.
               </div>
             </Reveal>
           </div>
@@ -102,6 +114,19 @@ export default async function EventDetailPage({
                 </Link>
               </div>
             </Reveal>
+            {event.mapUrl && (
+              <Reveal delay={0.2}>
+                <a
+                  href={event.mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 rounded-full border-2 border-forest px-6 py-3.5 font-semibold text-forest transition-colors hover:bg-forest hover:text-cream"
+                >
+                  <Icon name="pin" className="h-4 w-4" />
+                  Open in Google Maps
+                </a>
+              </Reveal>
+            )}
             <Reveal delay={0.25}>
               <PlaceholderImage
                 palette={event.palette}

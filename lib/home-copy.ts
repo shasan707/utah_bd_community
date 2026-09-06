@@ -15,7 +15,7 @@ export const GALLERY_PLACEHOLDER_NOTE =
   "placeholder — real photos coming after our next event";
 
 export const OPENNESS_NOTE =
-  "Most Utha events are open to everyone — look for the “Open to all” badge.";
+  "Most BAU events are open to everyone — look for the “Open to all” badge.";
 
 const TITLE_OVERRIDES: Record<string, string> = {
   "ekushey-february-2027":

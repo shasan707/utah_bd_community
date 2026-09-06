@@ -14,7 +14,7 @@ import type { RegistrationRow } from "./types";
 export type EmailContent = { subject: string; text: string; html: string };
 
 const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || "https://uthahbdcommunity.vercel.app"
+  process.env.NEXT_PUBLIC_SITE_URL || "https://utahhbdcommunity.vercel.app"
 ).replace(/\/+$/, "");
 
 const COLORS = {
@@ -81,7 +81,7 @@ function shell(title: string, inner: string, s: Settings): string {
 ${inner}
 <tr><td style="padding:20px 32px 28px;font-size:13px;line-height:1.6;color:${COLORS.muted};border-top:1px solid ${COLORS.sand};">
 ${contact}<br>
-Utha USA, the Bangladeshi community of Salt Lake City. A community initiative of Bangladesh Association Utah (BPAU).
+Bangladeshi Association of Utah (BAU), the Bangladeshi community of Salt Lake City.
 </td></tr>
 </table>
 </td></tr>

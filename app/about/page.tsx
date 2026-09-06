@@ -2,12 +2,10 @@ import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import Alpona from "@/components/Alpona";
-import { getCommittee } from "@/lib/content";
-import { paletteGradient } from "@/lib/palette";
 
 export const metadata: Metadata = {
-  title: "About | Utha USA",
-  description: "The story, mission, and people of Utha USA.",
+  title: "About | Bangladeshi Association of Utah",
+  description: "The story, mission, and people of Bangladeshi Association of Utah.",
 };
 
 export const revalidate = 60;
@@ -31,28 +29,27 @@ const values = [
 ];
 
 export default async function AboutPage() {
-  const committee = await getCommittee();
   return (
     <div className="pt-28">
       <section className="mx-auto max-w-6xl px-5">
         <SectionHeading
           bangla="Our Story"
           title="Who We Are"
-          subtitle="Utha means to rise, a name we share with our home state, Utah."
+          subtitle="Utah means to rise, a name we share with our home state, Utah."
         />
         <div className="mt-8 grid gap-10 md:grid-cols-2">
           <Reveal>
             <p className="leading-relaxed text-forest-ink/75">
-              Utha USA is the community organization of Bangladeshi families
+              Bangladeshi Association of Utah is the community organization of Bangladeshi families
               living in Salt Lake City, Utah. We came to this country carrying
-              two treasures: our dreams, and our culture. Utha USA exists so that
+              two treasures: our dreams, and our culture. BAU exists so that
               the second one never fades while we chase the first.
             </p>
             <p className="mt-4 leading-relaxed text-forest-ink/75">
               Through the year we gather for the moments that define us:
               Pohela Boishakh, Ekushey February, Victory Day, Eid reunions,
               pitha festivals, and the great summer picnic. (This paragraph is
-              placeholder text. Replace it with Utha USA&apos;s real story.)
+              placeholder text. Replace it with BAU&apos;s real story.)
             </p>
           </Reveal>
           <Reveal delay={0.15}>
@@ -94,41 +91,6 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* Committee */}
-      <section className="bg-cream-dim py-20">
-        <div className="mx-auto max-w-6xl px-5">
-          <SectionHeading
-            bangla="Leadership"
-            title="The Committee"
-            subtitle="Placeholder names for now. The real Utha USA committee goes here."
-          />
-          <div className="mt-12 grid grid-cols-2 gap-6 md:grid-cols-4">
-            {committee.map((m, i) => (
-              <Reveal key={m.name} delay={(i % 4) * 0.08}>
-                <div className="group rounded-3xl border border-sand bg-white p-6 text-center shadow-sm transition-shadow hover:shadow-lg">
-                  {m.photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={m.photoUrl}
-                      alt={m.name}
-                      className="mx-auto h-20 w-20 rounded-full object-cover transition-transform group-hover:scale-110"
-                    />
-                  ) : (
-                    <div
-                      className="mx-auto flex h-20 w-20 items-center justify-center rounded-full text-2xl font-black text-white transition-transform group-hover:scale-110"
-                      style={{ background: paletteGradient[m.palette] }}
-                    >
-                      {m.initials}
-                    </div>
-                  )}
-                  <div className="mt-4 font-bold text-forest-ink">{m.name}</div>
-                  <div className="text-sm text-forest">{m.role}</div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

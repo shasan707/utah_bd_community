@@ -8,35 +8,47 @@ import {
   useReducedMotion,
   type MotionValue,
 } from "framer-motion";
+import Vine from "@/components/Vine";
 
 const words: { text: string; red?: boolean }[] = [
   { text: "We" },
   { text: "left" },
   { text: "Bangladesh" },
-  { text: "carrying" },
-  { text: "Bangladesh" },
-  { text: "inside" },
+  { text: "behind," },
+  { text: "but" },
+  { text: "carried" },
+  { text: "its" },
+  { text: "songs," },
+  { text: "colors," },
+  { text: "memories," },
+  { text: "and" },
+  { text: "warmth" },
+  { text: "with" },
   { text: "us." },
-  { text: "Utha" },
-  { text: "USA" },
-  { text: "is" },
-  { text: "where" },
-  { text: "it" },
-  { text: "wakes" },
-  { text: "up" },
+  { text: "Here" },
+  { text: "in" },
+  { text: "Utah," },
+  { text: "a" },
+  { text: "little" },
+  { text: "piece" },
+  { text: "of" },
+  { text: "home" },
+  { text: "lives" },
+  { text: "on" },
   { text: "in" },
   { text: "every" },
-  { text: "mela," },
+  { text: "melody," },
   { text: "every" },
-  { text: "song," },
+  { text: "gathering," },
+  { text: "and" },
   { text: "every" },
   { text: "child" },
-  { text: "proud" },
-  { text: "to" },
-  { text: "say:" },
-  { text: "I", red: true },
+  { text: "who" },
+  { text: "proudly" },
+  { text: "says," },
+  { text: "“I", red: true },
   { text: "am", red: true },
-  { text: "Bangali.", red: true },
+  { text: "Bangali.”", red: true },
 ];
 
 function Word({
@@ -68,11 +80,21 @@ export default function ScrollStatement() {
   });
 
   return (
-    <section ref={ref} className="mx-auto max-w-5xl px-5 py-32 md:py-44">
-      <p className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
-        ✦ Why Utha
+    <section
+      ref={ref}
+      className="relative mx-auto max-w-5xl px-5 py-32 md:py-44"
+    >
+      <div
+        className="pointer-events-none absolute left-1/2 top-1 w-screen -translate-x-1/2 text-forest/10 md:top-8"
+        aria-hidden="true"
+      >
+        <Vine uid="why" className="h-[120px] w-full" />
+      </div>
+
+      <p className="relative text-sm font-bold uppercase tracking-[0.2em] text-forest">
+        ✦ Why Utah
       </p>
-      <p className="mt-4 text-3xl font-bold leading-snug text-forest-ink md:text-5xl md:leading-snug">
+      <p className="relative mt-4 text-3xl font-bold leading-snug text-forest-ink md:text-5xl md:leading-snug">
         {reduce
           ? words.map((w, i) => (
               <span key={i} className={w.red ? "text-bengal-red" : ""}>

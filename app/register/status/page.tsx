@@ -5,7 +5,7 @@ import Reveal from "@/components/Reveal";
 import StatusLookup from "@/components/StatusLookup";
 
 export const metadata: Metadata = {
-  title: "Track your registration | Utha USA",
+  title: "Track your registration | Bangladeshi Association of Utah",
   description: "See whether your Zelle has arrived and your ticket has been sent.",
   robots: { index: false, follow: false },
 };

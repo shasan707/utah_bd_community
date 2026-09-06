@@ -13,7 +13,7 @@ import {
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Register | Utha USA",
+  title: "Register | Bangladeshi Association of Utah",
   description:
     "Register for the next BPAU event and pay by Zelle in two minutes.",
 };

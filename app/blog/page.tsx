@@ -6,7 +6,7 @@ import { getPosts } from "@/lib/content";
 import { posts as samplePosts } from "@/data/posts";
 
 export const metadata: Metadata = {
-  title: "Blog | Utha USA",
+  title: "Blog | Bangladeshi Association of Utah",
   description:
     "Stories from the Bangladeshi community of Salt Lake City: event recaps, recipes, committee notes, and voices from the next generation.",
 };
@@ -22,7 +22,7 @@ export default async function BlogPage() {
       <section className="mx-auto max-w-6xl px-5 pb-24">
         <SectionHeading
           bangla="Stories"
-          title="Utha Blog"
+          title="Utah Blog"
           subtitle={
             sample
               ? "Event recaps, recipes, committee notes, and voices from the next generation. These are sample posts until the committee publishes the first real one."

@@ -4,6 +4,7 @@ export function formatDate(iso: string): string {
     month: "long",
     day: "numeric",
     year: "numeric",
+    timeZone: "America/Denver",
   });
 }
 
@@ -12,6 +13,7 @@ export function formatDateShort(iso: string): string {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "America/Denver",
   });
 }
 
@@ -19,5 +21,6 @@ export function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    timeZone: "America/Denver",
   });
 }

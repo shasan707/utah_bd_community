@@ -6,7 +6,7 @@ export type CommitteeMember = {
   photoUrl?: string;
 };
 
-// Placeholder names. Replace with the real Utha USA committee.
+// Placeholder names. Replace with the real BAU committee.
 export const committee: CommitteeMember[] = [
   { name: "Mahmudul Hasan", role: "President", initials: "MH", palette: "green" },
   { name: "Farzana Akter", role: "General Secretary", initials: "FA", palette: "red" },

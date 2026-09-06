@@ -9,8 +9,8 @@ import { getRegistrationStatus } from "@/lib/payments/settings";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Membership | Utha USA",
-  description: "Join the Utha USA community. Membership tiers and benefits.",
+  title: "Membership | Bangladeshi Association of Utah",
+  description: "Join the Bangladeshi Association of Utah community. Membership tiers and benefits.",
 };
 
 const tiers = [
@@ -42,7 +42,7 @@ const tiers = [
 
 const benefits: { icon: "ticket" | "check" | "users" | "heart"; text: string }[] = [
   { icon: "ticket", text: "Free or discounted entry to the year's biggest events" },
-  { icon: "check", text: "A real voice. Members shape what Utha USA becomes" },
+  { icon: "check", text: "A real voice. Members shape what BAU becomes" },
   { icon: "users", text: "A family of hundreds when you need help, advice, or adda" },
   { icon: "heart", text: "Bangla culture programs for children born in America" },
 ];

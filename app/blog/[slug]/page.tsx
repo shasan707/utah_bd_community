@@ -18,9 +18,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
-  if (!post) return { title: "Post not found | Utha USA" };
+  if (!post) return { title: "Post not found | Bangladeshi Association of Utah" };
   return {
-    title: `${post.title} | Utha USA`,
+    title: `${post.title} | Bangladeshi Association of Utah`,
     description: post.excerpt || firstParagraph(post.body),
   };
 }
@@ -49,7 +49,7 @@ export default async function PostPage({
               ← All posts
             </Link>
             <div className="mt-4 text-sm font-bold uppercase tracking-[0.25em] text-white/80">
-              ✦ {post.tag ?? "Utha blog"}
+              ✦ {post.tag ?? "Utah blog"}
             </div>
             <h1 className="mt-1 text-4xl font-black leading-tight md:text-5xl">{post.title}</h1>
             <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/85">

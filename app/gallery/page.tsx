@@ -5,8 +5,8 @@ import { getGallery } from "@/lib/content";
 import { gallery as sampleGallery } from "@/data/gallery";
 
 export const metadata: Metadata = {
-  title: "Gallery | Utha USA",
-  description: "Photos and videos from Utha USA community celebrations.",
+  title: "Gallery | Bangladeshi Association of Utah",
+  description: "Photos and videos from Bangladeshi Association of Utah community celebrations.",
 };
 
 export const revalidate = 60;

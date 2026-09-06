@@ -68,7 +68,7 @@ export default function HorizontalShowcase() {
             ✦ A Year of Festivals
           </p>
           <h2 className="mt-2 text-3xl font-bold text-forest-ink md:text-5xl">
-            The Utha year.
+            The Utah year.
           </h2>
         </div>
         <div className="flex gap-6 overflow-x-auto px-5 pb-6">
@@ -88,7 +88,7 @@ export default function HorizontalShowcase() {
             ✦ A Year of Festivals
           </p>
           <h2 className="mt-2 text-3xl font-bold text-forest-ink md:text-5xl">
-            The Utha year.
+            The Utah year.
           </h2>
           <p className="mt-2 text-sm text-muted-ink">
             Keep scrolling. The year moves with you.

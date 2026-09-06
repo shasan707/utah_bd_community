@@ -14,14 +14,39 @@ export type CommunityEvent = {
   imageUrl?: string;
   /** Set to true for members-only events. Unset means open to everyone. */
   membersOnly?: boolean;
+  /** External map link for the venue. */
+  mapUrl?: string;
 };
 
 export const events: CommunityEvent[] = [
   {
+    slug: "slc-bd-picnic-2026",
+    title: "2026 SLC BD Picnic",
+    banglaTitle: "SLC BD Picnic",
+    date: "2026-10-03T12:00:00-06:00",
+    venue: "South Fork Park",
+    city: "Salt Lake City, UT",
+    mapUrl: "https://maps.app.goo.gl/yxk44KzXMaP8wYtV8?g_st=ic",
+    tag: "Picnic",
+    free: true,
+    blurb:
+      "A day of adda, good food, and togetherness at South Fork Park. Bring your family, your stories, and your festive spirit.",
+    description: [
+      "With the warmth of Bangladeshi hospitality and the joy of togetherness, we warmly invite you to the 2026 Salt Lake City, BD Picnic.",
+      "Join us on October 3, 2026, at noon at the beautiful South Fork Park for a memorable gathering of our Bangladeshi community in Utah.",
+      "A day to reconnect with familiar faces, welcome new friends, share laughter, enjoy good food, and celebrate the traditions that keep us close to home.",
+      "From the spirit of adda to the warmth of sharing a meal together, we hope this picnic brings a little piece of Bangladesh to the heart of Utah.",
+      "Bring your family, your stories, and your festive spirit.",
+      "এসো মিলি, গল্প করি, আনন্দ ভাগ করে নিই—একসাথে, এক পরিবারের মতো।",
+      "We look forward to welcoming you to a beautiful day of community, culture, and togetherness.",
+    ],
+    palette: "green",
+  },
+  {
     slug: "pitha-utshob-2026",
     title: "Pitha Utshob & Winter Reunion",
     banglaTitle: "Pitha Utshob",
-    date: "2026-12-05T17:00:00",
+    date: "2026-12-05T17:00:00-07:00",
     endTime: "10:00 PM",
     venue: "Riverside Community Hall",
     city: "Salt Lake City, UT",
@@ -30,7 +55,7 @@ export const events: CommunityEvent[] = [
     blurb:
       "An evening of warm winter pithas, folk songs, and reunion. The sweetest night of the year.",
     description: [
-      "Winter in Bangladesh means pitha, and Utha USA brings that warmth to Utah. Families bring their best bhapa, patishapta, chitoi, and dudh puli, and the community votes for the Pitha Champion of the year.",
+      "Winter in Bangladesh means pitha, and BAU brings that warmth to Utah. Families bring their best bhapa, patishapta, chitoi, and dudh puli, and the community votes for the Pitha Champion of the year.",
       "The evening features live folk music (baul and bhatiali), a children's recitation corner, and steaming cups of cha with adda late into the night. Entry is free and open to everyone. Bring your family, bring a plate, bring your stories.",
     ],
     palette: "gold",
@@ -39,7 +64,7 @@ export const events: CommunityEvent[] = [
     slug: "bijoy-dibosh-2026",
     title: "Victory Day Celebration",
     banglaTitle: "Victory Day",
-    date: "2026-12-16T18:00:00",
+    date: "2026-12-16T18:00:00-07:00",
     endTime: "9:30 PM",
     venue: "Heritage Auditorium",
     city: "Salt Lake City, UT",
@@ -48,7 +73,7 @@ export const events: CommunityEvent[] = [
     blurb:
       "Honoring December 16, 1971 with songs of freedom, tributes, and the flag held high, together.",
     description: [
-      "December 16 belongs to every Bangladeshi heart. Utha USA gathers to honor the martyrs and celebrate the birth of Bangladesh with patriotic songs, poetry, and a documentary screening for the new generation.",
+      "December 16 belongs to every Bangladeshi heart. Bangladeshi Association of Utah gathers to honor the martyrs and celebrate the birth of Bangladesh with patriotic songs, poetry, and a documentary screening for the new generation.",
       "The evening opens with the national anthem sung together, followed by children's performances of deshattobodhok gaan, a freedom-fighter tribute segment, and dinner. Wear red and green!",
     ],
     palette: "red",
@@ -57,7 +82,7 @@ export const events: CommunityEvent[] = [
     slug: "ekushey-february-2027",
     title: "Ekushey February, Language Day",
     banglaTitle: "Ekushey February",
-    date: "2027-02-21T10:00:00",
+    date: "2027-02-21T10:00:00-07:00",
     endTime: "1:00 PM",
     venue: "Community Shaheed Minar Grounds",
     city: "Salt Lake City, UT",
@@ -75,7 +100,7 @@ export const events: CommunityEvent[] = [
     slug: "boishakhi-mela-2027",
     title: "Boishakhi Mela 1434",
     banglaTitle: "Boishakhi Mela",
-    date: "2027-04-17T12:00:00",
+    date: "2027-04-17T12:00:00-06:00",
     endTime: "10:00 PM",
     venue: "Lakeside Park Festival Grounds",
     city: "Salt Lake City, UT",
@@ -84,7 +109,7 @@ export const events: CommunityEvent[] = [
     blurb:
       "Our biggest day of the year. Pohela Boishakh with stalls, panta-ilish, concerts, and thousands of us together.",
     description: [
-      "Shubho Noboborsho! The Utha USA Boishakhi Mela welcomes the Bangla New Year the way it deserves: a full day of celebration under the open sky. Food stalls with fuchka, chotpoti, and panta-ilish; clothing and jewelry vendors; a children's fair; and alpona painting on the walkway.",
+      "Shubho Noboborsho! The Bangladeshi Association of Utah Boishakhi Mela welcomes the Bangla New Year the way it deserves: a full day of celebration under the open sky. Food stalls with fuchka, chotpoti, and panta-ilish; clothing and jewelry vendors; a children's fair; and alpona painting on the walkway.",
       "The cultural stage runs all day: dance schools, bands, and a headline concert in the evening. The mela is free and open to the whole city. This is the day we show Utah the colors of Bangladesh.",
     ],
     palette: "red",
@@ -93,7 +118,7 @@ export const events: CommunityEvent[] = [
     slug: "eid-reunion-2027",
     title: "Eid Reunion Dinner",
     banglaTitle: "Eid Reunion",
-    date: "2027-05-22T18:30:00",
+    date: "2027-05-22T18:30:00-06:00",
     endTime: "10:30 PM",
     venue: "Grand Banquet Hall",
     city: "Salt Lake City, UT",
@@ -102,7 +127,7 @@ export const events: CommunityEvent[] = [
     blurb:
       "Eid Mubarak! An evening of semai, new clothes, salami for the kids, and the whole community as one family.",
     description: [
-      "Away from home, Eid can feel quiet, so we celebrate it loudly, together. The Utha USA Eid Reunion brings hundreds of families into one hall for an evening of dinner, semai and desserts, and Eid salami for every child.",
+      "Away from home, Eid can feel quiet, so we celebrate it loudly, together. The Bangladeshi Association of Utah Eid Reunion brings hundreds of families into one hall for an evening of dinner, semai and desserts, and Eid salami for every child.",
       "Expect a full Bangladeshi dinner, a nasheed and cultural segment, a best-dressed contest for kids, and long adda over cha. Seats are limited, so reserve early.",
     ],
     palette: "teal",
@@ -111,7 +136,7 @@ export const events: CommunityEvent[] = [
     slug: "summer-picnic-2027",
     title: "Grand Summer Picnic",
     banglaTitle: "Grand Picnic",
-    date: "2027-07-10T10:00:00",
+    date: "2027-07-10T10:00:00-06:00",
     endTime: "6:00 PM",
     venue: "Maple Grove State Park",
     city: "Salt Lake City, UT",

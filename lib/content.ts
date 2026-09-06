@@ -75,6 +75,16 @@ export function upcoming(
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }
 
+/** Events that have already happened, most recent first. */
+export function past(
+  list: CommunityEvent[],
+  now = new Date()
+): CommunityEvent[] {
+  return list
+    .filter((e) => new Date(e.date).getTime() <= now.getTime())
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
 export function next(list: CommunityEvent[], now = new Date()): CommunityEvent {
   return upcoming(list, now)[0] ?? list[list.length - 1];
 }
@@ -142,7 +152,7 @@ export async function getPosts(): Promise<BlogPost[]> {
       title: row.title,
       excerpt: row.excerpt || "",
       body: row.body || "",
-      author: row.author || "Utha USA",
+      author: row.author || "Bangladeshi Association of Utah",
       publishedAt: row.published_at,
       palette: asPalette(row.palette, palettes[i % palettes.length]),
       coverUrl: row.cover_url || undefined,

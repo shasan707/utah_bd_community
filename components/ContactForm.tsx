@@ -14,7 +14,7 @@ export default function ContactForm() {
       `Name: ${name}\nEmail: ${email}\n\n${message}`
     );
     window.location.href = `mailto:hello@uthausa.org?subject=${encodeURIComponent(
-      "Message from Utha USA website"
+      "Message from BAU website"
     )}&body=${body}`;
   };
 

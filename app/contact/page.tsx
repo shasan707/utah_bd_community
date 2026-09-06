@@ -5,8 +5,8 @@ import ContactForm from "@/components/ContactForm";
 import Icon from "@/components/Icon";
 
 export const metadata: Metadata = {
-  title: "Contact | Utha USA",
-  description: "Get in touch with the Utha USA community.",
+  title: "Contact | Bangladeshi Association of Utah",
+  description: "Get in touch with the Bangladeshi Association of Utah community.",
 };
 
 const channels: {
@@ -58,7 +58,7 @@ export default function ContactPage() {
           <SectionHeading
             bangla="Our Location"
             title="Find Us in Salt Lake City"
-            subtitle="Utha USA is the Bangladeshi community of Salt Lake City, Utah. Our events happen in and around the valley."
+            subtitle="BAU is the Bangladeshi community of Salt Lake City, Utah. Our events happen in and around the valley."
           />
           <Reveal delay={0.1}>
             <div className="mt-8 overflow-hidden rounded-3xl border border-sand shadow-sm">
@@ -68,7 +68,7 @@ export default function ContactPage() {
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 allowFullScreen
-                title="Utha USA, Salt Lake City, Utah"
+                title="Bangladeshi Association of Utah, Salt Lake City, Utah"
               />
             </div>
             <p className="mt-3 text-center text-xs text-forest-ink/50">

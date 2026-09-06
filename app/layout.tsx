@@ -19,9 +19,9 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Utha USA | Bangladeshi Community of Salt Lake City",
+  title: "Bangladeshi Association of Utah | Salt Lake City",
   description:
-    "Utha USA is the Bangladeshi community of Salt Lake City, Utah. Festivals, culture, friendship, and community. Utha means to rise.",
+    "BAU is the Bangladeshi community of Salt Lake City, Utah. Festivals, culture, friendship, and community.",
 };
 
 export default function RootLayout({

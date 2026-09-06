@@ -12,7 +12,6 @@ const links = [
   { href: "/gallery", label: "Gallery" },
   { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
-  { href: "/membership", label: "Membership" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -33,7 +32,9 @@ export default function Navbar() {
   // Pages that open with a dark emerald band need light text until the
   // glass bar appears on scroll.
   const darkHero =
-    pathname === "/register" || /^\/events\/[^/]+$/.test(pathname);
+    pathname === "/register" ||
+    pathname === "/events" ||
+    /^\/events\/[^/]+$/.test(pathname);
   const onDark = darkHero && !scrolled;
 
   return (
@@ -54,9 +55,9 @@ export default function Navbar() {
               onDark ? "text-ivory" : "text-forest"
             }`}
           >
-            <span className="text-xl lg:hidden">BAU</span>
-            <span className="hidden text-lg lg:inline">
-              Bangladesh Association Utah{" "}
+            <span className="text-xl xl:hidden">BAU</span>
+            <span className="hidden text-base xl:inline">
+              Bangladeshi Association of Utah{" "}
               <span className="text-bengal-red">(BAU)</span>
             </span>
           </span>

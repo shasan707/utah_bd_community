@@ -1,16 +1,18 @@
 import Link from "next/link";
-import Alpona from "@/components/Alpona";
 import Logo from "@/components/Logo";
 import Mountains from "@/components/Mountains";
+import FishPattern from "@/components/FishPattern";
 
 export default function Footer() {
   return (
-    <footer className="relative overflow-hidden bg-forest-ink text-cream">
+    <footer className="river-panel relative overflow-hidden text-cream">
       <div className="pointer-events-none text-cream/5">
         <Mountains className="h-20 w-full md:h-28" />
       </div>
-      <Alpona className="absolute -right-20 -top-20 h-72 w-72 text-cream/5" />
-      <Alpona className="absolute -bottom-24 -left-24 h-80 w-80 text-cream/5" />
+      <FishPattern
+        uid="ft"
+        className="pointer-events-none absolute inset-0 h-full w-full text-cream/[0.055]"
+      />
 
       <div className="mx-auto max-w-6xl px-5 py-16">
         <div className="grid gap-10 md:grid-cols-3">
@@ -18,13 +20,13 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               <Logo uid="ft" className="h-16 w-16 shrink-0" />
               <div className="font-heading text-2xl font-black leading-tight tracking-tight text-cream">
-                Bangladesh Association Utah{" "}
+                Bangladeshi Association of Utah{" "}
                 <span className="text-bengal-red">(BAU)</span>
               </div>
             </div>
             <p className="mt-4 max-w-xs text-sm text-cream/70">
-              Utha USA is the Bangladeshi community of Salt Lake City, Utah.
-              Utha means to rise. We rise together, and we celebrate together.
+              BAU is the Bangladeshi community of Salt Lake City, Utah.
+              We rise together, and we celebrate together.
             </p>
           </div>
 
@@ -45,7 +47,6 @@ export default function Footer() {
                 Get Involved
               </h3>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/membership" className="hover:text-bengal-red">Membership</Link></li>
                 <li><Link href="/contact" className="hover:text-bengal-red">Volunteer</Link></li>
                 <li><Link href="/contact" className="hover:text-bengal-red">Contact</Link></li>
               </ul>
@@ -66,12 +67,8 @@ export default function Footer() {
           </div>
         </div>
 
-        <p className="mt-12 text-xs text-cream/50">
-          Utha is a community initiative of Bangladesh Association Utah (BAU).
-        </p>
-
-        <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-cream/10 pt-6 text-xs text-cream/50 md:flex-row">
-          <span>© {new Date().getFullYear()} Utha USA. All rights reserved.</span>
+        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-cream/10 pt-6 text-xs text-cream/50 md:flex-row">
+          <span>© {new Date().getFullYear()} Bangladeshi Association of Utah. All rights reserved.</span>
           <span>From the Padma to the Great Salt Lake, one family</span>
         </div>
       </div>

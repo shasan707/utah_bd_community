@@ -13,7 +13,7 @@ export default function PostCard({ post }: { post: BlogPost }) {
       >
         <PlaceholderImage
           palette={post.palette}
-          banglaCaption={post.coverUrl ? undefined : post.tag ?? "Utha blog"}
+          banglaCaption={post.coverUrl ? undefined : post.tag ?? "Utah blog"}
           src={post.coverUrl}
           className="h-44"
         />
