@@ -4,10 +4,15 @@ export type GalleryItem = {
   banglaCaption: string; // display title (English per site language decision)
   palette: "green" | "red" | "gold" | "teal";
   tall?: boolean;
+  /** Photo URL, or the cover picture of a video. */
   src?: string;
+  /** Photo by default. */
+  kind?: "photo" | "video";
+  /** YouTube, Vimeo, or Facebook link, or an uploaded video file. */
+  videoUrl?: string;
 };
 
-// Placeholder gallery. Swap with real event photos later.
+// Placeholder gallery. Swap with real event photos and videos later.
 export const gallery: GalleryItem[] = [
   { id: 1, caption: "Boishakhi Mela", banglaCaption: "Mela Procession", palette: "red", tall: true },
   { id: 2, caption: "Winter festival", banglaCaption: "Pitha Spread", palette: "gold" },

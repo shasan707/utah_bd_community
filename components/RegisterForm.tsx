@@ -5,6 +5,7 @@ import Alpona from "@/components/Alpona";
 import Icon from "@/components/Icon";
 import RegistrationTracker, { type TrackerStatus } from "@/components/RegistrationTracker";
 import ZelleLogo from "@/components/ZelleLogo";
+import UsFlag from "@/components/UsFlag";
 import {
   breakdownLines,
   computeAmount,
@@ -393,7 +394,10 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
                   Phone
                 </label>
                 <div className="flex items-center rounded-xl border border-sand bg-ivory focus-within:border-forest focus-within:bg-white">
-                  <span className="pl-4 text-sm font-semibold text-forest-ink/50">+1</span>
+                  <span className="flex items-center gap-1.5 pl-3.5 text-sm font-semibold text-forest-ink/60">
+                    <UsFlag />
+                    +1
+                  </span>
                   <input
                     id="reg-phone"
                     required

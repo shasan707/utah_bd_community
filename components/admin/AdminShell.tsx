@@ -11,7 +11,7 @@ export const inputCls =
 
 const nav = [
   { href: "/admin", label: "Dashboard" },
-  { href: "/admin/photos", label: "Photos" },
+  { href: "/admin/photos", label: "Gallery" },
   { href: "/admin/events", label: "Events" },
   { href: "/admin/committee", label: "Committee" },
   { href: "/admin/blog", label: "Blog" },

@@ -62,7 +62,7 @@ export default function AdminDashboard() {
   }, []);
 
   const cards = [
-    { href: "/admin/photos", label: "Gallery photos", value: counts?.photos },
+    { href: "/admin/photos", label: "Gallery photos and videos", value: counts?.photos },
     { href: "/admin/events", label: "Events", value: counts?.events },
     { href: "/admin/committee", label: "Committee members", value: counts?.committee },
     { href: "/admin/blog", label: "Blog posts", value: counts?.posts },

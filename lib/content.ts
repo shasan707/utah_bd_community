@@ -7,6 +7,7 @@ import {
 } from "@/data/committee";
 import { posts as fallbackPosts, type BlogPost } from "@/data/posts";
 import type { Palette } from "@/lib/palette";
+import { videoThumbnail } from "@/lib/video";
 
 const palettes: Palette[] = ["green", "red", "gold", "teal"];
 
@@ -86,14 +87,21 @@ export async function getGallery(): Promise<GalleryItem[]> {
       .select("*")
       .order("created_at", { ascending: false });
     if (error || !data || data.length === 0) return fallbackGallery;
-    return data.map((row, i) => ({
-      id: row.id,
-      caption: row.caption || "",
-      banglaCaption: row.title,
-      palette: asPalette(row.palette, palettes[i % palettes.length]),
-      tall: Boolean(row.tall),
-      src: row.image_url || undefined,
-    }));
+    return data.map((row, i) => {
+      const kind: "photo" | "video" = row.media_type === "video" ? "video" : "photo";
+      const videoUrl = kind === "video" && row.video_url ? String(row.video_url) : undefined;
+      const cover = row.image_url || (videoUrl ? videoThumbnail(videoUrl) : undefined);
+      return {
+        id: row.id,
+        caption: row.caption || "",
+        banglaCaption: row.title,
+        palette: asPalette(row.palette, palettes[i % palettes.length]),
+        tall: Boolean(row.tall),
+        src: cover || undefined,
+        kind,
+        videoUrl,
+      };
+    });
   } catch {
     return fallbackGallery;
   }
