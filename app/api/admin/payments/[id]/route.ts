@@ -6,7 +6,7 @@ import {
   requireAdmin,
 } from "@/lib/supabase-server";
 import { CODE_PATTERN, normalizeCode } from "@/lib/payments/codes";
-import { linkPayment, resolveMismatch } from "@/lib/payments/payments";
+import { ignorePayment, linkPayment, resolveMismatch } from "@/lib/payments/payments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,6 +37,8 @@ export async function PATCH(
         return jsonOk(await resolveMismatch(id, "accept", body.note, admin.email));
       case "note_mismatch":
         return jsonOk(await resolveMismatch(id, "note", body.note, admin.email));
+      case "ignore":
+        return jsonOk(await ignorePayment(id, body.note, admin.email));
       default:
         throw new ApiError(400, "Unknown action.");
     }

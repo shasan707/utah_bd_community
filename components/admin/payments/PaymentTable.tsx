@@ -3,7 +3,7 @@
 import { money } from "@/lib/payments/pricing";
 import type { MatchStatus, PaymentRow } from "@/lib/payments/types";
 
-export type PaymentAction = "link" | "apply" | "accept" | "note";
+export type PaymentAction = "link" | "apply" | "accept" | "note" | "ignore";
 
 const badge: Record<MatchStatus, string> = {
   UNMATCHED: "bg-amber-100 text-amber-800",
@@ -31,7 +31,7 @@ function when(iso: string): string {
 /** True when the treasurer still has to do something with this transaction. */
 export function needsAttention(p: PaymentRow): boolean {
   if (p.match_status === "DUPLICATE") return false;
-  if (p.match_status === "UNMATCHED") return true;
+  if (p.match_status === "UNMATCHED") return !p.processed_at;
   return !p.processed_at;
 }
 
@@ -120,9 +120,12 @@ export default function PaymentTable({
             {open && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {p.match_status === "UNMATCHED" && (
-                  <Btn primary onClick={() => onAction("link", p)}>
-                    Link to a code
-                  </Btn>
+                  <>
+                    <Btn primary onClick={() => onAction("link", p)}>
+                      Link to a code
+                    </Btn>
+                    <Btn onClick={() => onAction("ignore", p)}>Not a registration</Btn>
+                  </>
                 )}
                 {p.match_status === "MATCHED" && (
                   <Btn primary onClick={() => onAction("apply", p)}>

@@ -329,6 +329,16 @@ export default function AdminPayments() {
           onConfirm: (v) => run(() => patch({ action: "accept_mismatch", note: v.note })),
         });
         break;
+      case "ignore":
+        setDialog({
+          title: `Set aside ${money(p.amount)} from ${p.sender_name || "unknown sender"}`,
+          description:
+            "For a Zelle that is not a registration payment, or one you already handled by hand. It leaves the list; nothing else changes.",
+          confirmLabel: "Set aside",
+          fields: [{ name: "note", label: "Note (optional)", type: "text" }],
+          onConfirm: (v) => run(() => patch({ action: "ignore", note: v.note })),
+        });
+        break;
       case "note":
         setDialog({
           title: `Note on ${p.linked_code}`,

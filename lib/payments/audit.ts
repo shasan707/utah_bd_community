@@ -14,7 +14,8 @@ export type AuditAction =
   | "CANCELLED"
   | "REFUNDED"
   | "RESEND_RECEIPT"
-  | "MERGE";
+  | "MERGE"
+  | "PAYMENT_IGNORED";
 
 /**
  * Writes one audit row. Called after every change to money. If the log

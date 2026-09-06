@@ -2,11 +2,15 @@ import "server-only";
 import { ApiError, getServiceClient } from "@/lib/supabase-server";
 import { sendEmail } from "@/lib/email";
 import { audit } from "./audit";
-import { CODE_ALPHABET } from "./codes";
 import { money, roundCents } from "./pricing";
 import { appendNote, deliverReceipt, getRegistration } from "./registrations";
 import { getSettings, type Settings } from "./settings";
-import { parseZelleEmail, type ParsedZelle } from "./zelle-parse";
+import {
+  extractCandidates,
+  memoNearCode,
+  parseZelleEmail,
+  type ParsedZelle,
+} from "./zelle-parse";
 import {
   parsePayment,
   parseRegistration,
@@ -29,23 +33,14 @@ const MAX_BODY = 40_000;
 
 export { parseZelleEmail, type ParsedZelle } from "./zelle-parse";
 
-/**
- * Every 4 and 5 character window of the memo with spaces and punctuation
- * removed, so "for r7x3m please", "R-7X3M" and "7x3m" all find the code.
- */
-export function extractCandidates(memo: string): Set<string> {
-  const clean = String(memo).toUpperCase().replace(/[^A-Z0-9]/g, "");
-  const ok = (ch: string) => CODE_ALPHABET.includes(ch);
-  const out = new Set<string>();
-  for (let i = 0; i + 4 <= clean.length; i++) {
-    const four = clean.slice(i, i + 4);
-    if ([...four].every(ok)) out.add(four);
-    if (i + 5 <= clean.length) {
-      const five = clean.slice(i, i + 5);
-      if ("RCD".includes(five[0]) && [...five.slice(1)].every(ok)) out.add(five);
-    }
-  }
-  return out;
+export { extractCandidates };
+
+/** Words of a name, uppercase, at least three letters, so initials do not match by accident. */
+function nameTokens(name: string): string[] {
+  return String(name)
+    .toUpperCase()
+    .split(/[^A-Z]+/)
+    .filter((t) => t.length >= 3);
 }
 
 function cents(n: number): number {
@@ -164,14 +159,27 @@ export async function recordPayment(
   } else if (matches.length > 1) {
     record.extracted_code = matches.map((m) => m.code).join(" ");
   } else {
-    // Same amount and a shared name word: suggest only, never confirm.
-    const senderTokens = parsed.sender_name.toUpperCase().split(/\s+/).filter(Boolean);
-    const hits = open.filter((reg) => {
-      if (cents(reg.amount_due) !== cents(parsed.amount)) return false;
-      const nameTokens = reg.name.toUpperCase().split(/\s+/);
-      return senderTokens.some((t) => nameTokens.includes(t));
-    });
-    if (hits.length === 1) record.suggested_code = hits[0].code;
+    // No exact code in the memo. A one-character typo still counts when the
+    // amount and the sender's name both agree with exactly one registration.
+    // Amount and name alone only make a suggestion for the treasurer.
+    const senderTokens = nameTokens(parsed.sender_name);
+    const amountFits = (reg: RegistrationRow) =>
+      cents(reg.amount_due) === cents(parsed.amount);
+    const nameFits = (reg: RegistrationRow) =>
+      senderTokens.length > 0 &&
+      nameTokens(reg.name).some((t) => senderTokens.includes(t));
+
+    const typo = open.filter(
+      (reg) => amountFits(reg) && nameFits(reg) && memoNearCode(parsed.memo_raw, reg.code)
+    );
+    if (typo.length === 1) {
+      record.extracted_code = typo[0].code;
+      record.linked_code = typo[0].code;
+      record.match_status = "MATCHED";
+    } else {
+      const hits = open.filter((reg) => amountFits(reg) && nameFits(reg));
+      if (hits.length === 1) record.suggested_code = hits[0].code;
+    }
   }
 
   return insertPayment(record);
@@ -224,6 +232,28 @@ export async function applyPayment(
   }
 
   const overpaid = cents(pay.amount) > cents(reg.amount_due);
+  const memoCodes = extractCandidates(pay.memo_raw);
+  const exactMemo =
+    memoCodes.has(reg.code.replace("-", "")) || memoCodes.has(reg.code.slice(2));
+  let notes = reg.notes;
+  if (overpaid) {
+    notes = appendNote(notes, `[OVERPAID by ${money(pay.amount - reg.amount_due)}]`);
+  }
+  if (!exactMemo) {
+    notes = appendNote(
+      notes,
+      pay.memo_raw
+        ? `[memo "${pay.memo_raw.slice(0, 60)}" read as ${reg.code} by amount and sender name]`
+        : `[no memo; matched by amount and sender name]`
+    );
+  }
+  const auditNote = [
+    overpaid ? "overpaid" : "",
+    exactMemo ? "" : "memo did not carry the code exactly; matched by amount and sender name",
+  ]
+    .filter(Boolean)
+    .join("; ");
+
   const { data, error } = await db
     .from("registrations")
     .update({
@@ -233,9 +263,7 @@ export async function applyPayment(
       paid_at: pay.received_at,
       zelle_confirmation_id: pay.confirmation_id,
       zelle_sender_name: pay.sender_name,
-      notes: overpaid
-        ? appendNote(reg.notes, `[OVERPAID by ${money(pay.amount - reg.amount_due)}]`)
-        : reg.notes,
+      notes,
     })
     .eq("code", reg.code)
     .in("status", ["PENDING", "EXPIRED"])
@@ -252,7 +280,7 @@ export async function applyPayment(
     reg.code,
     { status: reg.status },
     { status: "PAID", amount_received: pay.amount, confirmation: pay.confirmation_id },
-    overpaid ? "overpaid" : ""
+    auditNote
   );
   if (overpaid) {
     await notifyAdmins(
@@ -458,6 +486,34 @@ export async function linkPayment(
     message: registration
       ? `Linked ${pay.confirmation_id} to ${reg.code} and marked it PAID.`
       : `Linked ${pay.confirmation_id} to ${reg.code}.`,
+  };
+}
+
+/**
+ * The treasurer sets a transaction aside: not a registration payment, or one
+ * that was already handled by hand. It leaves the "needs a look" list.
+ */
+export async function ignorePayment(
+  id: number,
+  note: unknown,
+  actor: string
+): Promise<PaymentActionResult> {
+  const pay = await getPayment(id);
+  if (pay.processed_at) throw new ApiError(409, "This payment is already handled.");
+  const why = String(note ?? "").trim().slice(0, 500);
+  const updated = await patchPayment(id, { processed_at: new Date().toISOString() });
+  await audit(
+    actor,
+    "PAYMENT_IGNORED",
+    pay.linked_code ?? pay.suggested_code ?? null,
+    { confirmation: pay.confirmation_id, amount: pay.amount, sender: pay.sender_name },
+    null,
+    why
+  );
+  return {
+    payment: updated,
+    registration: null,
+    message: `Set aside ${money(pay.amount)} from ${pay.sender_name || "unknown sender"}.`,
   };
 }
 
