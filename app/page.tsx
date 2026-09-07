@@ -19,7 +19,6 @@ import {
   OPENNESS_NOTE,
 } from "@/lib/home-copy";
 import { getRegistrationStatus } from "@/lib/payments/settings";
-import { MEMBERSHIP_HREF } from "@/lib/links";
 
 export const revalidate = 60;
 
@@ -232,22 +231,16 @@ export default async function HomePage() {
               Membership means free entry to our biggest events, a voice in the
               community, and a family of hundreds who celebrate the way you do.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <Link
-                href={MEMBERSHIP_HREF}
-                className="cta-accent inline-block rounded-full px-9 py-4 font-bold"
-              >
-                Learn About Membership
-              </Link>
-              {registration.open && (
+            {registration.open && (
+              <div className="mt-8 flex flex-wrap justify-center gap-4">
                 <Link
                   href="/register"
-                  className="inline-block rounded-full border border-forest/30 px-9 py-4 font-bold text-forest transition-colors hover:bg-forest hover:text-ivory"
+                  className="cta-accent inline-block rounded-full px-9 py-4 font-bold"
                 >
                   Register &amp; Pay
                 </Link>
-              )}
-            </div>
+              </div>
+            )}
           </Reveal>
         </div>
       </section>

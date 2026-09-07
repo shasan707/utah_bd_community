@@ -37,7 +37,9 @@ app is the kind of thing that gets an account flagged.
 
 Project Settings (gear icon) > Script Properties > Add:
 
-- `WEBSITE_URL` = `https://utahbdcommunity.vercel.app`
+- `WEBSITE_URL` = `https://utahbdcommunity.vercel.app` (the old address
+  `https://uthahbdcommunity.vercel.app` still reaches the same site; if the
+  property already has it, leave it)
 - `INBOUND_SECRET` = the same long random string you put in Vercel as
   `ZELLE_INBOUND_SECRET`
 
