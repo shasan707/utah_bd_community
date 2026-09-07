@@ -1,4 +1,4 @@
--- Utha USA admin schema
+-- Utah USA admin schema
 -- Run this once in the Supabase Dashboard: SQL Editor -> New query -> paste -> Run.
 -- Prerequisite: create a PUBLIC storage bucket named "photos" first (Storage -> New bucket).
 

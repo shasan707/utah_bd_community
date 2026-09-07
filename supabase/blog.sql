@@ -9,7 +9,7 @@ create table public.posts (
   -- Simple markdown: # headings, paragraphs, **bold**, *italic*, [links](url),
   -- ![images](url), - lists, 1. lists, > quotes, --- rules.
   body text not null default '',
-  author text not null default 'Utha USA',
+  author text not null default 'Utah USA',
   tag text,
   palette text not null default 'green',
   cover_url text,

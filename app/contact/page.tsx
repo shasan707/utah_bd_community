@@ -14,9 +14,9 @@ const channels: {
   label: string;
   value: string;
 }[] = [
-  { icon: "mail", label: "Email", value: "hello@uthausa.org (placeholder)" },
+  { icon: "mail", label: "Email", value: "hello@utahusa.org (placeholder)" },
   { icon: "phone", label: "WhatsApp", value: "+1 (000) 000-0000 (placeholder)" },
-  { icon: "facebook", label: "Facebook", value: "facebook.com/uthausa (placeholder)" },
+  { icon: "facebook", label: "Facebook", value: "facebook.com/utahusa (placeholder)" },
   { icon: "pin", label: "Based in", value: "Salt Lake City, Utah" },
 ];
 

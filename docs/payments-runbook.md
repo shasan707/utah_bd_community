@@ -88,7 +88,7 @@ each email itself, up to about 500 a day.
    Verification. Google no longer needs a phone number for this; choose the
    Google Authenticator app as the second step and scan the code.
 2. On the same Security page open "App passwords" (search for it if hidden).
-   Create one named "Utha USA website". Google shows a 16 character password
+   Create one named "Utah USA website". Google shows a 16 character password
    once. Copy it into `EMAIL_APP_PASSWORD`, set `EMAIL_USER`, and set
    `EMAIL_PROVIDER=gmail`.
 

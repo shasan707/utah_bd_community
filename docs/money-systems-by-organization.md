@@ -1,6 +1,6 @@
 # How Each Bangladeshi/Bengali Community Organization in the USA Handles Money
 
-> Deep-dive research compiled 2026-08-23 for the **Utha USA** project.
+> Deep-dive research compiled 2026-08-23 for the **Utah USA** project.
 > Sources: each organization's own website (membership/donate/sponsor pages), IRS Form 990
 > filings via ProPublica Nonprofit Explorer, GuideStar/Cause IQ, and community press.
 > Where an org publishes nothing, that is stated explicitly — silence is itself a finding.
@@ -238,7 +238,7 @@ Volunteers spend their own money on food/decor/supplies → submit receipts → 
 
 ---
 
-## Part D — What all this teaches Utha USA
+## Part D — What all this teaches Utah USA
 
 1. **Zelle-to-a-named-org-email + a matching Google Form is the community standard** (Saikat accounts@, BAGA ec_treasurer@, CAB, BASGH donate@). Always pair the payment with a form so the treasurer can reconcile. Publish the fee math like Saikat does (PayPal 1.99%+$0.49 vs Zelle free) to steer payers.
 2. **Zeffy is the modern upgrade** (BADFW, BACDYS, Jamaica Muslim Center): zero platform fees, automatic tax receipts, handles both donations and ticketing — the best of both worlds for a new org.

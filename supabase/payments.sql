@@ -1,4 +1,4 @@
--- Utha USA payment system schema (registration codes, Zelle payments, audit log)
+-- Utah USA payment system schema (registration codes, Zelle payments, audit log)
 -- Run this once in the Supabase Dashboard: SQL Editor -> New query -> paste -> Run.
 -- Prerequisite: schema.sql has already been run (it sets up the content tables).
 --

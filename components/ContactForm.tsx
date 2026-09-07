@@ -13,7 +13,7 @@ export default function ContactForm() {
     const body = encodeURIComponent(
       `Name: ${name}\nEmail: ${email}\n\n${message}`
     );
-    window.location.href = `mailto:hello@uthausa.org?subject=${encodeURIComponent(
+    window.location.href = `mailto:hello@utahusa.org?subject=${encodeURIComponent(
       "Message from BAU website"
     )}&body=${body}`;
   };

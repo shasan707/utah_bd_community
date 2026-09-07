@@ -1,6 +1,6 @@
 # Bangladeshi & Bengali Community Organizations in the USA — Research Reference
 
-> Research compiled 2026-08-23 for the **Utha USA** community website project.
+> Research compiled 2026-08-23 for the **Utah USA** community website project.
 > Purpose: study how existing Bangladeshi/Bengali community organizations run their
 > websites, memberships, events, and money systems before designing our own.
 >
@@ -161,7 +161,7 @@ Key insight: **the free flagship event is the marketing engine** (draws the whol
 
 ---
 
-## 4. Decision Checklist for Utha USA (fill in when ready)
+## 4. Decision Checklist for Utah USA (fill in when ready)
 
 | # | Decision | Options | Your choice |
 |---|---|---|---|
@@ -169,7 +169,7 @@ Key insight: **the free flagship event is the marketing engine** (draws the whol
 | 2 | **Tech stack** | (a) Next.js + Supabase · (b) Static HTML/CSS/JS · (c) WordPress · (d) Other | _______ |
 | 3 | **Payments** | (a) Zelle instructions + PayPal links · (b) Stripe checkout · (c) None yet | _______ |
 | 4 | **Language** | (a) English with Bangla accents · (b) Fully bilingual with toggle | _______ |
-| 5 | **Legal status** | Is Utha USA already a registered nonprofit / 501(c)(3)? (affects "tax-deductible" wording on donate page) | _______ |
+| 5 | **Legal status** | Is Utah USA already a registered nonprofit / 501(c)(3)? (affects "tax-deductible" wording on donate page) | _______ |
 | 6 | **Membership model** | Dues amounts, tiers (individual/family/student/lifetime), membership year dates | _______ |
 | 7 | **Flagship events** | Which events will the site feature first? (Boishakhi Mela, Eid reunion, Victory Day, picnic...) | _______ |
-| 8 | **Domain & hosting** | Domain name to buy (e.g., uthausa.org), hosting preference | _______ |
+| 8 | **Domain & hosting** | Domain name to buy (e.g., utahusa.org), hosting preference | _______ |
