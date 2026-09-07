@@ -14,7 +14,7 @@ import type { RegistrationRow } from "./types";
 export type EmailContent = { subject: string; text: string; html: string };
 
 const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || "https://uthahbdcommunity.vercel.app"
+  process.env.NEXT_PUBLIC_SITE_URL || "https://utahbdcommunity.vercel.app"
 ).replace(/\/+$/, "");
 
 const COLORS = {
