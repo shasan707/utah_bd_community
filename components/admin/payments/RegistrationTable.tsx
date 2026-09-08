@@ -191,6 +191,11 @@ export default function RegistrationTable({
                 </span>
               )}
               <span className={es.tone}>{es.label}</span>
+              {r.checked_in_at && (
+                <span className="font-semibold text-forest">
+                  checked in {when(r.checked_in_at)}
+                </span>
+              )}
               {r.created_by !== "web" && <span>entered by {r.created_by}</span>}
               {stale && (
                 <span className="font-semibold text-amber-700">

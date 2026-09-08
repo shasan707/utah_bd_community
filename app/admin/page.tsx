@@ -124,6 +124,18 @@ export default function AdminDashboard() {
         </div>
       </Link>
 
+      <Link
+        href="/admin/checkin"
+        className="mt-5 block rounded-3xl border border-sand bg-white p-6 shadow-sm transition-shadow hover:shadow-lg"
+      >
+        <div className="text-xl font-bold text-forest-ink">Door check-in</div>
+        <p className="mt-1 text-sm text-forest-ink/70">
+          On event day: scan the QR on each ticket with your phone, see who to let in and
+          how many coupons to hand over.
+        </p>
+        <div className="mt-3 text-sm font-semibold text-bengal-red">Open check-in</div>
+      </Link>
+
       <p className="mt-8 text-sm text-forest-ink/50">
         Tip: as long as a section is empty, the public site shows its sample
         placeholder content. The moment you add the first real item, the real

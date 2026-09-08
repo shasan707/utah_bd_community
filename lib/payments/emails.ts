@@ -1,21 +1,19 @@
 import "server-only";
+import { SITE_URL } from "@/lib/site-url";
 import { formatDateOnly, formatInEventZone } from "./dates";
 import { breakdownLines, money } from "./pricing";
 import type { Settings } from "./settings";
+import { ticketLinks } from "./ticket";
 import type { RegistrationRow } from "./types";
 
 /**
  * The two emails members receive. Each has a plain-text version (what the
  * first system sent, kept as the fallback) and an HTML version: the code
- * email as a payment card, the receipt as an admission ticket with a
- * greeting and the event details.
+ * email as a payment card, the receipt as an admission ticket with the QR
+ * code scanned at the door, a greeting, and the event details.
  */
 
 export type EmailContent = { subject: string; text: string; html: string };
-
-const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || "https://utahbdcommunity.vercel.app"
-).replace(/\/+$/, "");
 
 const COLORS = {
   forest: "#0d4f42",
@@ -223,13 +221,15 @@ export function receiptEmail(row: RegistrationRow, s: Settings): EmailContent {
   const method = row.payment_method || "zelle";
   const paidOn = formatInEventZone(row.paid_at ? new Date(row.paid_at) : new Date());
   const track = trackLink(row.code);
+  const links = ticketLinks(row.code);
+  const ticketPage = links?.ticket ?? track;
   const people = row.adults + row.children;
 
   const text = [
     `Assalamu alaikum ${row.name},`,
     "",
     `Thank you. Your payment is confirmed and your seats for ${s.event_name} are reserved.`,
-    "This email is your ticket. Show it, or just give your name, at the check-in desk.",
+    "This email is your ticket. Show the QR code, or just give your name, at the check-in desk.",
     "",
     `Ticket number: ${row.code}`,
     `Name:          ${row.name}`,
@@ -241,7 +241,7 @@ export function receiptEmail(row: RegistrationRow, s: Settings): EmailContent {
     ...eventLines(s),
     "",
     "We look forward to seeing you there.",
-    `Track your registration: ${track}`,
+    `Your ticket with the QR code: ${ticketPage}`,
     questionsLine(s),
     "",
     "BPAU",
@@ -269,9 +269,17 @@ export function receiptEmail(row: RegistrationRow, s: Settings): EmailContent {
     `<tr><td style="padding:28px 32px 8px;font-size:16px;line-height:1.6;">
 Assalamu alaikum ${esc(firstName(row.name))},<br><br>
 Thank you. Your payment is confirmed and your seats are reserved. This email is your ticket:
-show it at the check-in desk, or simply give your name. We look forward to celebrating with you.
+show the QR code at the check-in desk, or simply give your name. We look forward to celebrating with you.
 </td></tr>`,
-    `<tr><td style="padding:8px 32px 20px;">${codeBlock("Ticket number", row.code, `Paid ${money(paid)}`)}</td></tr>`,
+    `<tr><td style="padding:8px 32px 12px;">${codeBlock("Ticket number", row.code, `Paid ${money(paid)}`)}</td></tr>`,
+    ...(links
+      ? [
+          `<tr><td align="center" style="padding:4px 32px 16px;">
+<a href="${esc(links.ticket)}" style="text-decoration:none;"><img src="${esc(links.qr)}" width="200" height="200" alt="QR code for ticket ${esc(row.code)}" style="display:block;width:200px;height:200px;margin:0 auto;border:1px solid ${COLORS.sand};border-radius:12px;"></a>
+<div style="margin-top:8px;font-size:13px;line-height:1.5;color:${COLORS.muted};">Scan this at the door. If the picture does not show, <a href="${esc(links.ticket)}" style="color:${COLORS.forest};font-weight:600;">open your ticket</a> on your phone.</div>
+</td></tr>`,
+        ]
+      : []),
     `<tr><td style="padding:0 32px 8px;">${rows(ticketPairs)}</td></tr>`,
     `<tr><td style="padding:12px 32px 0;"><div style="border-top:2px dashed ${COLORS.sand};"></div></td></tr>`,
     `<tr><td style="padding:16px 32px 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.forest};font-weight:700;">Event details</td></tr>`,
@@ -281,7 +289,7 @@ show it at the check-in desk, or simply give your name. We look forward to celeb
 <div style="margin-top:6px;font-size:14px;line-height:1.7;color:${COLORS.ink};">${lines.map(esc).join("<br>")}<br><strong>Total ${esc(money(row.amount_due))}</strong></div>
 </div></td></tr>`,
     `<tr><td style="padding:0 32px 26px;font-size:14px;line-height:1.6;color:${COLORS.muted};">
-Keep this email. You can also <a href="${esc(track)}" style="color:${COLORS.forest};font-weight:600;">view your ticket online</a>.
+Keep this email. You can also <a href="${esc(ticketPage)}" style="color:${COLORS.forest};font-weight:600;">view your ticket online</a>.
 </td></tr>`,
   ].join("\n");
 

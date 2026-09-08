@@ -206,6 +206,45 @@ When a week looks right, tick "Auto-confirm Zelle payments" in Settings.
 - **Run expiry now**: does what the nightly job does, immediately.
 - **Export CSV**: all registrations, same columns as the old spreadsheet.
 
+## Check-in at the door
+
+The ticket email carries a QR code. On event day volunteers scan it with
+their own phones and the website says who to let in.
+
+One-time setup:
+
+1. Run `supabase/checkin.sql` once in the Supabase SQL editor. It adds two
+   columns (checked_in_at, checked_in_by) to registrations.
+2. Optional: set `TICKET_SECRET` on Vercel (any long random string) and
+   redeploy. Without it the QR signatures use `CRON_SECRET`, which also works.
+   Changing the secret later makes every QR already sent stop scanning; the
+   ticket number still works from the list.
+3. Create a Supabase user for each volunteer who will scan (Authentication,
+   Users, Add user), or one shared "door" account. Anyone signed in can scan,
+   and the audit log records who checked each person in.
+
+How the QR works: it holds a link to the ticket page with the code and a
+signature made from the server secret. A made-up QR with someone else's code
+fails the signature and is refused. The image itself is served by the site
+(`/api/ticket/qr`), because Gmail drops embedded pictures; a member whose
+mail app hides images taps "open your ticket" and gets the same QR full size.
+
+On the day:
+
+- Open /admin/checkin on a phone, sign in, tap Start camera, and allow the
+  camera. Hold each ticket QR in the frame. Android phones use the built-in
+  reader; iPhones use a small JavaScript reader; both work in the browser.
+- Green: paid and first time, with the party size and coupons to hand over.
+  Amber: this ticket was already used, with the time. Red: not paid, unknown,
+  or not one of our QRs.
+- A volunteer can also scan with the phone's own camera app: the ticket page
+  opens and, because they are signed in, shows a Check in button.
+- Find by name handles walk-ins, dead phones, and cash at the door. Unpaid
+  people are marked paid on the Payments page first (New entry or Mark
+  paid), then checked in here. Undo reverses a mistaken check-in.
+- The counter at the top shows tickets in and people arrived. The All
+  registrations tab on Payments and the CSV export also show check-in times.
+
 ## Nightly job
 
 `vercel.json` schedules `/api/cron/expire-pending` at 09:00 UTC (about 3 AM in

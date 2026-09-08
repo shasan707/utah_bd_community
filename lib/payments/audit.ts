@@ -15,7 +15,9 @@ export type AuditAction =
   | "REFUNDED"
   | "RESEND_RECEIPT"
   | "MERGE"
-  | "PAYMENT_IGNORED";
+  | "PAYMENT_IGNORED"
+  | "CHECK_IN"
+  | "CHECK_IN_UNDO";
 
 /**
  * Writes one audit row. Called after every change to money. If the log

@@ -44,6 +44,9 @@ export type RegistrationRow = {
   announcements_opt_in: boolean;
   notes: string;
   client_ip: string | null;
+  /** Set by the door scanner (supabase/checkin.sql). Null until the person arrives. */
+  checked_in_at: string | null;
+  checked_in_by: string;
 };
 
 export const MATCH_STATUSES = [
@@ -136,6 +139,8 @@ export const EXPORT_COLUMNS: (keyof RegistrationRow)[] = [
   "zelle_confirmation_id",
   "zelle_sender_name",
   "receipt_sent_at",
+  "checked_in_at",
+  "checked_in_by",
   "created_by",
   "announcements_opt_in",
   "notes",
@@ -188,5 +193,7 @@ export function parseRegistration(raw: Record<string, unknown>): RegistrationRow
     announcements_opt_in: Boolean(raw.announcements_opt_in),
     notes: str(raw.notes),
     client_ip: strOrNull(raw.client_ip),
+    checked_in_at: strOrNull(raw.checked_in_at),
+    checked_in_by: str(raw.checked_in_by),
   };
 }
