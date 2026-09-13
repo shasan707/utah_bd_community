@@ -6,7 +6,8 @@ import Icon from "@/components/Icon";
 import Alpona from "@/components/Alpona";
 import EventMap from "@/components/EventMap";
 import PlaceholderImage from "@/components/PlaceholderImage";
-import { getEventBySlug } from "@/lib/content";
+import PhotoMarquee from "@/components/PhotoMarquee";
+import { getEventBySlug, getGalleryForEvent } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
 import { paletteGradient } from "@/lib/palette";
 import { feeItems } from "@/lib/payments/pricing";
@@ -27,6 +28,7 @@ export default async function EventDetailPage({
   const canRegister = Boolean(registration?.open && registration.pricing);
   const fees = registration?.pricing ? feeItems(registration.pricing) : [];
   const mapQuery = event.address || `${event.venue}, ${event.city}`;
+  const photos = await getGalleryForEvent(slug);
 
   return (
     <div>
@@ -207,6 +209,24 @@ export default async function EventDetailPage({
           </div>
         </div>
       </section>
+
+      {photos.length > 0 && (
+        <section className="overflow-hidden bg-cream py-14">
+          <div className="mx-auto max-w-5xl px-5">
+            <Reveal>
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
+                ✦ From our community
+              </p>
+              <h2 className="mt-2 text-2xl font-bold text-forest-ink md:text-3xl">
+                Faces from our gatherings.
+              </h2>
+            </Reveal>
+          </div>
+          <Reveal delay={0.1}>
+            <PhotoMarquee items={photos} className="mt-8" />
+          </Reveal>
+        </section>
+      )}
     </div>
   );
 }

@@ -8,7 +8,8 @@ type IconName =
   | "ticket"
   | "check"
   | "users"
-  | "heart";
+  | "heart"
+  | "play";
 
 const paths: Record<IconName, React.ReactNode> = {
   calendar: (
@@ -55,6 +56,7 @@ const paths: Record<IconName, React.ReactNode> = {
       <path d="M16 3.7a3.5 3.5 0 0 1 0 6.6M22 21v-2a5 5 0 0 0-3.5-4.8" />
     </>
   ),
+  play: <path d="M9 7.4v9.2l7.6-4.6z" />,
   heart: (
     <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z" />
   ),

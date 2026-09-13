@@ -204,8 +204,32 @@ body {
 }
 
 .marquee-track {
-  animation: marquee-scroll 32s linear infinite;
+  animation: marquee-scroll var(--marquee-duration, 32s) linear infinite;
   will-change: transform;
+}
+
+/* Photo strip: same endless track, with soft edges and a pause on hover. */
+.photo-marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 6%,
+    #000 94%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 6%,
+    #000 94%,
+    transparent
+  );
+}
+
+.photo-marquee:hover .marquee-track,
+.photo-marquee:focus-within .marquee-track {
+  animation-play-state: paused;
 }
 
 /* Slow float for decorative alpona */
@@ -238,5 +262,11 @@ body {
   .drift,
   .drift-slow {
     animation: none;
+  }
+  /* The strip stops moving, so let it be swiped through by hand instead. */
+  .photo-marquee {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 }

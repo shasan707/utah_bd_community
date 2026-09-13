@@ -15,12 +15,20 @@ type Row = {
   tall: boolean;
   media_type: "photo" | "video" | null;
   video_url: string | null;
+  event_slug: string | null;
 };
+
+type EventOption = { slug: string; title: string };
 
 const MAX_VIDEO_MB = 50;
 
+/** The value of the "no particular event" choice in the dropdowns. */
+const GENERAL = "";
+
 export default function AdminGallery() {
   const [rows, setRows] = useState<Row[]>([]);
+  const [events, setEvents] = useState<EventOption[]>([]);
+  const [eventSlug, setEventSlug] = useState<string>(GENERAL);
   const [kind, setKind] = useState<"photo" | "video">("photo");
   const [file, setFile] = useState<File | null>(null);
   const [cover, setCover] = useState<File | null>(null);
@@ -31,6 +39,7 @@ export default function AdminGallery() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [needsSql, setNeedsSql] = useState(false);
+  const [needsEventSql, setNeedsEventSql] = useState(false);
 
   const load = useCallback(async () => {
     const { data, error } = await getSupabase()
@@ -44,11 +53,21 @@ export default function AdminGallery() {
     const list = (data as Row[]) ?? [];
     setRows(list);
     setNeedsSql(list.length > 0 && !("media_type" in list[0]));
+    setNeedsEventSql(list.length > 0 && !("event_slug" in list[0]));
+  }, []);
+
+  const loadEvents = useCallback(async () => {
+    const { data } = await getSupabase()
+      .from("events")
+      .select("slug,title")
+      .order("date", { ascending: false });
+    setEvents((data as EventOption[]) ?? []);
   }, []);
 
   useEffect(() => {
     load();
-  }, [load]);
+    loadEvents();
+  }, [load, loadEvents]);
 
   const resetForm = () => {
     setTitle("");
@@ -79,6 +98,7 @@ export default function AdminGallery() {
           tall,
           media_type: "photo",
           video_url: null,
+          event_slug: eventSlug || null,
         };
       } else {
         let link = videoUrl.trim();
@@ -99,10 +119,16 @@ export default function AdminGallery() {
           tall,
           media_type: "video",
           video_url: link,
+          event_slug: eventSlug || null,
         };
       }
       const { error } = await getSupabase().from("gallery_items").insert(record);
       if (error) {
+        if (/event_slug/i.test(error.message)) {
+          throw new Error(
+            "The gallery table does not have the event column yet. Run supabase/gallery_event.sql in the Supabase SQL editor, then try again."
+          );
+        }
         if (/media_type|video_url/i.test(error.message)) {
           throw new Error(
             "The gallery table does not have the video columns yet. Run supabase/gallery_video.sql in the Supabase SQL editor, then try again."
@@ -128,6 +154,33 @@ export default function AdminGallery() {
     if (paths.length) await getSupabase().storage.from("photos").remove(paths);
     await load();
   };
+
+  /** Move an existing picture to another event, or back to the general mix. */
+  const assign = async (row: Row, slug: string) => {
+    setRows((prev) =>
+      prev.map((r) => (r.id === row.id ? { ...r, event_slug: slug || null } : r))
+    );
+    const { error } = await getSupabase()
+      .from("gallery_items")
+      .update({ event_slug: slug || null })
+      .eq("id", row.id);
+    if (error) {
+      setMessage(`Could not change the event: ${error.message}`);
+      await load();
+    }
+  };
+
+  /** The event choices, shared by the upload form and each picture card. */
+  const eventOptions = (
+    <>
+      <option value={GENERAL}>General — all events</option>
+      {events.map((e) => (
+        <option key={e.slug} value={e.slug}>
+          {e.title}
+        </option>
+      ))}
+    </>
+  );
 
   const thumbOf = (r: Row): string | undefined =>
     r.image_url || (r.video_url ? videoThumbnail(r.video_url) : undefined);
@@ -161,6 +214,14 @@ export default function AdminGallery() {
         <p className="mt-4 rounded-2xl bg-amber-100 px-5 py-3 text-sm text-amber-800">
           Videos need two new columns. Run supabase/gallery_video.sql in the Supabase
           SQL editor once. Photos keep working meanwhile.
+        </p>
+      )}
+
+      {needsEventSql && (
+        <p className="mt-4 rounded-2xl bg-amber-100 px-5 py-3 text-sm text-amber-800">
+          Tagging a picture to an event needs one new column. Run
+          supabase/gallery_event.sql in the Supabase SQL editor once. Everything else
+          keeps working meanwhile.
         </p>
       )}
 
@@ -237,6 +298,23 @@ export default function AdminGallery() {
           </>
         )}
 
+        <div className="sm:col-span-2">
+          <label className="mb-1 block text-sm font-semibold text-forest-ink">
+            Event
+          </label>
+          <select
+            value={eventSlug}
+            onChange={(e) => setEventSlug(e.target.value)}
+            className={inputCls}
+          >
+            {eventOptions}
+          </select>
+          <p className="mt-1 text-xs text-forest-ink/50">
+            An event page shows its own pictures first, and the general ones when it
+            has none of its own. This choice stays put between uploads.
+          </p>
+        </div>
+
         <input
           placeholder="Title (shown on the tile)"
           value={title}
@@ -288,6 +366,14 @@ export default function AdminGallery() {
               </div>
               <div className="p-3">
                 <div className="truncate text-sm font-semibold text-forest-ink">{r.title}</div>
+                <select
+                  value={r.event_slug ?? GENERAL}
+                  onChange={(e) => assign(r, e.target.value)}
+                  aria-label={`Event for ${r.title}`}
+                  className="mt-2 w-full rounded-lg border border-sand bg-cream-dim px-2 py-1 text-xs text-forest-ink"
+                >
+                  {eventOptions}
+                </select>
                 <div className="mt-2 flex gap-3">
                   {video && r.video_url && (
                     <a

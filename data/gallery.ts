@@ -10,6 +10,8 @@ export type GalleryItem = {
   kind?: "photo" | "video";
   /** YouTube, Vimeo, or Facebook link, or an uploaded video file. */
   videoUrl?: string;
+  /** The event this picture belongs to. Unset means a general community picture. */
+  eventSlug?: string;
 };
 
 // Placeholder gallery. Swap with real event photos and videos later.

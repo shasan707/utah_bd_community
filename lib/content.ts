@@ -113,11 +113,25 @@ export async function getGallery(): Promise<GalleryItem[]> {
         src: cover || undefined,
         kind,
         videoUrl,
+        eventSlug: row.event_slug || undefined,
       };
     });
   } catch {
     return fallbackGallery;
   }
+}
+
+/**
+ * The pictures shown on one event's page: the ones tagged with this event,
+ * or the general community mix when the event has none of its own yet. Either
+ * way the page gets something, so the strip is never an empty band.
+ */
+export async function getGalleryForEvent(slug: string): Promise<GalleryItem[]> {
+  const all = await getGallery();
+  const tagged = all.filter((item) => item.eventSlug === slug);
+  if (tagged.length > 0) return tagged;
+  const general = all.filter((item) => !item.eventSlug);
+  return general.length > 0 ? general : all;
 }
 
 export async function getCommittee(): Promise<CommitteeMember[]> {
