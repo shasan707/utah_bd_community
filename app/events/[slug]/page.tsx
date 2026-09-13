@@ -12,7 +12,7 @@ import { getEventBySlug, getEventPhotos } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
 import { paletteGradient } from "@/lib/palette";
 import { feeItems } from "@/lib/payments/pricing";
-import { getRegistrationStatus } from "@/lib/payments/settings";
+import { canRegisterFor, getRegistrationStatus } from "@/lib/payments/settings";
 
 export const revalidate = 60;
 
@@ -25,9 +25,9 @@ export default async function EventDetailPage({
   const event = await getEventBySlug(slug);
   if (!event) notFound();
 
-  const registration = event.registration ? await getRegistrationStatus() : null;
-  const canRegister = Boolean(registration?.open && registration.pricing);
-  const fees = registration?.pricing ? feeItems(registration.pricing) : [];
+  const registration = await getRegistrationStatus();
+  const canRegister = canRegisterFor(registration, event.date);
+  const fees = registration.pricing ? feeItems(registration.pricing) : [];
   const mapQuery = event.address || `${event.venue}, ${event.city}`;
   const photos = await getEventPhotos(slug);
 
@@ -41,6 +41,14 @@ export default async function EventDetailPage({
         <Alpona className="absolute -right-20 -top-20 h-80 w-80 text-white/15" />
         <Alpona className="drift-slow absolute -bottom-24 -left-16 h-72 w-72 text-white/10" />
         <div className="relative mx-auto max-w-5xl px-5">
+          {/* The event's own picture sits beside the title rather than in a
+              corner far below. The words stay on the gradient, so the title
+              stays readable whatever the photograph happens to look like. */}
+          <div
+            className={`grid items-center gap-10 ${
+              event.imageUrl ? "md:grid-cols-[1.2fr_1fr]" : ""
+            }`}
+          >
           <Reveal>
             <Link
               href="/events"
@@ -97,6 +105,16 @@ export default async function EventDetailPage({
               </Link>
             )}
           </Reveal>
+            {event.imageUrl && (
+              <Reveal delay={0.15}>
+                <PlaceholderImage
+                  palette={event.palette}
+                  src={event.imageUrl}
+                  className="h-60 w-full rounded-3xl shadow-2xl ring-1 ring-white/25 sm:h-72 md:h-[380px]"
+                />
+              </Reveal>
+            )}
+          </div>
         </div>
       </section>
 
@@ -162,15 +180,6 @@ export default async function EventDetailPage({
                 </div>
               </Reveal>
             )}
-            {!event.registration && (
-              <Reveal delay={0.25}>
-                <div className="mt-8 rounded-2xl border border-sand bg-cream-dim p-5 text-sm text-forest-ink/70">
-                  <strong className="text-forest">Note:</strong> this is a sample
-                  event with placeholder details. Real dates, venues, and
-                  registration will appear here once BAU announces them.
-                </div>
-              </Reveal>
-            )}
           </div>
 
           <div className="space-y-6">
@@ -214,15 +223,6 @@ export default async function EventDetailPage({
                   </a>
                 )}
               </div>
-            </Reveal>
-            <Reveal delay={0.25}>
-              <PlaceholderImage
-                palette={event.palette}
-                banglaCaption={event.banglaTitle}
-                caption={event.imageUrl ? undefined : "Venue photo placeholder"}
-                src={event.imageUrl}
-                className="h-52 rounded-3xl"
-              />
             </Reveal>
           </div>
         </div>

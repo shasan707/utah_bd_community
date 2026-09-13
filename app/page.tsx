@@ -16,7 +16,7 @@ import { getEvents, getGallery, next } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
 import { GALLERY_PLACEHOLDER_NOTE } from "@/lib/home-copy";
 import { feeItems } from "@/lib/payments/pricing";
-import { getRegistrationStatus } from "@/lib/payments/settings";
+import { canRegisterFor, getRegistrationStatus } from "@/lib/payments/settings";
 
 export const revalidate = 60;
 
@@ -32,7 +32,7 @@ export default async function HomePage() {
   const registration = await getRegistrationStatus();
   const featured = next(allEvents);
   const galleryPreview = (await getGallery()).slice(0, 6);
-  const showFees = Boolean(featured.registration && registration.pricing);
+  const showFees = canRegisterFor(registration, featured.date);
   const fees = registration.pricing ? feeItems(registration.pricing) : [];
 
   return (

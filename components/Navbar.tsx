@@ -29,14 +29,10 @@ export default function Navbar() {
 
   useEffect(() => setOpen(false), [pathname]);
 
-  // A single event's page and the register page keep a solid white bar, so
-  // the dark hero band below reads as its own block.
-  const whiteBar =
-    pathname === "/register" || /^\/events\/[^/]+$/.test(pathname);
-  // Pages that open with a dark emerald band need light text until the
-  // glass bar appears on scroll.
-  const darkHero = pathname === "/events";
-  const onDark = darkHero && !scrolled;
+  // The event pages and the register page keep a solid white bar, so the dark
+  // hero band below reads as its own block. The events list and a single
+  // event match, so moving between them does not change the bar.
+  const whiteBar = pathname === "/register" || pathname.startsWith("/events");
 
   return (
     <header
@@ -55,11 +51,7 @@ export default function Navbar() {
       >
         <Link href="/" className="flex items-center gap-3">
           <Logo uid="nav" className="h-12 w-12 shrink-0" />
-          <span
-            className={`font-heading font-black leading-tight tracking-tight transition-colors ${
-              onDark ? "text-ivory" : "text-forest"
-            }`}
-          >
+          <span className="font-heading font-black leading-tight tracking-tight text-forest transition-colors">
             <span className="text-xl xl:hidden">BAU</span>
             <span className="hidden text-base xl:inline">
               Bangladeshi Association of Utah{" "}
@@ -78,12 +70,8 @@ export default function Navbar() {
                 href={l.href}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                   active
-                    ? onDark
-                      ? "bg-white/15 text-ivory"
-                      : "bg-forest text-cream"
-                    : onDark
-                      ? "text-ivory/85 hover:bg-white/10 hover:text-ivory"
-                      : "text-forest-ink/80 hover:bg-forest/10 hover:text-forest"
+                    ? "bg-forest text-cream"
+                    : "text-forest-ink/80 hover:bg-forest/10 hover:text-forest"
                 }`}
               >
                 {l.label}
@@ -104,19 +92,19 @@ export default function Navbar() {
           className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 md:hidden"
         >
           <span
-            className={`h-0.5 w-6 transition-transform ${
-              onDark && !open ? "bg-ivory" : "bg-forest-ink"
-            } ${open ? "translate-y-2 rotate-45" : ""}`}
+            className={`h-0.5 w-6 bg-forest-ink transition-transform ${
+              open ? "translate-y-2 rotate-45" : ""
+            }`}
           />
           <span
-            className={`h-0.5 w-6 transition-opacity ${
-              onDark && !open ? "bg-ivory" : "bg-forest-ink"
-            } ${open ? "opacity-0" : ""}`}
+            className={`h-0.5 w-6 bg-forest-ink transition-opacity ${
+              open ? "opacity-0" : ""
+            }`}
           />
           <span
-            className={`h-0.5 w-6 transition-transform ${
-              onDark && !open ? "bg-ivory" : "bg-forest-ink"
-            } ${open ? "-translate-y-2 -rotate-45" : ""}`}
+            className={`h-0.5 w-6 bg-forest-ink transition-transform ${
+              open ? "-translate-y-2 -rotate-45" : ""
+            }`}
           />
         </button>
       </div>

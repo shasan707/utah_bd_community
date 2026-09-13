@@ -127,6 +127,27 @@ export type RegistrationStatus = {
 };
 
 /**
+ * Whether a page may offer to register people for one event.
+ *
+ * Registration is a site-wide setting rather than a flag on the event row, so
+ * the only thing that varies per event is whether it is still ahead: a
+ * gathering that has already happened must never offer a Register button.
+ * Both the home page and an event's own page ask through here, so the two
+ * cannot drift apart.
+ */
+export function canRegisterFor(
+  status: RegistrationStatus,
+  eventDate: string,
+  now = new Date()
+): boolean {
+  return Boolean(
+    status.open &&
+      status.pricing &&
+      new Date(eventDate).getTime() > now.getTime()
+  );
+}
+
+/**
  * Safe for public server components: never throws. When the server has no
  * service key yet, the pages simply show registration as offline.
  */
