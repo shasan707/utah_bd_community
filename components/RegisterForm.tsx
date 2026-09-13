@@ -8,6 +8,7 @@ import ZelleLogo from "@/components/ZelleLogo";
 import UsFlag from "@/components/UsFlag";
 import {
   breakdownLines,
+  bundleSize,
   computeAmount,
   money,
   priceLabel,
@@ -41,7 +42,7 @@ const emptyForm = {
   children: 0,
   ticket_type: "professional" as TicketType,
   coupons_qty: 0,
-  donation: 0,
+  bundles_qty: 0,
   comment: "",
   announcements: false,
   website: "",
@@ -128,12 +129,16 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
   const set = (patch: Partial<typeof form>) =>
     setForm((f) => ({ ...f, ...patch }));
 
+  // Bundles are just a faster way to pick coupons: the form adds them up and
+  // the server prices the total, charging the bundle rate for every full ten.
+  const totalCoupons =
+    form.coupons_qty + form.bundles_qty * bundleSize(pricing);
   const items = {
     adults: form.adults,
     children: form.children,
     ticket_type: form.ticket_type,
-    coupons_qty: form.coupons_qty,
-    donation: Number(form.donation) || 0,
+    coupons_qty: totalCoupons,
+    donation: 0,
   };
   const estimate = computeAmount(items, pricing);
   const lines = breakdownLines(items, pricing);
@@ -148,6 +153,7 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          coupons_qty: totalCoupons,
           name: `${form.first_name.trim()} ${form.last_name.trim()}`.trim(),
           started_at: startedAt,
         }),
@@ -485,36 +491,30 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
           </div>
 
           <div className="space-y-4 border-t border-sand pt-8">
-            <SectionTitle>Extras</SectionTitle>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <SectionTitle>Raffle draw</SectionTitle>
+            <div className="space-y-4">
               <Stepper
                 label="Raffle draw coupons"
-                hint={`${money(pricing.coupon_single)} each, or a bundle of ${pricing.coupon_bundle_qty} for ${money(pricing.coupon_bundle_price)}`}
+                hint={`${money(pricing.coupon_single)} each`}
                 value={form.coupons_qty}
-                max={500}
+                max={50}
                 onChange={(v) => set({ coupons_qty: v })}
               />
-              <div>
-                <label htmlFor="reg-donation" className={labelCls}>
-                  Donation
-                </label>
-                <div className="flex items-center rounded-xl border border-sand bg-ivory focus-within:border-forest focus-within:bg-white">
-                  <span className="pl-4 text-lg font-bold text-forest-ink/50">$</span>
-                  <input
-                    id="reg-donation"
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    step={1}
-                    value={form.donation}
-                    onChange={(e) =>
-                      set({ donation: Math.max(0, Number(e.target.value) || 0) })
-                    }
-                    className="w-full bg-transparent px-3 py-3 text-lg font-bold text-forest-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  />
-                </div>
-                <p className={helpCls}>Optional. Every dollar goes to the community.</p>
-              </div>
+              <Stepper
+                label={`Bundles of ${pricing.coupon_bundle_qty} coupons`}
+                hint={`${money(pricing.coupon_bundle_price)} per bundle, saving ${money(
+                  pricing.coupon_bundle_qty * pricing.coupon_single -
+                    pricing.coupon_bundle_price
+                )}`}
+                value={form.bundles_qty}
+                max={20}
+                onChange={(v) => set({ bundles_qty: v })}
+              />
+              {totalCoupons > 0 && (
+                <p className={helpCls}>
+                  {totalCoupons} coupon{totalCoupons > 1 ? "s" : ""} in total.
+                </p>
+              )}
             </div>
           </div>
 

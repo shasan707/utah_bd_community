@@ -22,7 +22,7 @@ const steps = [
   {
     n: "1",
     title: "Fill the form",
-    text: "Tell us who is coming, plus any raffle draw coupons or a donation.",
+    text: "Tell us who is coming, plus any raffle draw coupons.",
   },
   {
     n: "2",

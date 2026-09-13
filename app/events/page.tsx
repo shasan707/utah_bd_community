@@ -6,7 +6,6 @@ import EventHero from "@/components/EventHero";
 import SectionHeading from "@/components/SectionHeading";
 import Icon from "@/components/Icon";
 import { getEvents, next, past, upcoming } from "@/lib/content";
-import type { CommunityEvent } from "@/data/events";
 
 export const metadata: Metadata = {
   title: "Events | Bangladeshi Association of Utah",
@@ -15,10 +14,6 @@ export const metadata: Metadata = {
 };
 
 export const revalidate = 60;
-
-function openness(event: CommunityEvent): "Open to all" | "Members" {
-  return event.membersOnly ? "Members" : "Open to all";
-}
 
 export default async function EventsPage() {
   const all = await getEvents();
@@ -44,7 +39,7 @@ export default async function EventsPage() {
             <div className="mt-12 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
               {comingUp.map((e, i) => (
                 <Reveal key={e.slug} delay={(i % 3) * 0.1}>
-                  <EventCard event={e} openness={openness(e)} />
+                  <EventCard event={e} />
                 </Reveal>
               ))}
             </div>

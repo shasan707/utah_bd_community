@@ -29,18 +29,22 @@ export default function Navbar() {
 
   useEffect(() => setOpen(false), [pathname]);
 
+  // A single event's page keeps a solid white bar, so the dark hero band
+  // below it reads as its own block.
+  const eventPage = /^\/events\/[^/]+$/.test(pathname);
   // Pages that open with a dark emerald band need light text until the
   // glass bar appears on scroll.
-  const darkHero =
-    pathname === "/register" ||
-    pathname === "/events" ||
-    /^\/events\/[^/]+$/.test(pathname);
+  const darkHero = pathname === "/register" || pathname === "/events";
   const onDark = darkHero && !scrolled;
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled ? "glass shadow-lg shadow-forest-ink/5" : "bg-transparent"
+        eventPage
+          ? `bg-white ${scrolled ? "shadow-lg shadow-forest-ink/5" : ""}`
+          : scrolled
+            ? "glass shadow-lg shadow-forest-ink/5"
+            : "bg-transparent"
       }`}
     >
       <div

@@ -33,8 +33,6 @@ export default function EventHero({ event }: { event: CommunityEvent }) {
   const contentY = useTransform(scrollYProgress, [0, 1], [0, -110]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
 
-  const openness = event.membersOnly ? "Members" : "Open to all";
-
   return (
     <section
       ref={ref}
@@ -122,9 +120,6 @@ export default function EventHero({ event }: { event: CommunityEvent }) {
           className="mt-5 flex flex-wrap items-center gap-3"
         >
           <p className="max-w-xl text-lg text-ivory-dim">{event.blurb}</p>
-          <span className="rounded-full bg-ivory/15 px-3 py-1 text-xs font-semibold text-ivory">
-            {openness}
-          </span>
         </motion.div>
 
         <motion.div

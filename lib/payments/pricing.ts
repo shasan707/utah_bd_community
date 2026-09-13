@@ -48,12 +48,29 @@ export function roundCents(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+/** How many coupons come in one bundle. Never zero, so the maths stays safe. */
+export function bundleSize(p: PriceTable): number {
+  return p.coupon_bundle_qty > 0 ? p.coupon_bundle_qty : 10;
+}
+
 /** Bundles of coupon_bundle_qty at the bundle price, the rest at single price. */
 export function couponCost(qty: number, p: PriceTable): number {
-  const bundleQty = p.coupon_bundle_qty > 0 ? p.coupon_bundle_qty : 10;
-  const bundles = Math.floor(qty / bundleQty);
-  const singles = qty % bundleQty;
-  return bundles * p.coupon_bundle_price + singles * p.coupon_single;
+  const size = bundleSize(p);
+  return (
+    Math.floor(qty / size) * p.coupon_bundle_price + (qty % size) * p.coupon_single
+  );
+}
+
+/** "23 raffle draw coupons (2 bundles of 10 + 3 single)" */
+export function couponSummary(qty: number, p: PriceTable): string {
+  const size = bundleSize(p);
+  const bundles = Math.floor(qty / size);
+  const singles = qty % size;
+  const head = `${qty} raffle draw coupon${qty > 1 ? "s" : ""}`;
+  if (bundles === 0) return head;
+  const parts = [`${bundles} bundle${bundles > 1 ? "s" : ""} of ${size}`];
+  if (singles > 0) parts.push(`${singles} single`);
+  return `${head} (${parts.join(" + ")})`;
 }
 
 export function perAdultPrice(ticket: TicketType, p: PriceTable): number {
@@ -93,9 +110,9 @@ export function breakdownLines(items: LineItems, p: PriceTable): string[] {
   }
   if (items.coupons_qty > 0) {
     lines.push(
-      `${items.coupons_qty} raffle draw coupon${
-        items.coupons_qty > 1 ? "s" : ""
-      } = ${money(couponCost(items.coupons_qty, p))}`
+      `${couponSummary(items.coupons_qty, p)} = ${money(
+        couponCost(items.coupons_qty, p)
+      )}`
     );
   }
   if (items.donation > 0) lines.push(`Donation = ${money(items.donation)}`);

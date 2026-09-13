@@ -14,10 +14,7 @@ import Honeycomb from "@/components/Honeycomb";
 import Mountains from "@/components/Mountains";
 import { getEvents, getGallery, next } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
-import {
-  GALLERY_PLACEHOLDER_NOTE,
-  OPENNESS_NOTE,
-} from "@/lib/home-copy";
+import { GALLERY_PLACEHOLDER_NOTE } from "@/lib/home-copy";
 import { feeItems } from "@/lib/payments/pricing";
 import { getRegistrationStatus } from "@/lib/payments/settings";
 
@@ -136,7 +133,6 @@ export default async function HomePage() {
                   </Link>
                 )}
               </div>
-              <p className="mt-4 text-sm text-mint">{OPENNESS_NOTE}</p>
             </Reveal>
             <Reveal delay={0.2} className="md:justify-self-end">
               <div className="text-xs font-semibold uppercase tracking-widest text-mint">

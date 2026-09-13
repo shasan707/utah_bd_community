@@ -4,14 +4,7 @@ import PlaceholderImage from "@/components/PlaceholderImage";
 import { formatDateShort, formatTime } from "@/lib/format";
 import type { CommunityEvent } from "@/data/events";
 
-export default function EventCard({
-  event,
-  openness,
-}: {
-  event: CommunityEvent;
-  /** Home page only. Omitted elsewhere, so no badge renders. */
-  openness?: string;
-}) {
+export default function EventCard({ event }: { event: CommunityEvent }) {
   return (
     <TiltCard className="h-full">
       <Link
@@ -29,17 +22,8 @@ export default function EventCard({
             <span>{formatDateShort(event.date)}</span>
             <span className="text-sand">•</span>
             <span>{formatTime(event.date)}</span>
-            {openness && (
-              <span className="ml-auto rounded-full bg-forest/10 px-2.5 py-1 normal-case tracking-normal text-forest">
-                {openness}
-              </span>
-            )}
             {event.free && (
-              <span
-                className={`rounded-full bg-forest/10 px-2.5 py-1 normal-case tracking-normal text-forest ${
-                  openness ? "" : "ml-auto"
-                }`}
-              >
+              <span className="ml-auto rounded-full bg-forest/10 px-2.5 py-1 normal-case tracking-normal text-forest">
                 Free
               </span>
             )}

@@ -22,9 +22,6 @@ export function homeVenue(event: CommunityEvent): string {
 export const GALLERY_PLACEHOLDER_NOTE =
   "placeholder — real photos coming after our next event";
 
-export const OPENNESS_NOTE =
-  "Most BAU events are open to everyone — look for the “Open to all” badge.";
-
 const TITLE_OVERRIDES: Record<string, string> = {
   "ekushey-february-2027":
     "Ekushey February · International Mother Language Day",
@@ -41,11 +38,6 @@ export function homeTitle(event: CommunityEvent): string {
 
 export function homeDateNote(event: CommunityEvent): string {
   return DATE_NOTES[event.slug] ?? "";
-}
-
-/** Events are open to everyone unless the record says otherwise. */
-export function homeOpenness(event: CommunityEvent): "Open to all" | "Members" {
-  return event.membersOnly ? "Members" : "Open to all";
 }
 
 /** Home-page view of an event: overridden title and venue. */

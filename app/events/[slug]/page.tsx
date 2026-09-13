@@ -77,9 +77,6 @@ export default async function EventDetailPage({
                 )}
                 {`, ${event.city}`}
               </span>
-              <span className="rounded-full bg-white/20 px-3 py-0.5 font-semibold">
-                {event.free ? "Free entry" : "Ticketed"}
-              </span>
             </div>
             {event.address && (
               <div className="mt-2 flex items-center gap-2 text-sm text-white/75">
