@@ -262,7 +262,11 @@ export default function RegistrationTracker({
                 {status.children
                   ? `, ${status.children} child${status.children === 1 ? "" : "ren"}`
                   : ""}
-                {status.coupons_qty ? `, ${status.coupons_qty} food coupons` : ""}
+                {status.coupons_qty
+                  ? `, ${status.coupons_qty} raffle draw coupon${
+                      status.coupons_qty > 1 ? "s" : ""
+                    }`
+                  : ""}
               </dd>
             </div>
           </dl>

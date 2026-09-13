@@ -8,8 +8,16 @@ import type { CommunityEvent } from "@/data/events";
  * overrides still apply when Supabase serves the live data.
  */
 
-/** Venues are not published on the home page until registration opens. */
+/** Shown instead of a venue until an event has a confirmed address. */
 export const HOME_VENUE = "Venue announced with registration";
+
+/**
+ * The venue line for the home page. An event with a published street address
+ * shows the real place; the rest stay behind the placeholder above.
+ */
+export function homeVenue(event: CommunityEvent): string {
+  return event.address ? `${event.venue}, ${event.city}` : HOME_VENUE;
+}
 
 export const GALLERY_PLACEHOLDER_NOTE =
   "placeholder — real photos coming after our next event";
@@ -40,7 +48,7 @@ export function homeOpenness(event: CommunityEvent): "Open to all" | "Members" {
   return event.membersOnly ? "Members" : "Open to all";
 }
 
-/** Home-page view of an event: overridden title and withheld venue. */
+/** Home-page view of an event: overridden title and venue. */
 export function homeEvent(event: CommunityEvent): CommunityEvent {
-  return { ...event, title: homeTitle(event), venue: HOME_VENUE };
+  return { ...event, title: homeTitle(event), venue: homeVenue(event) };
 }

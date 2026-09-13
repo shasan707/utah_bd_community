@@ -257,7 +257,9 @@ export function receiptEmail(row: RegistrationRow, s: Settings): EmailContent {
           }`
         : "No seats (coupons or donation only)",
     ],
-    ...(row.coupons_qty > 0 ? [["Food coupons", String(row.coupons_qty)] as [string, string]] : []),
+    ...(row.coupons_qty > 0
+      ? [["Raffle draw coupons", String(row.coupons_qty)] as [string, string]]
+      : []),
     ["Paid", `${money(paid)} via ${method}, ${paidOn}`],
   ];
 

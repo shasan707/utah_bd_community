@@ -189,7 +189,7 @@ export default function Dashboard({
         />
         <Tile
           value={String(coupons)}
-          label="Food coupons sold"
+          label="Raffle draw coupons sold"
           sub={donations > 0 ? `${money(donations)} in donations` : "paid only"}
         />
       </div>

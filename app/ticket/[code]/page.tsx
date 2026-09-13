@@ -124,7 +124,7 @@ export default async function TicketPage({
             <dd className="font-semibold text-forest-ink">{admits}</dd>
             {row.coupons_qty > 0 && (
               <>
-                <dt className="text-forest-ink/60">Food coupons</dt>
+                <dt className="text-forest-ink/60">Raffle draw coupons</dt>
                 <dd className="font-semibold text-forest-ink">{row.coupons_qty}</dd>
               </>
             )}

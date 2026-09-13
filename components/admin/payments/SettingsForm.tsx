@@ -48,7 +48,7 @@ const groups: { title: string; fields: Field[] }[] = [
       { key: "price_adult", label: "Adult (professional)", type: "number" },
       { key: "price_student", label: "Student", type: "number" },
       { key: "price_child", label: "Child (under 10)", type: "number" },
-      { key: "coupon_single", label: "One food coupon", type: "number" },
+      { key: "coupon_single", label: "One raffle draw coupon", type: "number" },
       { key: "coupon_bundle_qty", label: "Coupons in a bundle", type: "number" },
       { key: "coupon_bundle_price", label: "Bundle price", type: "number" },
     ],

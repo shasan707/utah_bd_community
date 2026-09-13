@@ -49,7 +49,7 @@ Every member is welcome to contribute. Send a few paragraphs and a photo through
       "Two minutes and three steps: fill the form, send a Zelle with your code in the memo, and your ticket lands in your inbox.",
     body: `We kept event registration as simple as sending money to a friend.
 
-1. **Fill the form** on the Register page. Tell us who is coming and whether you want food coupons.
+1. **Fill the form** on the Register page. Tell us who is coming and whether you want raffle draw coupons.
 2. **Send the Zelle** for the exact amount. Put your code, for example R-7X3M, in the memo. That code is how we match your payment to you.
 3. **Get your ticket** by email. The moment the bank tells us your Zelle arrived, your registration is confirmed and the ticket goes out by itself.
 

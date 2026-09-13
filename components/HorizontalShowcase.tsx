@@ -12,7 +12,7 @@ import Alpona from "@/components/Alpona";
 import { events } from "@/data/events";
 import { paletteGradient } from "@/lib/palette";
 import { formatDateShort } from "@/lib/format";
-import { HOME_VENUE, homeDateNote, homeTitle } from "@/lib/home-copy";
+import { homeDateNote, homeTitle, homeVenue } from "@/lib/home-copy";
 
 function Panel({ index }: { index: number }) {
   const e = events[index];
@@ -40,7 +40,7 @@ function Panel({ index }: { index: number }) {
         </div>
         <div className="mt-3 text-sm text-white/75">
           {formatDateShort(e.date)}
-          {homeDateNote(e)} · {HOME_VENUE}
+          {homeDateNote(e)} · {homeVenue(e)}
         </div>
         <div className="mt-5 inline-block rounded-full bg-white/15 px-5 py-2 text-sm font-semibold backdrop-blur-sm transition-colors group-hover:bg-white group-hover:text-forest-ink">
           Explore →

@@ -118,7 +118,7 @@ export default function NewEntryForm({
             </select>
           </label>
           <label className="text-sm font-semibold text-forest-ink">
-            Food coupons
+            Raffle draw coupons
             <input
               type="number"
               min={0}
