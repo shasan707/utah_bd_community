@@ -4,10 +4,13 @@ import Reveal from "@/components/Reveal";
 import Countdown from "@/components/Countdown";
 import Icon from "@/components/Icon";
 import Alpona from "@/components/Alpona";
+import EventMap from "@/components/EventMap";
 import PlaceholderImage from "@/components/PlaceholderImage";
 import { getEventBySlug } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
 import { paletteGradient } from "@/lib/palette";
+import { feeItems } from "@/lib/payments/pricing";
+import { getRegistrationStatus } from "@/lib/payments/settings";
 
 export const revalidate = 60;
 
@@ -19,6 +22,11 @@ export default async function EventDetailPage({
   const { slug } = await params;
   const event = await getEventBySlug(slug);
   if (!event) notFound();
+
+  const registration = event.registration ? await getRegistrationStatus() : null;
+  const canRegister = Boolean(registration?.open && registration.pricing);
+  const fees = registration?.pricing ? feeItems(registration.pricing) : [];
+  const mapQuery = event.address || `${event.venue}, ${event.city}`;
 
   return (
     <div>
@@ -73,6 +81,21 @@ export default async function EventDetailPage({
                 {event.free ? "Free entry" : "Ticketed"}
               </span>
             </div>
+            {event.address && (
+              <div className="mt-2 flex items-center gap-2 text-sm text-white/75">
+                <Icon name="pin" className="h-4 w-4 opacity-0" />
+                {event.address}
+              </div>
+            )}
+            {canRegister && (
+              <Link
+                href="/register"
+                className="mt-8 inline-flex items-center gap-3 rounded-full bg-white px-9 py-4 font-heading text-lg font-black text-forest shadow-lg transition-transform hover:scale-105"
+              >
+                Register &amp; Pay
+                <span aria-hidden="true">→</span>
+              </Link>
+            )}
           </Reveal>
         </div>
       </section>
@@ -90,13 +113,47 @@ export default async function EventDetailPage({
                 <p className="mt-4 leading-relaxed text-forest-ink/75">{para}</p>
               </Reveal>
             ))}
-            <Reveal delay={0.25}>
-              <div className="mt-8 rounded-2xl border border-sand bg-cream-dim p-5 text-sm text-forest-ink/70">
-                <strong className="text-forest">Note:</strong> this is a sample
-                event with placeholder details. Real dates, venues, and
-                registration will appear here once BAU announces them.
-              </div>
-            </Reveal>
+            {canRegister && (
+              <Reveal delay={0.25}>
+                <div className="emerald-panel relative mt-10 overflow-hidden rounded-3xl p-8 text-center text-ivory">
+                  <Alpona className="floral-soft absolute -right-14 -top-14 h-48 w-48" />
+                  <div className="relative">
+                    <div className="text-xs font-bold uppercase tracking-[0.25em] text-mint">
+                      Reserve your seats
+                    </div>
+                    <h3 className="mt-2 font-heading text-2xl font-black md:text-3xl">
+                      Register and pay online
+                    </h3>
+                    <dl className="mx-auto mt-5 flex max-w-md flex-wrap justify-center gap-x-8 gap-y-2 text-sm">
+                      {fees.map((f) => (
+                        <div key={f.label} className="flex items-baseline gap-2">
+                          <dt className="text-ivory-dim">{f.label}</dt>
+                          <dd className="font-bold text-ivory">{f.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                    <Link
+                      href="/register"
+                      className="cta-accent mt-7 inline-block rounded-full px-10 py-4 font-heading text-lg font-black"
+                    >
+                      Register &amp; Pay
+                    </Link>
+                    <p className="mt-4 text-sm text-mint">
+                      Two minutes. You get a code, then pay by Zelle.
+                    </p>
+                  </div>
+                </div>
+              </Reveal>
+            )}
+            {!event.registration && (
+              <Reveal delay={0.25}>
+                <div className="mt-8 rounded-2xl border border-sand bg-cream-dim p-5 text-sm text-forest-ink/70">
+                  <strong className="text-forest">Note:</strong> this is a sample
+                  event with placeholder details. Real dates, venues, and
+                  registration will appear here once BAU announces them.
+                </div>
+              </Reveal>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -107,26 +164,40 @@ export default async function EventDetailPage({
                 </div>
                 <Countdown target={event.date} className="mt-3 flex-wrap" />
                 <Link
-                  href="/contact"
+                  href={canRegister ? "/register" : "/contact"}
                   className="mt-6 block rounded-full bg-forest px-6 py-3.5 text-center font-semibold text-cream transition-transform hover:scale-105"
                 >
-                  I&apos;m Interested
+                  {canRegister ? "Register & Pay" : "I'm Interested"}
                 </Link>
               </div>
             </Reveal>
-            {event.mapUrl && (
-              <Reveal delay={0.2}>
-                <a
-                  href={event.mapUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 rounded-full border-2 border-forest px-6 py-3.5 font-semibold text-forest transition-colors hover:bg-forest hover:text-cream"
-                >
-                  <Icon name="pin" className="h-4 w-4" />
-                  Open in Google Maps
-                </a>
-              </Reveal>
-            )}
+            <Reveal delay={0.2}>
+              <div className="rounded-3xl border border-sand bg-white p-6 shadow-sm">
+                <div className="text-xs font-semibold uppercase tracking-widest text-forest-ink/50">
+                  Where
+                </div>
+                <div className="mt-2 font-bold text-forest-ink">{event.venue}</div>
+                <address className="mt-1 not-italic text-sm leading-relaxed text-forest-ink/70">
+                  {event.address || event.city}
+                </address>
+                <EventMap
+                  query={mapQuery}
+                  title={`Map of ${event.venue}`}
+                  className="mt-4 h-56"
+                />
+                {event.mapUrl && (
+                  <a
+                    href={event.mapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 flex items-center justify-center gap-2 rounded-full border-2 border-forest px-6 py-3 font-semibold text-forest transition-colors hover:bg-forest hover:text-cream"
+                  >
+                    <Icon name="pin" className="h-4 w-4" />
+                    Open in Google Maps
+                  </a>
+                )}
+              </div>
+            </Reveal>
             <Reveal delay={0.25}>
               <PlaceholderImage
                 palette={event.palette}

@@ -70,6 +70,17 @@ export default function Footer() {
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-cream/10 pt-6 text-xs text-cream/50 md:flex-row">
           <span>© {new Date().getFullYear()} Bangladeshi Association of Utah. All rights reserved.</span>
           <span>From the Padma to the Great Salt Lake, one family</span>
+          <span>
+            Powered by{" "}
+            <a
+              href="https://jotillabs.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-cream/75 underline-offset-4 hover:text-bengal-red hover:underline"
+            >
+              JotilLabs.com
+            </a>
+          </span>
         </div>
       </div>
     </footer>

@@ -10,6 +10,7 @@ import {
   breakdownLines,
   computeAmount,
   money,
+  priceLabel,
   type Pricing,
   type TicketType,
 } from "@/lib/payments/pricing";
@@ -471,7 +472,11 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
               />
               <Stepper
                 label="Children"
-                hint={`Under 10, ${money(pricing.price_child)} each`}
+                hint={
+                  pricing.price_child > 0
+                    ? `Under 10, ${money(pricing.price_child)} each`
+                    : "Under 10, free"
+                }
                 value={form.children}
                 max={50}
                 onChange={(v) => set({ children: v })}
@@ -483,8 +488,8 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
             <SectionTitle>Extras</SectionTitle>
             <div className="grid gap-4 sm:grid-cols-2">
               <Stepper
-                label="Food coupons"
-                hint={`${money(pricing.coupon_single)} each, ${pricing.coupon_bundle_qty} for ${money(pricing.coupon_bundle_price)}`}
+                label="Raffle draw coupons"
+                hint={`${money(pricing.coupon_single)} each, or a bundle of ${pricing.coupon_bundle_qty} for ${money(pricing.coupon_bundle_price)}`}
                 value={form.coupons_qty}
                 max={500}
                 onChange={(v) => set({ coupons_qty: v })}
@@ -616,12 +621,13 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
           <SectionTitle>Prices</SectionTitle>
           <dl className="mt-3 space-y-2 text-sm">
             {[
-              ["Adult, professional", money(pricing.price_adult)],
-              ["Adult, student", money(pricing.price_student)],
-              ["Child under 10", money(pricing.price_child)],
+              ["Adult, professional", priceLabel(pricing.price_adult)],
+              ["Adult, student", priceLabel(pricing.price_student)],
+              ["Child under 10", priceLabel(pricing.price_child)],
+              ["Raffle draw coupon", money(pricing.coupon_single) + " each"],
               [
-                "Food coupon",
-                `${money(pricing.coupon_single)}, ${pricing.coupon_bundle_qty} for ${money(pricing.coupon_bundle_price)}`,
+                `Bundle of ${pricing.coupon_bundle_qty} coupons`,
+                money(pricing.coupon_bundle_price),
               ],
             ].map(([k, v]) => (
               <div key={k} className="flex items-baseline justify-between gap-4">

@@ -39,6 +39,11 @@ export function money(n: number): string {
   return "$" + Number(n).toFixed(2);
 }
 
+/** Like money(), but a price of zero reads as "Free". */
+export function priceLabel(n: number): string {
+  return Number(n) > 0 ? money(n) : "Free";
+}
+
 export function roundCents(n: number): number {
   return Math.round(n * 100) / 100;
 }
@@ -77,19 +82,33 @@ export function breakdownLines(items: LineItems, p: PriceTable): string[] {
     );
   }
   if (items.children > 0) {
+    const kids = `${items.children} child${items.children > 1 ? "ren" : ""}`;
     lines.push(
-      `${items.children} child${items.children > 1 ? "ren" : ""} @ ${money(
-        p.price_child
-      )} = ${money(items.children * p.price_child)}`
+      p.price_child > 0
+        ? `${kids} @ ${money(p.price_child)} = ${money(
+            items.children * p.price_child
+          )}`
+        : `${kids} under 10 = free`
     );
   }
   if (items.coupons_qty > 0) {
     lines.push(
-      `${items.coupons_qty} coupons = ${money(couponCost(items.coupons_qty, p))}`
+      `${items.coupons_qty} raffle draw coupon${
+        items.coupons_qty > 1 ? "s" : ""
+      } = ${money(couponCost(items.coupons_qty, p))}`
     );
   }
   if (items.donation > 0) lines.push(`Donation = ${money(items.donation)}`);
   return lines;
+}
+
+/** The three entry fees, for the pages that show what the event costs. */
+export function feeItems(p: PriceTable): { label: string; value: string }[] {
+  return [
+    { label: "Adult, professional", value: priceLabel(p.price_adult) },
+    { label: "Student", value: priceLabel(p.price_student) },
+    { label: "Under 10", value: priceLabel(p.price_child) },
+  ];
 }
 
 /** One code per payment, prefixed by what the payment is mostly for. */

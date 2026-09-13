@@ -43,7 +43,12 @@ export async function POST(req: Request) {
 
     const input = validateRegistrationInput(body, "web");
     const amount = computeAmount(input, settings);
-    if (amount <= 0) throw new ApiError(400, "Amount is zero.");
+    if (amount <= 0) {
+      throw new ApiError(
+        400,
+        "The total is zero. Children under 10 are free, so please add at least one adult, a raffle draw coupon, or a donation."
+      );
+    }
 
     const existing = await findRecentPending(input.email, amount);
     if (existing) {

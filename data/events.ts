@@ -16,6 +16,10 @@ export type CommunityEvent = {
   membersOnly?: boolean;
   /** External map link for the venue. */
   mapUrl?: string;
+  /** Full street address. Shown on the event page and used for the map. */
+  address?: string;
+  /** True when this is the event people register and pay for on /register. */
+  registration?: boolean;
 };
 
 export const events: CommunityEvent[] = [
@@ -25,19 +29,22 @@ export const events: CommunityEvent[] = [
     banglaTitle: "SLC BD Picnic",
     date: "2026-10-03T12:00:00-06:00",
     venue: "South Fork Park",
-    city: "Salt Lake City, UT",
+    address: "4988 S Fork Rd, Provo, UT 84604",
+    city: "Provo, UT",
     mapUrl: "https://maps.app.goo.gl/yxk44KzXMaP8wYtV8?g_st=ic",
     tag: "Picnic",
-    free: true,
+    free: false,
+    registration: true,
     blurb:
-      "A day of adda, good food, and togetherness at South Fork Park. Bring your family, your stories, and your festive spirit.",
+      "A day of adda, good food, and togetherness at South Fork Park. Please bring your family, your stories, and your festive spirit.",
     description: [
-      "With the warmth of Bangladeshi hospitality and the joy of togetherness, we warmly invite you to the 2026 Salt Lake City, BD Picnic.",
-      "Join us on October 3, 2026, at noon at the beautiful South Fork Park for a memorable gathering of our Bangladeshi community in Utah.",
+      "With the warmth of Bangladeshi hospitality and the joy of togetherness, we respectfully invite you to the 2026 Salt Lake City, BD Picnic.",
+      "Please join us on October 3, 2026, at noon at the beautiful South Fork Park, 4988 S Fork Rd, Provo, UT 84604, for a memorable gathering of our Bangladeshi community in Utah.",
       "A day to reconnect with familiar faces, welcome new friends, share laughter, enjoy good food, and celebrate the traditions that keep us close to home.",
       "From the spirit of adda to the warmth of sharing a meal together, we hope this picnic brings a little piece of Bangladesh to the heart of Utah.",
-      "Bring your family, your stories, and your festive spirit.",
-      "এসো মিলি, গল্প করি, আনন্দ ভাগ করে নিই—একসাথে, এক পরিবারের মতো।",
+      "Please bring your family, your stories, and your festive spirit.",
+      "আসুন মিলিত হই, গল্প করি, আনন্দ ভাগ করে নিই, একসাথে, এক পরিবারের মতো।",
+      "আপনার ও আপনার পরিবারের উপস্থিতি আমাদের এই আয়োজনকে পূর্ণতা দেবে। সকলকে সাদর আমন্ত্রণ।",
       "We look forward to welcoming you to a beautiful day of community, culture, and togetherness.",
     ],
     palette: "green",

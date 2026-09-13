@@ -322,7 +322,12 @@ export async function createRegistration(
 ): Promise<{ row: RegistrationRow; email: EmailResult | null; settings: Settings }> {
   const s = settings ?? (await getSettings());
   const amount = computeAmount(input, s);
-  if (amount <= 0) throw new ApiError(400, "Amount is zero.");
+  if (amount <= 0) {
+    throw new ApiError(
+      400,
+      "The total is zero. Children under 10 are free, so add at least one adult, a raffle draw coupon, or a donation."
+    );
+  }
   const prefix = codePrefix(input);
   const db = getServiceClient();
 

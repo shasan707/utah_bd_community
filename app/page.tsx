@@ -18,6 +18,7 @@ import {
   GALLERY_PLACEHOLDER_NOTE,
   OPENNESS_NOTE,
 } from "@/lib/home-copy";
+import { feeItems } from "@/lib/payments/pricing";
 import { getRegistrationStatus } from "@/lib/payments/settings";
 
 export const revalidate = 60;
@@ -34,6 +35,8 @@ export default async function HomePage() {
   const registration = await getRegistrationStatus();
   const featured = next(allEvents);
   const galleryPreview = (await getGallery()).slice(0, 6);
+  const showFees = Boolean(featured.registration && registration.pricing);
+  const fees = registration.pricing ? feeItems(registration.pricing) : [];
 
   return (
     <>
@@ -103,16 +106,36 @@ export default async function HomePage() {
                     ) : (
                       featured.venue
                     )}
-                    {`, ${featured.city}`}
+                    {`, ${featured.address || featured.city}`}
                   </span>
                 </div>
               </div>
-              <Link
-                href={`/events/${featured.slug}`}
-                className="cta-accent mt-7 inline-block rounded-full px-7 py-3.5 font-semibold"
-              >
-                Event Details
-              </Link>
+              {showFees && (
+                <dl className="mt-5 flex flex-wrap gap-x-7 gap-y-2 border-t border-white/15 pt-4 text-sm">
+                  {fees.map((f) => (
+                    <div key={f.label} className="flex items-baseline gap-2">
+                      <dt className="text-ivory-dim">{f.label}</dt>
+                      <dd className="font-bold text-ivory">{f.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              <div className="mt-7 flex flex-wrap items-center gap-3">
+                <Link
+                  href={`/events/${featured.slug}`}
+                  className="cta-accent inline-block rounded-full px-7 py-3.5 font-semibold"
+                >
+                  Event Details
+                </Link>
+                {registration.open && (
+                  <Link
+                    href="/register"
+                    className="inline-block rounded-full border-2 border-ivory/70 px-7 py-3.5 font-semibold text-ivory transition-colors hover:bg-ivory hover:text-forest"
+                  >
+                    Register &amp; Pay
+                  </Link>
+                )}
+              </div>
               <p className="mt-4 text-sm text-mint">{OPENNESS_NOTE}</p>
             </Reveal>
             <Reveal delay={0.2} className="md:justify-self-end">
