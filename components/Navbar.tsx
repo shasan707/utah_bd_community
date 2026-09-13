@@ -29,16 +29,22 @@ export default function Navbar() {
 
   useEffect(() => setOpen(false), [pathname]);
 
-  // The event pages and the register page keep a solid white bar, so the dark
-  // hero band below reads as its own block. The events list and a single
-  // event match, so moving between them does not change the bar.
-  const whiteBar = pathname === "/register" || pathname.startsWith("/events");
+  // Every page keeps a solid white bar, so a coloured hero below it reads as
+  // its own block rather than running into the bar. Named the other way round
+  // on purpose: a page added later is white without anyone remembering to
+  // list it here, which is how the blog post page came to be missed.
+  // The landing page is the one exception, its hero is built to show through.
+  const whiteBar = pathname !== "/";
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         whiteBar
-          ? `bg-white ${scrolled ? "shadow-lg shadow-forest-ink/5" : ""}`
+          ? `bg-white ${
+              scrolled
+                ? "shadow-lg shadow-forest-ink/5"
+                : "border-b border-sand/70"
+            }`
           : scrolled
             ? "glass shadow-lg shadow-forest-ink/5"
             : "bg-transparent"
