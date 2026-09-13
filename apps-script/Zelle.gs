@@ -12,7 +12,7 @@
  * No web app, no spreadsheet. Setup: see SETUP.md.
  *
  * Script Properties (Project Settings > Script Properties):
- *   WEBSITE_URL     e.g. https://utahbdcommunity.vercel.app
+ *   WEBSITE_URL     e.g. https://bdutah.jotillabs.com (the vercel.app addresses also work)
  *   INBOUND_SECRET  the same value as ZELLE_INBOUND_SECRET on Vercel
  */
 
