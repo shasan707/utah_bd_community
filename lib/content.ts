@@ -122,16 +122,22 @@ export async function getGallery(): Promise<GalleryItem[]> {
 }
 
 /**
- * The pictures shown on one event's page: the ones tagged with this event,
- * or the general community mix when the event has none of its own yet. Either
- * way the page gets something, so the strip is never an empty band.
+ * The pictures an event page can draw on, kept apart rather than merged.
+ *
+ * `own` is what was tagged with this event and can honestly be shown under its
+ * title. `general` is the untagged community mix, which belongs at the foot of
+ * the page under a heading of its own. An event that has not happened yet has
+ * no pictures of its own, and the page must not present other events' pictures
+ * as though they were its.
  */
-export async function getGalleryForEvent(slug: string): Promise<GalleryItem[]> {
+export async function getEventPhotos(
+  slug: string
+): Promise<{ own: GalleryItem[]; general: GalleryItem[] }> {
   const all = await getGallery();
-  const tagged = all.filter((item) => item.eventSlug === slug);
-  if (tagged.length > 0) return tagged;
-  const general = all.filter((item) => !item.eventSlug);
-  return general.length > 0 ? general : all;
+  return {
+    own: all.filter((item) => item.eventSlug === slug),
+    general: all.filter((item) => !item.eventSlug),
+  };
 }
 
 export async function getCommittee(): Promise<CommitteeMember[]> {

@@ -7,7 +7,8 @@ import Alpona from "@/components/Alpona";
 import EventMap from "@/components/EventMap";
 import PlaceholderImage from "@/components/PlaceholderImage";
 import PhotoMarquee from "@/components/PhotoMarquee";
-import { getEventBySlug, getGalleryForEvent } from "@/lib/content";
+import EventPhotoGrid from "@/components/EventPhotoGrid";
+import { getEventBySlug, getEventPhotos } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
 import { paletteGradient } from "@/lib/palette";
 import { feeItems } from "@/lib/payments/pricing";
@@ -28,7 +29,7 @@ export default async function EventDetailPage({
   const canRegister = Boolean(registration?.open && registration.pricing);
   const fees = registration?.pricing ? feeItems(registration.pricing) : [];
   const mapQuery = event.address || `${event.venue}, ${event.city}`;
-  const photos = await getGalleryForEvent(slug);
+  const photos = await getEventPhotos(slug);
 
   return (
     <div>
@@ -98,6 +99,23 @@ export default async function EventDetailPage({
           </Reveal>
         </div>
       </section>
+
+      {/* This event's own pictures, large and straight under the title. */}
+      {photos.own.length > 0 && (
+        <section className="border-b border-sand bg-white py-14 md:py-16">
+          <div className="mx-auto max-w-6xl px-5">
+            <Reveal>
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
+                ✦ Memories
+              </p>
+              <h2 className="mt-2 text-2xl font-bold text-forest-ink md:text-3xl">
+                Photos from {event.title}
+              </h2>
+            </Reveal>
+            <EventPhotoGrid items={photos.own} className="mt-8" />
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto max-w-5xl px-5 py-16">
         <div className="grid gap-12 md:grid-cols-[2fr_1fr]">
@@ -210,20 +228,25 @@ export default async function EventDetailPage({
         </div>
       </section>
 
-      {photos.length > 0 && (
+      {/* No pictures of its own yet, so the community mix closes the page
+          instead, under a heading that does not claim they are from here. */}
+      {photos.own.length === 0 && photos.general.length > 0 && (
         <section className="overflow-hidden bg-cream py-14">
           <div className="mx-auto max-w-5xl px-5">
             <Reveal>
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
-                ✦ From our community
+                ✦ Our community
               </p>
               <h2 className="mt-2 text-2xl font-bold text-forest-ink md:text-3xl">
-                Faces from our gatherings.
+                From past gatherings.
               </h2>
+              <p className="mt-2 text-sm text-forest-ink/60">
+                Photos from earlier community events.
+              </p>
             </Reveal>
           </div>
           <Reveal delay={0.1}>
-            <PhotoMarquee items={photos} className="mt-8" />
+            <PhotoMarquee items={photos.general} className="mt-8" />
           </Reveal>
         </section>
       )}

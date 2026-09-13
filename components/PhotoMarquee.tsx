@@ -30,7 +30,7 @@ function Tile({ item }: { item: GalleryItem }) {
         banglaCaption={item.banglaCaption}
         caption={item.caption || undefined}
         src={item.src}
-        className="h-[140px] w-[200px] rounded-2xl shadow-sm md:h-[180px] md:w-[260px]"
+        className="h-[180px] w-[260px] rounded-2xl shadow-sm md:h-[220px] md:w-[320px]"
       />
       {item.kind === "video" && (
         <span className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm">
