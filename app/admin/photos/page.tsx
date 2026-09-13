@@ -25,6 +25,17 @@ const MAX_VIDEO_MB = 50;
 /** The value of the "no particular event" choice in the dropdowns. */
 const GENERAL = "";
 
+/**
+ * The path inside the photos bucket for a public storage address, or nothing
+ * when the address points somewhere else, such as a YouTube link.
+ */
+function storagePath(url: string | null): string | undefined {
+  return url ? url.split("/photos/")[1] : undefined;
+}
+
+/** What is already saved against the picture being edited. */
+type Existing = { imageUrl: string | null; videoUrl: string | null };
+
 export default function AdminGallery() {
   const [rows, setRows] = useState<Row[]>([]);
   const [events, setEvents] = useState<EventOption[]>([]);
@@ -40,6 +51,11 @@ export default function AdminGallery() {
   const [message, setMessage] = useState("");
   const [needsSql, setNeedsSql] = useState(false);
   const [needsEventSql, setNeedsEventSql] = useState(false);
+  // Which picture the form is changing, if any. Null means the form adds a
+  // new one, which is how the page behaved before editing existed.
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingLabel, setEditingLabel] = useState("");
+  const [existing, setExisting] = useState<Existing | null>(null);
 
   const load = useCallback(async () => {
     const { data, error } = await getSupabase()
@@ -76,23 +92,57 @@ export default function AdminGallery() {
     setFile(null);
     setCover(null);
     setVideoUrl("");
+    setEditingId(null);
+    setEditingLabel("");
+    setExisting(null);
     for (const id of ["media-file", "cover-file"]) {
       const el = document.getElementById(id) as HTMLInputElement | null;
       if (el) el.value = "";
     }
   };
 
+  /** Load one picture into the form above, the way the blog page does. */
+  const beginEdit = (row: Row) => {
+    setEditingId(row.id);
+    setEditingLabel(row.title);
+    setExisting({ imageUrl: row.image_url, videoUrl: row.video_url });
+    setKind(row.media_type === "video" ? "video" : "photo");
+    setTitle(row.title);
+    setCaption(row.caption ?? "");
+    setTall(row.tall);
+    setEventSlug(row.event_slug ?? GENERAL);
+    setVideoUrl(row.video_url ?? "");
+    setFile(null);
+    setCover(null);
+    setMessage("");
+    for (const id of ["media-file", "cover-file"]) {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (el) el.value = "";
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setMessage("");
+    const editing = editingId !== null;
+    // Files the picture used to point at, dropped only after the row has been
+    // saved. Deleting them earlier would leave a broken tile if the save fails.
+    const replaced: string[] = [];
     try {
       let record: Record<string, unknown>;
       if (kind === "photo") {
-        if (!file) throw new Error("Choose a photo first.");
-        const url = await uploadPhoto(file, "gallery");
+        if (!file && !editing) throw new Error("Choose a photo first.");
+        let url = existing?.imageUrl ?? null;
+        if (file) {
+          const fresh = await uploadPhoto(file, "gallery");
+          if (url && url !== fresh) replaced.push(url);
+          url = fresh;
+        }
+        if (!url) throw new Error("Choose a photo first.");
         record = {
-          title: title || file.name,
+          title: title.trim() || file?.name || editingLabel || "Photo",
           caption: caption || null,
           image_url: url,
           tall,
@@ -100,20 +150,34 @@ export default function AdminGallery() {
           video_url: null,
           event_slug: eventSlug || null,
         };
+        // Switching a video over to a photo leaves its old video file behind.
+        if (editing && existing?.videoUrl) replaced.push(existing.videoUrl);
       } else {
         let link = videoUrl.trim();
-        if (!link && !file) throw new Error("Paste a video link or choose a video file.");
+        if (!link && !file && !editing) {
+          throw new Error("Paste a video link or choose a video file.");
+        }
         if (file) {
           if (file.size > MAX_VIDEO_MB * 1024 * 1024) {
             throw new Error(
               `That video is over ${MAX_VIDEO_MB} MB. Upload it to YouTube and paste the link instead.`
             );
           }
-          link = await uploadPhoto(file, "gallery-video");
+          const fresh = await uploadPhoto(file, "gallery-video");
+          if (existing?.videoUrl && existing.videoUrl !== fresh) {
+            replaced.push(existing.videoUrl);
+          }
+          link = fresh;
         }
-        const coverUrl = cover ? await uploadPhoto(cover, "gallery") : null;
+        if (!link) throw new Error("Paste a video link or choose a video file.");
+        let coverUrl = existing?.imageUrl ?? null;
+        if (cover) {
+          const fresh = await uploadPhoto(cover, "gallery");
+          if (coverUrl && coverUrl !== fresh) replaced.push(coverUrl);
+          coverUrl = fresh;
+        }
         record = {
-          title: title || "Video",
+          title: title.trim() || editingLabel || "Video",
           caption: caption || null,
           image_url: coverUrl,
           tall,
@@ -122,7 +186,10 @@ export default function AdminGallery() {
           event_slug: eventSlug || null,
         };
       }
-      const { error } = await getSupabase().from("gallery_items").insert(record);
+      const supabase = getSupabase();
+      const { error } = editing
+        ? await supabase.from("gallery_items").update(record).eq("id", editingId)
+        : await supabase.from("gallery_items").insert(record);
       if (error) {
         if (/event_slug/i.test(error.message)) {
           throw new Error(
@@ -136,8 +203,18 @@ export default function AdminGallery() {
         }
         throw new Error(error.message);
       }
+      const dropped = replaced
+        .map(storagePath)
+        .filter((p): p is string => Boolean(p));
+      if (dropped.length) await supabase.storage.from("photos").remove(dropped);
       resetForm();
-      setMessage(kind === "photo" ? "Photo published." : "Video published.");
+      setMessage(
+        editing
+          ? "Changes saved. The website updates within a minute."
+          : kind === "photo"
+            ? "Photo published."
+            : "Video published."
+      );
       await load();
     } catch (err) {
       setMessage(`Upload failed: ${err instanceof Error ? err.message : err}`);
@@ -149,9 +226,10 @@ export default function AdminGallery() {
     if (!confirm(`Delete "${row.title}"?`)) return;
     await getSupabase().from("gallery_items").delete().eq("id", row.id);
     const paths = [row.image_url, row.video_url]
-      .map((u) => (u ? u.split("/photos/")[1] : undefined))
+      .map(storagePath)
       .filter((p): p is string => Boolean(p));
     if (paths.length) await getSupabase().storage.from("photos").remove(paths);
+    if (editingId === row.id) resetForm();
     await load();
   };
 
@@ -208,6 +286,8 @@ export default function AdminGallery() {
       <p className="mt-1 text-sm text-forest-ink/60">
         Photos and videos. For videos, the easiest way is to paste a YouTube, Vimeo,
         or Facebook link; a file up to {MAX_VIDEO_MB} MB can be uploaded instead.
+        Press Edit on any tile below to change its title, caption, event, or the
+        picture itself.
       </p>
 
       {needsSql && (
@@ -229,6 +309,21 @@ export default function AdminGallery() {
         onSubmit={submit}
         className="mt-6 grid gap-4 rounded-3xl border border-sand bg-white p-6 sm:grid-cols-2"
       >
+        {editingId !== null && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-forest/10 px-4 py-3 sm:col-span-2">
+            <span className="text-sm font-semibold text-forest">
+              Editing &ldquo;{editingLabel}&rdquo;
+            </span>
+            <button
+              type="button"
+              onClick={resetForm}
+              className="rounded-full border border-forest/30 px-4 py-1.5 text-xs font-semibold text-forest hover:bg-white"
+            >
+              Cancel editing
+            </button>
+          </div>
+        )}
+
         <div className="flex gap-2 sm:col-span-2">
           {kindBtn("photo", "Photo")}
           {kindBtn("video", "Video")}
@@ -236,7 +331,9 @@ export default function AdminGallery() {
 
         {kind === "photo" ? (
           <div className="sm:col-span-2">
-            <label className="mb-1 block text-sm font-semibold text-forest-ink">Photo</label>
+            <label className="mb-1 block text-sm font-semibold text-forest-ink">
+              {editingId !== null ? "Replace photo (optional)" : "Photo"}
+            </label>
             <input
               id="media-file"
               type="file"
@@ -244,6 +341,11 @@ export default function AdminGallery() {
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               className={inputCls}
             />
+            {editingId !== null && (
+              <p className="mt-1 text-xs text-forest-ink/50">
+                Leave this empty to keep the picture that is already there.
+              </p>
+            )}
           </div>
         ) : (
           <>
@@ -282,7 +384,9 @@ export default function AdminGallery() {
             </div>
             <div>
               <label className="mb-1 block text-sm font-semibold text-forest-ink">
-                Cover picture (optional)
+                {editingId !== null
+                  ? "Replace cover picture (optional)"
+                  : "Cover picture (optional)"}
               </label>
               <input
                 id="cover-file"
@@ -336,7 +440,15 @@ export default function AdminGallery() {
           disabled={busy}
           className="rounded-full bg-forest py-3 font-semibold text-cream disabled:opacity-60"
         >
-          {busy ? "Uploading..." : kind === "photo" ? "Upload photo" : "Add video"}
+          {busy
+            ? editingId !== null
+              ? "Saving..."
+              : "Uploading..."
+            : editingId !== null
+              ? "Save changes"
+              : kind === "photo"
+                ? "Upload photo"
+                : "Add video"}
         </button>
         {message && (
           <p className="text-sm font-medium text-forest sm:col-span-2">{message}</p>
@@ -348,7 +460,14 @@ export default function AdminGallery() {
           const video = r.media_type === "video";
           const thumb = thumbOf(r);
           return (
-            <div key={r.id} className="overflow-hidden rounded-2xl border border-sand bg-white">
+            <div
+              key={r.id}
+              className={`overflow-hidden rounded-2xl border bg-white ${
+                editingId === r.id
+                  ? "border-forest ring-2 ring-forest/30"
+                  : "border-sand"
+              }`}
+            >
               <div className="relative h-32 w-full bg-forest-ink/80">
                 {thumb ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -374,7 +493,13 @@ export default function AdminGallery() {
                 >
                   {eventOptions}
                 </select>
-                <div className="mt-2 flex gap-3">
+                <div className="mt-2 flex flex-wrap gap-3">
+                  <button
+                    onClick={() => beginEdit(r)}
+                    className="text-xs font-semibold text-forest hover:underline"
+                  >
+                    Edit
+                  </button>
                   {video && r.video_url && (
                     <a
                       href={r.video_url}
