@@ -191,6 +191,16 @@ export default function RegistrationTable({
                 </span>
               )}
               <span className={es.tone}>{es.label}</span>
+              {(r.code_sms_at || r.ticket_sms_at) && (
+                <span className="text-forest">
+                  {r.status === "PAID" && r.ticket_sms_at
+                    ? "ticket texted"
+                    : "code texted"}
+                </span>
+              )}
+              {r.sms_error && !r.code_sms_at && !r.ticket_sms_at && (
+                <span className="text-amber-700">text: {r.sms_error}</span>
+              )}
               {r.checked_in_at && (
                 <span className="font-semibold text-forest">
                   checked in {when(r.checked_in_at)}

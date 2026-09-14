@@ -1,5 +1,6 @@
 import { jsonError, jsonOk, requireAdmin, serviceConfigured } from "@/lib/supabase-server";
 import { emailProvider } from "@/lib/email";
+import { smsConfigured } from "@/lib/sms";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,6 +13,8 @@ export async function GET(req: Request) {
       admin_email: admin.email,
       service_configured: serviceConfigured,
       email_provider: emailProvider(),
+      // Only whether the values exist, never the values themselves.
+      sms_configured: smsConfigured(),
       cron_secret_set: Boolean(process.env.CRON_SECRET),
       inbound_secret_set: Boolean(process.env.ZELLE_INBOUND_SECRET),
     });

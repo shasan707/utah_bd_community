@@ -38,6 +38,7 @@ type ServerStatus = {
   admin_email: string;
   service_configured: boolean;
   email_provider: string | null;
+  sms_configured: boolean;
   cron_secret_set: boolean;
   inbound_secret_set: boolean;
 };
@@ -181,6 +182,7 @@ export default function AdminPayments() {
     return "Open";
   })();
   const autoConfirm = settings.auto_confirm === "true";
+  const smsOn = settings.sms_enabled === "true";
 
   const run = async (fn: () => Promise<{ message: string }>) => {
     const r = await fn();
@@ -476,6 +478,24 @@ export default function AdminPayments() {
           {outbox && outbox.failed > 0 && (
             <Pill tone="warn">Emails failed: {outbox.failed}</Pill>
           )}
+          <Pill
+            tone={
+              smsOn && server?.sms_configured
+                ? "good"
+                : smsOn && server && !server.sms_configured
+                  ? "warn"
+                  : "muted"
+            }
+          >
+            Texts:{" "}
+            {!server
+              ? "..."
+              : !smsOn
+                ? "off"
+                : server.sms_configured
+                  ? "on"
+                  : "on but Twilio is missing"}
+          </Pill>
           <Pill tone={autoConfirm ? "good" : "muted"}>
             Auto-confirm: {autoConfirm ? "on" : "off (log only)"}
           </Pill>

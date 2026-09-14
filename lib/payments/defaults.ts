@@ -24,6 +24,7 @@ export const SETTING_KEYS = [
   "contact_email",
   "pending_expiry_hours",
   "auto_confirm",
+  "sms_enabled",
 ] as const;
 
 export type SettingKey = (typeof SETTING_KEYS)[number];
@@ -46,6 +47,9 @@ export const DEFAULT_SETTINGS: Record<SettingKey, string> = {
   contact_email: "bpau@gmail.com",
   pending_expiry_hours: "72",
   auto_confirm: "false",
+  // Texting stays off until someone turns it on in Settings, so adding
+  // Twilio to the server changes nothing by itself.
+  sms_enabled: "false",
 };
 
 /**

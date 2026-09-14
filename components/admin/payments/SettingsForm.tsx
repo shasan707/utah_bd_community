@@ -170,6 +170,28 @@ export default function SettingsForm({
             </span>
           </span>
         </label>
+        <label className="mt-5 flex items-start gap-3">
+          <input
+            type="checkbox"
+            checked={form.sms_enabled === "true"}
+            onChange={(e) =>
+              set("sms_enabled", e.target.checked ? "true" : "false")
+            }
+            className="mt-1"
+          />
+          <span>
+            <span className="block font-bold text-forest-ink">
+              Text members as well as email
+            </span>
+            <span className="block text-sm text-forest-ink/60">
+              When on, the payment code and the ticket also go out by text to
+              the phone number on the registration. Emails are unaffected
+              either way. Turn this off to stop texting immediately, with no
+              deploy. It needs the Twilio settings on the server; the header
+              above shows whether they are in place.
+            </span>
+          </span>
+        </label>
         {open && !form.zelle_recipient?.trim() && (
           <p className="mt-3 rounded-xl bg-bengal-red/10 px-4 py-2 text-sm font-medium text-bengal-red">
             The Zelle recipient is empty. Members will be told to send money to

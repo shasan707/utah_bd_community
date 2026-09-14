@@ -1,9 +1,11 @@
 import "server-only";
 import { ApiError, getServiceClient } from "@/lib/supabase-server";
 import { sendEmail, type EmailResult } from "@/lib/email";
+import { sendSms, smsConfigured, type SmsResult } from "@/lib/sms";
 import { audit } from "./audit";
 import { randomCode } from "./codes";
 import { pendingEmail, receiptEmail } from "./emails";
+import { pendingSms, receiptSms } from "./sms-messages";
 import {
   breakdownLines,
   codePrefix,
@@ -261,7 +263,50 @@ export async function deliverReceipt(
       ? { receipt_sent_at: nowIso(), email_error: null }
       : { email_error: errorText(res) }
   );
+  await deliverSms(updated, s, "receipt");
   return { row: updated, email: res };
+}
+
+/* ------------------------------------------------------------------ */
+/* Texts                                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Sends one text and records what happened, without ever being able to break
+ * a registration. Three separate guards have to pass first: the admin switch
+ * in Settings, the Twilio values on the server, and a usable phone number.
+ * The recording step swallows its own errors too, so a site whose database
+ * has not had supabase/sms.sql run still sends texts, it just cannot show
+ * them on the admin screen.
+ */
+export async function deliverSms(
+  row: RegistrationRow,
+  s: Settings,
+  kind: "pending" | "receipt"
+): Promise<SmsResult | null> {
+  if (!s.sms_enabled || !smsConfigured() || !row.phone) return null;
+
+  let res: SmsResult;
+  try {
+    const body = kind === "pending" ? pendingSms(row, s) : receiptSms(row, s);
+    res = await sendSms(row.phone, body);
+  } catch (err) {
+    // sendSms is written not to throw, so this only catches a bug in the
+    // message builders. A member must never see a registration fail for it.
+    console.error(`deliverSms ${row.code}:`, err instanceof Error ? err.message : err);
+    return null;
+  }
+
+  const field = kind === "pending" ? "code_sms_at" : "ticket_sms_at";
+  const patch: Record<string, unknown> = res.sent
+    ? { [field]: nowIso(), sms_error: null }
+    : { sms_error: `${res.reason}${res.detail ? `: ${res.detail}` : ""}`.slice(0, 300) };
+  try {
+    await patchRow(row.code, patch);
+  } catch (err) {
+    console.error(`deliverSms record ${row.code}:`, err instanceof Error ? err.message : err);
+  }
+  return res;
 }
 
 /** Short human tail for admin messages. */
@@ -384,6 +429,7 @@ export async function createRegistration(
   let email: EmailResult | null = null;
   if (opts.notify !== false) {
     email = await deliverPendingEmail(row, s);
+    await deliverSms(row, s, "pending");
     row = await getRegistration(row.code);
   }
   return { row, email, settings: s };

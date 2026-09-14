@@ -416,7 +416,11 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
                     placeholder="(801) 555-0123"
                   />
                 </div>
-                <p className={helpCls}>US mobile number, so we can reach you about the event.</p>
+                <p className={helpCls}>
+                  US mobile number. We text your payment code and your ticket
+                  to it, nothing else. Reply STOP at any time to stop the
+                  texts. Standard message rates apply.
+                </p>
               </div>
               <div>
                 <label htmlFor="reg-email" className={labelCls}>

@@ -34,6 +34,7 @@ export type Settings = {
   contact_email: string;
   pending_expiry_hours: number;
   auto_confirm: boolean;
+  sms_enabled: boolean;
 };
 
 function toNumber(v: string, fallback: number): number {
@@ -76,6 +77,7 @@ export function parseSettings(raw: Partial<Record<string, string>>): Settings {
       Number(d.pending_expiry_hours)
     ),
     auto_confirm: toBool(get("auto_confirm")),
+    sms_enabled: toBool(get("sms_enabled")),
   };
 }
 

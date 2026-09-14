@@ -47,6 +47,10 @@ export type RegistrationRow = {
   /** Set by the door scanner (supabase/checkin.sql). Null until the person arrives. */
   checked_in_at: string | null;
   checked_in_by: string;
+  /** Set by the Twilio sender (supabase/sms.sql). Null until a text goes out. */
+  code_sms_at: string | null;
+  ticket_sms_at: string | null;
+  sms_error: string | null;
 };
 
 export const MATCH_STATUSES = [
@@ -195,5 +199,8 @@ export function parseRegistration(raw: Record<string, unknown>): RegistrationRow
     client_ip: strOrNull(raw.client_ip),
     checked_in_at: strOrNull(raw.checked_in_at),
     checked_in_by: str(raw.checked_in_by),
+    code_sms_at: strOrNull(raw.code_sms_at),
+    ticket_sms_at: strOrNull(raw.ticket_sms_at),
+    sms_error: strOrNull(raw.sms_error),
   };
 }
