@@ -20,12 +20,16 @@ function firstName(name: string): string {
   return name.trim().split(/\s+/)[0] || name;
 }
 
-/** Sent right after registering: the code and where to send the money. */
+/**
+ * Sent right after registering: the code and where to send the money.
+ * Worded to stay inside one 160 character segment for a typical name, which
+ * halves what every registration costs to text.
+ */
 export function pendingSms(row: RegistrationRow, s: Settings): string {
   return [
-    `BAU: ${firstName(row.name)}, your code for ${shortEvent(s)} is ${row.code}.`,
-    `Zelle ${money(row.amount_due)} to ${s.zelle_recipient} and put ${row.code} in the memo.`,
-    "Your ticket follows once we confirm. Reply STOP to opt out.",
+    `BAU: ${firstName(row.name)}, your ${shortEvent(s)} code is ${row.code}.`,
+    `Zelle ${money(row.amount_due)} to ${s.zelle_recipient}, memo ${row.code}.`,
+    "Ticket follows once confirmed. Reply STOP to opt out.",
   ].join(" ");
 }
 
