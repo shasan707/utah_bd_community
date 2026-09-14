@@ -194,28 +194,34 @@ export default function VoiceOrb() {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={live ? hangUp : start}
-        disabled={busy}
-        aria-label={label}
-        title={label}
-        className={`group relative flex h-14 w-14 items-center justify-center rounded-full text-ivory shadow-xl transition-all duration-300 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-forest disabled:cursor-wait disabled:opacity-80 sm:h-16 sm:w-16 ${
-          live
-            ? "bg-bengal-red shadow-bengal-red/30"
-            : "bg-forest shadow-forest/30 hover:bg-forest-deep"
-        }`}
-      >
-        {/* The ring only appears on a live call, where a pulse means
-            "you are being heard" rather than being decoration. */}
-        {live && (
-          <span className="voice-orb-ring absolute inset-0 rounded-full border-2 border-bengal-red" />
-        )}
-        {busy && (
-          <span className="absolute inset-0 animate-spin rounded-full border-2 border-ivory/25 border-t-ivory" />
-        )}
-        {live ? <StopIcon /> : <MicIcon />}
-      </button>
+      {/* The waves sit outside the button so they can grow past its edge
+          without the button having to clip them. */}
+      <span className="relative flex h-14 w-14 items-center justify-center sm:h-16 sm:w-16">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+        >
+          <span className={`orb-wave ${live ? "orb-wave-live" : ""}`} />
+          <span className={`orb-wave ${live ? "orb-wave-live" : ""}`} />
+          <span className={`orb-wave ${live ? "orb-wave-live" : ""}`} />
+        </span>
+
+        <button
+          type="button"
+          onClick={live ? hangUp : start}
+          disabled={busy}
+          aria-label={label}
+          title={label}
+          className={`orb-float relative flex h-14 w-14 items-center justify-center rounded-full text-ivory transition-transform duration-300 hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-forest disabled:cursor-wait disabled:opacity-80 sm:h-16 sm:w-16 ${
+            live ? "orb-face-live" : "orb-face"
+          }`}
+        >
+          {busy && (
+            <span className="absolute inset-0 animate-spin rounded-full border-2 border-ivory/25 border-t-ivory" />
+          )}
+          {live ? <StopIcon /> : <MicIcon />}
+        </button>
+      </span>
     </div>
   );
 }
