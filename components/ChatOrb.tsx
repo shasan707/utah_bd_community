@@ -43,11 +43,36 @@ const SKIN = `
     pointer-events: none !important;
   }
 
-  /* The "Powered by Retell AI" line under the message box. The association
-     answers its own telephone; whose software it runs on is not something a
-     visitor asked about. */
+  /* The "Powered by Retell AI" line under the message box. */
   [class*="_poweredBy"] {
     display: none !important;
+  }
+
+  /* The wordmark in the header. The widget writes "Retell" there and will
+     only write anything else for a paid white label token, so the text is
+     blanked and the association's name put in its place. The padding on the
+     left was reserving room for a logo that is no longer drawn. */
+  [class*="_brand_"] {
+    padding-left: 0 !important;
+  }
+
+  [class*="_brand_"] > svg,
+  [class*="_brand_"] > img:not([src]) {
+    display: none !important;
+  }
+
+  [class*="_brandText"] {
+    font-size: 0 !important;
+    color: transparent !important;
+  }
+
+  [class*="_brandText"]::after {
+    content: "Bangladeshi Association of Utah";
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: ${IVORY};
+    white-space: nowrap;
   }
 
   [class*="_window_"] {
@@ -156,6 +181,10 @@ export default function ChatOrb() {
       s.dataset.agentId = AGENT_ID;
       s.dataset.title = "Bangladeshi Association of Utah";
       s.dataset.botName = "BAU Assistant";
+      // The supported way to displace Retell's own mark in the header. The
+      // wordmark beside it needs the stylesheet above as well, because that
+      // one only changes for a paid white label token.
+      s.dataset.logoUrl = `${window.location.origin}/icon.svg`;
       s.dataset.color = FOREST;
       s.dataset.themeColor = FOREST;
       s.dataset.componentColor = IVORY;
