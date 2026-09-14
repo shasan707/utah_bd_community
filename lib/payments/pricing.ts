@@ -25,6 +25,13 @@ export type Pricing = PriceTable & {
   contact_email: string;
 };
 
+/**
+ * The student ticket is no longer offered: it is gone from the registration
+ * form, from the admin settings, and from every price list. The type and the
+ * student price stay because the database still accepts the value, and a
+ * registration taken before this change must still price and print correctly.
+ * Nothing new can be created as a student.
+ */
 export type TicketType = "professional" | "student";
 
 export type LineItems = {
@@ -122,8 +129,7 @@ export function breakdownLines(items: LineItems, p: PriceTable): string[] {
 /** The three entry fees, for the pages that show what the event costs. */
 export function feeItems(p: PriceTable): { label: string; value: string }[] {
   return [
-    { label: "Adult, professional", value: priceLabel(p.price_adult) },
-    { label: "Student", value: priceLabel(p.price_student) },
+    { label: "Adult", value: priceLabel(p.price_adult) },
     { label: "Under 10", value: priceLabel(p.price_child) },
   ];
 }

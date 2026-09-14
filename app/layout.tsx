@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Montserrat, Open_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import VoiceOrb from "@/components/VoiceOrb";
+import ChatOrb from "@/components/ChatOrb";
 import Footer from "@/components/Footer";
 import SmoothScroll from "@/components/SmoothScroll";
 import ScrollProgress from "@/components/ScrollProgress";
@@ -36,6 +38,10 @@ export default function RootLayout({
           <main>{children}</main>
           <Footer />
         </SmoothScroll>
+        {/* Voice on the left, chat on the right. Both sit outside the scroll
+            wrapper so they stay put rather than travelling with the page. */}
+        <VoiceOrb />
+        <ChatOrb />
       </body>
     </html>
   );

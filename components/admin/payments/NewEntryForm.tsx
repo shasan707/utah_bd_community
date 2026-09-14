@@ -113,8 +113,7 @@ export default function NewEntryForm({
               onChange={(e) => set({ ticket_type: e.target.value })}
               className={`${inputCls} mt-1`}
             >
-              <option value="professional">Professional</option>
-              <option value="student">Student</option>
+              <option value="professional">Adult</option>
             </select>
           </label>
           <label className="text-sm font-semibold text-forest-ink">

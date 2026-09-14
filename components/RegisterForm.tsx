@@ -351,11 +351,6 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
     );
   }
 
-  const ticketOptions: { value: TicketType; label: string; price: number }[] = [
-    { value: "professional", label: "Professional", price: pricing.price_adult },
-    { value: "student", label: "Student", price: pricing.price_student },
-  ];
-
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
       <form
@@ -443,36 +438,6 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
 
           <div className="space-y-4 border-t border-sand pt-8">
             <SectionTitle>Who is coming</SectionTitle>
-            <div>
-              <span className={labelCls}>Ticket type</span>
-              <div className="grid grid-cols-2 gap-1.5 rounded-xl border border-sand bg-ivory p-1.5">
-                {ticketOptions.map((t) => {
-                  const active = form.ticket_type === t.value;
-                  return (
-                    <button
-                      key={t.value}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => set({ ticket_type: t.value })}
-                      className={`rounded-lg px-3 py-2.5 text-left transition-colors ${
-                        active
-                          ? "bg-forest text-ivory shadow-sm"
-                          : "text-forest-ink/75 hover:bg-cream-dim"
-                      }`}
-                    >
-                      <span className="block text-sm font-semibold">{t.label}</span>
-                      <span
-                        className={`block text-xs ${
-                          active ? "text-mint" : "text-muted-ink"
-                        }`}
-                      >
-                        {money(t.price)} per adult
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <Stepper
                 label="Adults"
@@ -625,8 +590,7 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
           <SectionTitle>Prices</SectionTitle>
           <dl className="mt-3 space-y-2 text-sm">
             {[
-              ["Adult, professional", priceLabel(pricing.price_adult)],
-              ["Adult, student", priceLabel(pricing.price_student)],
+              ["Adult", priceLabel(pricing.price_adult)],
               ["Child under 10", priceLabel(pricing.price_child)],
               ["Raffle draw coupon", money(pricing.coupon_single) + " each"],
               [
