@@ -129,7 +129,7 @@ export default function Hero() {
           transition={{ duration: 0.7, delay: 0.28 }}
           className="mt-3 text-xl text-forest-ink/70 md:text-2xl"
         >
-          স্বাগতম — Welcome home.
+          স্বাগতম · Welcome home.
         </motion.p>
 
         <h1 className="mt-4 text-6xl font-black leading-[0.95] tracking-tight text-forest-ink md:text-8xl lg:text-9xl">

@@ -13,6 +13,8 @@ type Row = {
   date: string;
   end_time: string | null;
   venue: string | null;
+  address: string | null;
+  map_url: string | null;
   city: string;
   tag: string | null;
   free: boolean;
@@ -30,6 +32,8 @@ const empty = {
   date: "",
   end_time: "",
   venue: "",
+  address: "",
+  map_url: "",
   city: "Salt Lake City, UT",
   tag: "Festival",
   free: true,
@@ -86,6 +90,8 @@ export default function AdminEvents() {
       date: toInputValue(r.date),
       end_time: r.end_time ?? "",
       venue: r.venue ?? "",
+      address: r.address ?? "",
+      map_url: r.map_url ?? "",
       city: r.city,
       tag: r.tag ?? "",
       free: r.free,
@@ -110,6 +116,8 @@ export default function AdminEvents() {
         date: new Date(form.date).toISOString(),
         end_time: form.end_time || null,
         venue: form.venue || null,
+        address: form.address || null,
+        map_url: form.map_url || null,
         city: form.city,
         tag: form.tag || null,
         free: form.free,
@@ -125,7 +133,14 @@ export default function AdminEvents() {
       const { error } = form.id
         ? await supabase.from("events").update(record).eq("id", form.id)
         : await supabase.from("events").insert(record);
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (/address|map_url/i.test(error.message)) {
+          throw new Error(
+            "The events table does not have the address columns yet. Run supabase/event_address.sql in the Supabase SQL editor, then try again."
+          );
+        }
+        throw new Error(error.message);
+      }
       setForm(empty);
       setFile(null);
       setMessage("Event saved.");
@@ -184,17 +199,42 @@ export default function AdminEvents() {
           className={inputCls}
         />
         <input
-          placeholder="Venue"
+          placeholder="Venue, the name of the place, e.g. South Fork Park"
           value={form.venue}
           onChange={(e) => set({ venue: e.target.value })}
           className={inputCls}
         />
         <input
-          placeholder="City"
+          placeholder="City of the venue, e.g. Provo, UT"
           value={form.city}
           onChange={(e) => set({ city: e.target.value })}
           className={inputCls}
         />
+        <div className="sm:col-span-2">
+          <input
+            placeholder="Street address, e.g. 4988 S Fork Rd, Provo, UT 84604"
+            value={form.address}
+            onChange={(e) => set({ address: e.target.value })}
+            className={`${inputCls} w-full`}
+          />
+          <p className="mt-1 text-xs text-forest-ink/50">
+            Keep the street out of the venue box and put it here. The city box
+            is the venue&rsquo;s own city, not ours, so a park in Provo says
+            Provo.
+          </p>
+        </div>
+        <div className="sm:col-span-2">
+          <input
+            placeholder="Google Maps link (optional)"
+            value={form.map_url}
+            onChange={(e) => set({ map_url: e.target.value })}
+            className={`${inputCls} w-full`}
+          />
+          <p className="mt-1 text-xs text-forest-ink/50">
+            Leave this empty and the map button searches for the address above,
+            which is usually enough.
+          </p>
+        </div>
         <input
           placeholder="Tag, e.g. Festival, Mela, Picnic"
           value={form.tag}

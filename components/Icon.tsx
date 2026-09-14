@@ -9,6 +9,7 @@ type IconName =
   | "check"
   | "users"
   | "heart"
+  | "copy"
   | "play";
 
 const paths: Record<IconName, React.ReactNode> = {
@@ -49,6 +50,12 @@ const paths: Record<IconName, React.ReactNode> = {
     </>
   ),
   check: <path d="M20 6L9 17l-5-5" />,
+  copy: (
+    <>
+      <rect x="9" y="9" width="12" height="12" rx="2" />
+      <path d="M6 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2" />
+    </>
+  ),
   users: (
     <>
       <circle cx="9" cy="7" r="3.5" />

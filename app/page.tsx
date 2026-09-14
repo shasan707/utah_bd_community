@@ -15,6 +15,7 @@ import Mountains from "@/components/Mountains";
 import { getEvents, getGallery, next } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
 import { GALLERY_PLACEHOLDER_NOTE } from "@/lib/home-copy";
+import { mapsUrl, placeLine } from "@/lib/address";
 import { feeItems } from "@/lib/payments/pricing";
 import { canRegisterFor, getRegistrationStatus } from "@/lib/payments/settings";
 
@@ -91,19 +92,14 @@ export default async function HomePage() {
                 <div className="flex items-center gap-2.5">
                   <Icon name="pin" className="h-4 w-4 text-mint" />
                   <span>
-                    {featured.mapUrl ? (
-                      <a
-                        href={featured.mapUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline decoration-mint/50 underline-offset-4 transition-colors hover:decoration-ivory"
-                      >
-                        {featured.venue}
-                      </a>
-                    ) : (
-                      featured.venue
-                    )}
-                    {`, ${featured.address || featured.city}`}
+                    <a
+                      href={mapsUrl(featured)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline decoration-mint/50 underline-offset-4 transition-colors hover:decoration-ivory"
+                    >
+                      {placeLine(featured)}
+                    </a>
                   </span>
                 </div>
               </div>

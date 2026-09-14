@@ -251,7 +251,7 @@ export default function AdminGallery() {
   /** The event choices, shared by the upload form and each picture card. */
   const eventOptions = (
     <>
-      <option value={GENERAL}>General — all events</option>
+      <option value={GENERAL}>General, shown on all events</option>
       {events.map((e) => (
         <option key={e.slug} value={e.slug}>
           {e.title}

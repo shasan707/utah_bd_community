@@ -46,7 +46,7 @@ export default async function EventsPage() {
           ) : (
             <Reveal delay={0.1}>
               <p className="mt-10 text-lg text-muted-ink">
-                Nothing else on the calendar just yet — the event above is our
+                Nothing else on the calendar just yet. The event above is our
                 next gathering.
               </p>
             </Reveal>
@@ -74,7 +74,7 @@ export default async function EventsPage() {
             <Reveal delay={0.1}>
               <div className="mt-10 flex flex-wrap items-center gap-5">
                 <p className="max-w-xl text-lg text-muted-ink">
-                  Our first gatherings are still ahead — check back after
+                  Our first gatherings are still ahead. Check back after
                   October, and the memories will collect here.
                 </p>
                 <Link

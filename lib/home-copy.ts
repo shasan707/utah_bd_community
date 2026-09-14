@@ -1,4 +1,5 @@
 import type { CommunityEvent } from "@/data/events";
+import { placeLine } from "@/lib/address";
 
 /**
  * Display copy used by the home page only.
@@ -16,11 +17,11 @@ export const HOME_VENUE = "Venue announced with registration";
  * shows the real place; the rest stay behind the placeholder above.
  */
 export function homeVenue(event: CommunityEvent): string {
-  return event.address ? `${event.venue}, ${event.city}` : HOME_VENUE;
+  return event.address ? placeLine(event) : HOME_VENUE;
 }
 
 export const GALLERY_PLACEHOLDER_NOTE =
-  "placeholder — real photos coming after our next event";
+  "placeholder, real photos coming after our next event";
 
 const TITLE_OVERRIDES: Record<string, string> = {
   "ekushey-february-2027":

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import PlaceholderImage from "@/components/PlaceholderImage";
 import type { GalleryItem } from "@/data/gallery";
@@ -58,7 +58,14 @@ function Arrow({
   return (
     <button
       type="button"
-      onClick={onClick}
+      // The backdrop behind this button closes the viewer when it is clicked,
+      // and without this the same click would travel on to it: the picture
+      // would step forward and the viewer would shut in the same breath,
+      // which looked exactly like the arrows doing nothing at all.
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
       aria-label={side === "left" ? "Previous" : "Next"}
       className={`absolute top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition-colors hover:bg-white/30 ${
         side === "left" ? "left-2 md:left-6" : "right-2 md:right-6"
@@ -115,6 +122,25 @@ export default function MediaLightbox({
 
   const active = index === null ? null : items[index];
 
+  /**
+   * Swipe, for the phone. The horizontal distance has to beat both a minimum
+   * and the vertical distance, so a scroll down the page or a shaky tap is
+   * not mistaken for a swipe sideways.
+   */
+  const swipeFrom = useRef<{ x: number; y: number } | null>(null);
+  const onPointerDown = (e: React.PointerEvent) => {
+    swipeFrom.current = { x: e.clientX, y: e.clientY };
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    const from = swipeFrom.current;
+    swipeFrom.current = null;
+    if (!from || !many) return;
+    const dx = e.clientX - from.x;
+    const dy = e.clientY - from.y;
+    if (Math.abs(dx) < 45 || Math.abs(dx) <= Math.abs(dy)) return;
+    step(dx < 0 ? 1 : -1);
+  };
+
   return (
     <AnimatePresence>
       {active && (
@@ -148,7 +174,9 @@ export default function MediaLightbox({
             exit={{ scale: 0.92, y: 16 }}
             transition={{ type: "spring", stiffness: 260, damping: 24 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-4xl"
+            onPointerDown={onPointerDown}
+            onPointerUp={onPointerUp}
+            className="w-full max-w-4xl touch-pan-y"
           >
             {active.kind === "video" && active.videoUrl ? (
               <VideoPlayer

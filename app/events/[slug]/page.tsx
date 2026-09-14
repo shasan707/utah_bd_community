@@ -8,6 +8,8 @@ import EventMap from "@/components/EventMap";
 import PlaceholderImage from "@/components/PlaceholderImage";
 import PhotoMarquee from "@/components/PhotoMarquee";
 import EventPhotoGrid from "@/components/EventPhotoGrid";
+import CopyAddress from "@/components/CopyAddress";
+import { fullAddress, mapsUrl, placeLine } from "@/lib/address";
 import { getEventBySlug, getEventPhotos } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
 import { paletteGradient } from "@/lib/palette";
@@ -28,7 +30,13 @@ export default async function EventDetailPage({
   const registration = await getRegistrationStatus();
   const canRegister = canRegisterFor(registration, event.date);
   const fees = registration.pricing ? feeItems(registration.pricing) : [];
-  const mapQuery = event.address || `${event.venue}, ${event.city}`;
+  const mapQuery = fullAddress(event);
+  // Under the venue name in the sidebar: the street when there is one, and
+  // otherwise the city, but only when the city is not already part of the
+  // venue line itself.
+  const venueSecondLine =
+    event.address?.trim() ||
+    (placeLine(event) === event.venue ? "" : event.city);
   const photos = await getEventPhotos(slug);
 
   return (
@@ -74,19 +82,14 @@ export default async function EventDetailPage({
               </span>
               <span className="flex items-center gap-2">
                 <Icon name="pin" />
-                {event.mapUrl ? (
-                  <a
-                    href={event.mapUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline decoration-white/40 underline-offset-4 transition-colors hover:decoration-white"
-                  >
-                    {event.venue}
-                  </a>
-                ) : (
-                  event.venue
-                )}
-                {`, ${event.city}`}
+                <a
+                  href={mapsUrl(event)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline decoration-white/40 underline-offset-4 transition-colors hover:decoration-white"
+                >
+                  {placeLine(event)}
+                </a>
               </span>
             </div>
             {event.address && (
@@ -203,25 +206,29 @@ export default async function EventDetailPage({
                   Where
                 </div>
                 <div className="mt-2 font-bold text-forest-ink">{event.venue}</div>
-                <address className="mt-1 not-italic text-sm leading-relaxed text-forest-ink/70">
-                  {event.address || event.city}
-                </address>
+                {venueSecondLine && (
+                  <address className="mt-1 not-italic text-sm leading-relaxed text-forest-ink/70">
+                    {venueSecondLine}
+                  </address>
+                )}
                 <EventMap
                   query={mapQuery}
                   title={`Map of ${event.venue}`}
                   className="mt-4 h-56"
                 />
-                {event.mapUrl && (
-                  <a
-                    href={event.mapUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 flex items-center justify-center gap-2 rounded-full border-2 border-forest px-6 py-3 font-semibold text-forest transition-colors hover:bg-forest hover:text-cream"
-                  >
-                    <Icon name="pin" className="h-4 w-4" />
-                    Open in Google Maps
-                  </a>
-                )}
+                {/* Offered for every event now. Without a saved link the
+                    button searches for the address, which is what somebody
+                    would have typed in by hand anyway. */}
+                <a
+                  href={mapsUrl(event)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 flex items-center justify-center gap-2 rounded-full border-2 border-forest px-6 py-3 font-semibold text-forest transition-colors hover:bg-forest hover:text-cream"
+                >
+                  <Icon name="pin" className="h-4 w-4" />
+                  Open in Google Maps
+                </a>
+                <CopyAddress address={mapQuery} className="mt-3 w-full" />
               </div>
             </Reveal>
           </div>
