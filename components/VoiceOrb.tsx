@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import OrbShell from "@/components/OrbShell";
 
 /**
  * The voice assistant, as a floating orb in the bottom left corner.
@@ -184,44 +185,15 @@ export default function VoiceOrb() {
       : "Talk to us";
 
   return (
-    <div className="fixed bottom-5 left-5 z-[70] flex flex-col items-start gap-2 sm:bottom-6 sm:left-6">
-      {(note || live) && (
-        <div
-          role="status"
-          className="max-w-[15rem] rounded-2xl bg-forest px-4 py-2.5 text-sm font-medium text-ivory shadow-lg shadow-forest-ink/20"
-        >
-          {note || `Listening, ${clock(seconds)}`}
-        </div>
-      )}
-
-      {/* The waves sit outside the button so they can grow past its edge
-          without the button having to clip them. */}
-      <span className="relative flex h-14 w-14 items-center justify-center sm:h-16 sm:w-16">
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-        >
-          <span className={`orb-wave ${live ? "orb-wave-live" : ""}`} />
-          <span className={`orb-wave ${live ? "orb-wave-live" : ""}`} />
-          <span className={`orb-wave ${live ? "orb-wave-live" : ""}`} />
-        </span>
-
-        <button
-          type="button"
-          onClick={live ? hangUp : start}
-          disabled={busy}
-          aria-label={label}
-          title={label}
-          className={`orb-float relative flex h-14 w-14 items-center justify-center rounded-full text-ivory transition-transform duration-300 hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-forest disabled:cursor-wait disabled:opacity-80 sm:h-16 sm:w-16 ${
-            live ? "orb-face-live" : "orb-face"
-          }`}
-        >
-          {busy && (
-            <span className="absolute inset-0 animate-spin rounded-full border-2 border-ivory/25 border-t-ivory" />
-          )}
-          {live ? <StopIcon /> : <MicIcon />}
-        </button>
-      </span>
-    </div>
+    <OrbShell
+      side="left"
+      label={label}
+      note={note || (live ? `Listening, ${clock(seconds)}` : undefined)}
+      live={live}
+      busy={busy}
+      onClick={live ? hangUp : start}
+    >
+      {live ? <StopIcon /> : <MicIcon />}
+    </OrbShell>
   );
 }
