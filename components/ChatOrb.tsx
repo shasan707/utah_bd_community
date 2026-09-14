@@ -43,6 +43,13 @@ const SKIN = `
     pointer-events: none !important;
   }
 
+  /* The "Powered by Retell AI" line under the message box. The association
+     answers its own telephone; whose software it runs on is not something a
+     visitor asked about. */
+  [class*="_poweredBy"] {
+    display: none !important;
+  }
+
   [class*="_window_"] {
     max-height: calc(100vh - 124px) !important;
     max-height: calc(100dvh - 124px) !important;
