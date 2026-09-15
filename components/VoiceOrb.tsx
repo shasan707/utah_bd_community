@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import OrbShell from "@/components/OrbShell";
+import { ASSISTANT_PHONE_DISPLAY, ASSISTANT_TEL } from "@/lib/contact";
 
 /**
  * The voice assistant, as a floating orb in the bottom left corner.
@@ -192,6 +193,17 @@ export default function VoiceOrb() {
       live={live}
       busy={busy}
       onClick={live ? hangUp : start}
+      // Hidden while a call is running: the person is already talking to us,
+      // and a second way to ring would only be in the way.
+      contact={
+        live
+          ? undefined
+          : {
+              href: ASSISTANT_TEL,
+              verb: "call",
+              number: ASSISTANT_PHONE_DISPLAY,
+            }
+      }
     >
       {live ? <StopIcon /> : <MicIcon />}
     </OrbShell>

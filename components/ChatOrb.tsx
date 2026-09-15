@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import OrbShell from "@/components/OrbShell";
+import { ASSISTANT_PHONE_DISPLAY, ASSISTANT_SMS } from "@/lib/contact";
 
 /**
  * The chat assistant: our orb on the right, Retell's chat panel underneath.
@@ -312,6 +313,17 @@ export default function ChatOrb() {
       side="right"
       label={open ? "Close the chat" : "Chat with us"}
       onClick={toggle}
+      // Hidden while the panel is open, where it would sit under the window
+      // and compete with the conversation the person is already having.
+      contact={
+        open
+          ? undefined
+          : {
+              href: ASSISTANT_SMS,
+              verb: "text",
+              number: ASSISTANT_PHONE_DISPLAY,
+            }
+      }
     >
       {open ? <CloseIcon /> : <ChatIcon />}
     </OrbShell>

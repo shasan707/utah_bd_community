@@ -19,6 +19,7 @@ export default function OrbShell({
   live = false,
   busy = false,
   onClick,
+  contact,
   children,
 }: {
   side: "left" | "right";
@@ -28,6 +29,10 @@ export default function OrbShell({
   live?: boolean;
   busy?: boolean;
   onClick: () => void;
+  /** The phone line offered under the orb, for people who would rather not
+      use the assistant at all. Two short lines so the pill stays narrow
+      enough that the two corners cannot meet on a small screen. */
+  contact?: { href: string; verb: string; number: string };
   children: ReactNode;
 }) {
   return (
@@ -72,6 +77,20 @@ export default function OrbShell({
           {children}
         </button>
       </span>
+
+      {contact && (
+        <a
+          href={contact.href}
+          className={`max-w-[9.5rem] rounded-xl bg-white/92 px-2.5 py-1 text-[11px] font-semibold leading-tight text-forest shadow-md shadow-forest-ink/10 ring-1 ring-forest/10 backdrop-blur-sm transition-colors hover:bg-white hover:text-forest-deep ${
+            side === "left" ? "text-left" : "text-right"
+          }`}
+        >
+          <span className="block font-normal text-forest-ink/60">
+            or {contact.verb}
+          </span>
+          <span className="block whitespace-nowrap">{contact.number}</span>
+        </a>
+      )}
     </div>
   );
 }
