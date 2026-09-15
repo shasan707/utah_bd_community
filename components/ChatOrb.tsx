@@ -52,27 +52,58 @@ const SKIN = `
      only write anything else for a paid white label token, so the text is
      blanked and the association's name put in its place. The padding on the
      left was reserving room for a logo that is no longer drawn. */
+  /* The header becomes a person: round photo on the left, name beside it,
+     and an "Online" line under the name, the way a support chat looks. */
   [class*="_brand_"] {
-    padding-left: 0 !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    padding-left: 4px !important;
   }
 
   [class*="_brand_"] > svg,
-  [class*="_brand_"] > img:not([src]) {
+  [class*="_brand_"] img:not([src]) {
     display: none !important;
   }
 
-  [class*="_brandText"] {
-    font-size: 0 !important;
-    color: transparent !important;
+  [class*="_brand_"] img {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 9999px !important;
+    object-fit: cover !important;
+    object-position: 50% 30% !important;
+    border: 2px solid rgba(255, 255, 255, 0.85) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important;
+    background: ${IVORY} !important;
   }
 
-  [class*="_brandText"]::after {
-    content: "Bangladeshi Association of Utah";
-    font-size: 14px;
-    font-weight: 600;
+  [class*="_brandText"] {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+    font-size: 0 !important;
+    color: transparent !important;
+    line-height: 1 !important;
+  }
+
+  [class*="_brandText"]::before {
+    content: "BAU Assistant";
+    font-size: 15px;
+    font-weight: 700;
     line-height: 1.2;
     color: ${IVORY};
     white-space: nowrap;
+  }
+
+  [class*="_brandText"]::after {
+    content: "Online";
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: #b8cbc4;
+    padding-left: 13px;
+    background: radial-gradient(circle, #4ade80 0 3.5px, transparent 4px)
+      left center / 9px 9px no-repeat;
   }
 
   [class*="_window_"] {
@@ -184,7 +215,7 @@ export default function ChatOrb() {
       // The supported way to displace Retell's own mark in the header. The
       // wordmark beside it needs the stylesheet above as well, because that
       // one only changes for a paid white label token.
-      s.dataset.logoUrl = `${window.location.origin}/icon.svg`;
+      s.dataset.logoUrl = `${window.location.origin}/assistant.jpg`;
       s.dataset.color = FOREST;
       s.dataset.themeColor = FOREST;
       s.dataset.componentColor = IVORY;

@@ -502,31 +502,24 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
                 placeholder="Dietary needs, seating with another family, anything we should know"
               />
             </div>
-            <label className="flex items-start gap-3 text-sm text-forest-ink/80">
-              <input
-                type="checkbox"
-                checked={form.announcements}
-                onChange={(e) => set({ announcements: e.target.checked })}
-                className="mt-1 h-4 w-4 accent-forest"
-              />
-              Send me BPAU announcements by email
-            </label>
           </div>
 
-          {/* Honeypot: people never see this field, bots fill it in. */}
+          {/* Honeypot: people never see this field, bots fill it in. The
+              server rejects any submission where it is not empty. It carries
+              no visible words at all, so nothing about it can surface. */}
           <div
             aria-hidden="true"
-            className="absolute -left-[9999px] top-0 h-px w-px overflow-hidden"
+            className="pointer-events-none absolute -left-[9999px] top-0 h-px w-px overflow-hidden opacity-0"
           >
-            <label>
-              Website
-              <input
-                tabIndex={-1}
-                autoComplete="off"
-                value={form.website}
-                onChange={(e) => set({ website: e.target.value })}
-              />
-            </label>
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-label="Leave this field empty"
+              value={form.website}
+              onChange={(e) => set({ website: e.target.value })}
+            />
           </div>
 
           <div className="border-t border-sand pt-6">
