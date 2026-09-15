@@ -66,3 +66,36 @@ export function closesAt(v: string): Date {
   const offset = zoneOffsetMinutes(new Date(guess));
   return new Date(guess - offset * 60000);
 }
+
+/**
+ * What an admin typed into a datetime-local box, read as Utah wall time and
+ * returned as an ISO instant. The browser would otherwise read it in the
+ * admin's own zone, and an admin six hours ahead in Bangladesh typing noon
+ * was storing midnight in Utah. Returns "" for anything it cannot read.
+ */
+export function eventZoneInputToIso(local: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(local).trim());
+  if (!m) return "";
+  const guess = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+  const offset = zoneOffsetMinutes(new Date(guess));
+  return new Date(guess - offset * 60000).toISOString();
+}
+
+/** The reverse: an instant as the "yyyy-mm-ddThh:mm" a datetime-local box shows, in Utah time. */
+export function isoToEventZoneInput(iso: string): string {
+  if (!iso) return "";
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: EVENT_TIME_ZONE,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(at);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "00";
+  const hour = String(Number(get("hour")) % 24).padStart(2, "0");
+  return `${get("year")}-${get("month")}-${get("day")}T${hour}:${get("minute")}`;
+}

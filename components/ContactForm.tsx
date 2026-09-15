@@ -33,7 +33,7 @@ export default function ContactForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           className={`${inputCls} mt-1.5`}
-          placeholder="Rahim Uddin"
+          placeholder="Mushfiqur Rahman"
         />
       </label>
       <label className="mt-4 block text-sm font-semibold text-forest-ink">

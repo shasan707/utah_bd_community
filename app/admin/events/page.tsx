@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 import { uploadPhoto } from "@/lib/upload";
 import { inputCls } from "@/components/admin/AdminShell";
+import { eventZoneInputToIso, isoToEventZoneInput } from "@/lib/payments/dates";
+import { formatDateShort, formatTime } from "@/lib/format";
 
 type Row = {
   id: number;
@@ -51,13 +53,12 @@ function slugify(s: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+/**
+ * The box shows Utah time whoever is editing. Reading it in the browser's
+ * own zone is what made noon come back as midnight for an admin abroad.
+ */
 function toInputValue(iso: string): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours()
-  )}:${pad(d.getMinutes())}`;
+  return isoToEventZoneInput(iso);
 }
 
 export default function AdminEvents() {
@@ -113,7 +114,7 @@ export default function AdminEvents() {
         title: form.title,
         short_name: form.short_name || null,
         slug: form.slug || slugify(form.title),
-        date: new Date(form.date).toISOString(),
+        date: eventZoneInputToIso(form.date),
         end_time: form.end_time || null,
         venue: form.venue || null,
         address: form.address || null,
@@ -185,13 +186,19 @@ export default function AdminEvents() {
           onChange={(e) => set({ short_name: e.target.value })}
           className={inputCls}
         />
-        <input
-          required
-          type="datetime-local"
-          value={form.date}
-          onChange={(e) => set({ date: e.target.value })}
-          className={inputCls}
-        />
+        <label className="text-sm font-semibold text-forest-ink">
+          Date and time, in Utah time
+          <input
+            required
+            type="datetime-local"
+            value={form.date}
+            onChange={(e) => set({ date: e.target.value })}
+            className={`${inputCls} mt-1`}
+          />
+          <span className="mt-1 block text-xs font-normal text-forest-ink/50">
+            Type the time as it will be in Utah, wherever you are sitting.
+          </span>
+        </label>
         <input
           placeholder="End time, e.g. 10:00 PM (optional)"
           value={form.end_time}
@@ -317,7 +324,7 @@ export default function AdminEvents() {
                 {r.title}
               </div>
               <div className="text-xs text-forest-ink/50">
-                {new Date(r.date).toLocaleString("en-US")} · {r.venue ?? "TBA"}
+                {formatDateShort(r.date)}, {formatTime(r.date)} Utah · {r.venue ?? "TBA"}
               </div>
             </div>
             <button

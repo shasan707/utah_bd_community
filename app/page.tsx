@@ -246,16 +246,14 @@ export default async function HomePage() {
               Membership means free entry to our biggest events, a voice in the
               community, and a family of hundreds who celebrate the way you do.
             </p>
-            {registration.open && (
-              <div className="mt-8 flex flex-wrap justify-center gap-4">
-                <Link
-                  href="/register"
-                  className="cta-accent inline-block rounded-full px-9 py-4 font-bold"
-                >
-                  Register &amp; Pay
-                </Link>
-              </div>
-            )}
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+              <Link
+                href="/contact"
+                className="cta-accent inline-block rounded-full px-9 py-4 font-bold"
+              >
+                Contact us
+              </Link>
+            </div>
           </Reveal>
         </div>
       </section>

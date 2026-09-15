@@ -43,7 +43,6 @@ export const events: CommunityEvent[] = [
       "A day to reconnect with familiar faces, welcome new friends, share laughter, enjoy good food, and celebrate the traditions that keep us close to home.",
       "From the spirit of adda to the warmth of sharing a meal together, we hope this picnic brings a little piece of Bangladesh to the heart of Utah.",
       "Please bring your family, your stories, and your festive spirit.",
-      "আসুন মিলিত হই, গল্প করি, আনন্দ ভাগ করে নিই, একসাথে, এক পরিবারের মতো।",
       "আপনার ও আপনার পরিবারের উপস্থিতি আমাদের এই আয়োজনকে পূর্ণতা দেবে। সকলকে সাদর আমন্ত্রণ।",
       "We look forward to welcoming you to a beautiful day of community, culture, and togetherness.",
     ],

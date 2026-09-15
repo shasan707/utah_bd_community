@@ -123,7 +123,7 @@ and `relayZelleEmails` every 5 minutes.
 
 Nothing to type. These three values are pre-filled with what the first
 version used: Zelle recipient `bpau.pay@gmail.com`, the name Zelle shows for
-it (`Qudrat E Alahy Ratul`), and `bpau@gmail.com` as the contact email for
+it (`Md Shamim Ahmmed`), and `bpau@gmail.com` as the contact email for
 replies and alerts. A blank row in the database falls back to the same values.
 
 Change them in Settings on /admin/payments only if the alias enrolled in Zelle

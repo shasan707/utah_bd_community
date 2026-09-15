@@ -372,7 +372,7 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
                   value={form.first_name}
                   onChange={(e) => set({ first_name: e.target.value })}
                   className={inputCls}
-                  placeholder="Rahim"
+                  placeholder="Mushfiqur"
                 />
               </div>
               <div>
@@ -386,7 +386,7 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
                   value={form.last_name}
                   onChange={(e) => set({ last_name: e.target.value })}
                   className={inputCls}
-                  placeholder="Uddin"
+                  placeholder="Rahman"
                 />
               </div>
             </div>

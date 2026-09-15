@@ -43,7 +43,7 @@ export const DEFAULT_SETTINGS: Record<SettingKey, string> = {
   coupon_bundle_qty: "10",
   coupon_bundle_price: "15",
   zelle_recipient: "bpau.pay@gmail.com",
-  zelle_recipient_name: "Qudrat E Alahy Ratul",
+  zelle_recipient_name: "Md Shamim Ahmmed",
   contact_email: "bpau@gmail.com",
   pending_expiry_hours: "72",
   auto_confirm: "false",

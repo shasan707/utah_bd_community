@@ -60,7 +60,7 @@ export default function Footer() {
             <p className="text-sm text-cream/70">
               Facebook · WhatsApp · YouTube
               <br />
-              hello@utahusa.org <span className="text-cream/40">(placeholder)</span>
+              Email <span className="text-cream/40">(coming soon)</span>
               <br />
               Salt Lake City, Utah
             </p>
