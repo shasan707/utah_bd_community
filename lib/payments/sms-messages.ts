@@ -28,7 +28,7 @@ function firstName(name: string): string {
 export function pendingSms(row: RegistrationRow, s: Settings): string {
   return [
     `BAU: ${firstName(row.name)}, your ${shortEvent(s)} code is ${row.code}.`,
-    `Zelle ${money(row.amount_due)} to ${s.zelle_recipient}, memo ${row.code}.`,
+    `Please send Zelle ${money(row.amount_due)} to ${s.zelle_recipient}, use memo ${row.code}.`,
     "Ticket follows once confirmed. Reply STOP to opt out.",
   ].join(" ");
 }
