@@ -23,6 +23,20 @@ var MAX_BODY_CHARS = 40000;
 var MAX_EMAILS_PER_RUN = 20;
 var SENDER_NAME = 'BPAU';
 
+/**
+ * How far back each run looks. Every alert inside this window is offered to
+ * the website on every run, and the website keeps only the ones it has not
+ * seen: raw_emails.message_id is unique, so a repeat comes back as
+ * "already_seen" and is dropped. That is what makes it safe to stop using a
+ * label to decide what is new, which mattered because Gmail labels whole
+ * threads: once a thread was marked processed, every later alert that landed
+ * in it became invisible to this script for good.
+ */
+var LOOKBACK = 'newer_than:3d';
+
+/** The website refuses more than 50 messages in one call. */
+var MAX_MESSAGES_PER_RUN = 50;
+
 function config_() {
   var props = PropertiesService.getScriptProperties();
   var url = props.getProperty('WEBSITE_URL');
@@ -35,11 +49,20 @@ function config_() {
 
 /**
  * Where bank alerts are looked for. The BPAU-Zelle label still works, but it
- * is no longer required: anything from Wells Fargo or Zelle is checked too,
- * so a missing or mistyped Gmail filter cannot silently stop the automation.
+ * is not relied on: the banks are searched by sender domain as well, so a
+ * missing, mistyped, or outgrown Gmail filter cannot silently stop the
+ * automation.
+ *
+ * Bank of America is here because leaving it out stopped the automation once
+ * already. Its alerts come from ealerts.bankofamerica.com, which "from:" also
+ * matches, and it changed its subject line from "You received money with
+ * Zelle" to "<name> sent you $24.00". Any filter written against the old
+ * wording quietly stopped labelling anything. Matching the sender instead of
+ * the subject does not care what the bank calls its emails.
  */
 var ALERT_QUERIES = [
   'label:' + ZELLE_LABEL,
+  'from:bankofamerica.com',
   'from:wellsfargo.com',
   'from:zellepay.com OR from:zelle.com'
 ];
@@ -49,12 +72,17 @@ function looksLikeZelleAlert_(subject, body) {
   return /zelle|sent you|received money|payment received|you received/i.test(subject + '\n' + body);
 }
 
-/** New threads matching any alert query, each thread once. */
-function findNewAlertThreads_() {
+/**
+ * Threads matching any alert query inside the lookback window, each thread
+ * once. Deliberately does not exclude the processed label: that label sits on
+ * the thread, not the message, so excluding it hid later alerts that Gmail
+ * had grouped into an already-handled thread. The website removes repeats.
+ */
+function findAlertThreads_() {
   var seen = {};
   var out = [];
   ALERT_QUERIES.forEach(function (q) {
-    var threads = GmailApp.search('(' + q + ') -label:' + PROCESSED_LABEL + ' -from:me newer_than:30d', 0, MAX_THREADS_PER_RUN);
+    var threads = GmailApp.search('(' + q + ') -from:me ' + LOOKBACK, 0, MAX_THREADS_PER_RUN);
     threads.forEach(function (t) {
       var id = t.getId();
       if (!seen[id]) { seen[id] = true; out.push(t); }
@@ -70,7 +98,7 @@ function relayZelleEmails() {
   try {
     var cfg = config_();
     var processed = GmailApp.getUserLabelByName(PROCESSED_LABEL) || GmailApp.createLabel(PROCESSED_LABEL);
-    var threads = findNewAlertThreads_();
+    var threads = findAlertThreads_();
     if (threads.length === 0) return;
 
     var messages = [];
@@ -90,11 +118,16 @@ function relayZelleEmails() {
     });
 
     if (messages.length === 0) {
-      // Nothing Zelle-like in these threads; mark them so they are not scanned again.
-      threads.forEach(function (thread) { thread.addLabel(processed); });
       console.log('Checked ' + threads.length + ' thread(s), none looked like a Zelle alert.');
       return;
     }
+
+    // Oldest first, so a busy window can never starve the earliest payment,
+    // and never more than the website will accept in one call. Anything over
+    // the cap is picked up by the next run, which is five minutes away.
+    messages.sort(function (a, b) { return a.received_at < b.received_at ? -1 : 1; });
+    var held = Math.max(0, messages.length - MAX_MESSAGES_PER_RUN);
+    if (held > 0) messages = messages.slice(0, MAX_MESSAGES_PER_RUN);
 
     var response = UrlFetchApp.fetch(cfg.url + '/api/payments/inbound', {
       method: 'post',
@@ -106,11 +139,17 @@ function relayZelleEmails() {
 
     if (response.getResponseCode() !== 200) {
       console.error('Relay failed: HTTP ' + response.getResponseCode() + ' ' + response.getContentText().substring(0, 500));
-      return; // labels untouched, so the next run retries
+      return; // the next run offers the same messages again
     }
 
+    // Marks what has been handled so a person reading the mailbox can see it.
+    // Nothing depends on this label any more: the search above ignores it and
+    // the website is what decides whether a message is new.
     threads.forEach(function (thread) { thread.addLabel(processed); });
-    console.log('Relayed ' + messages.length + ' message(s)' + (skipped ? ', skipped ' + skipped : '') + ': ' + response.getContentText().substring(0, 800));
+    console.log('Relayed ' + messages.length + ' message(s)' +
+      (skipped ? ', skipped ' + skipped : '') +
+      (held ? ', ' + held + ' held for the next run' : '') +
+      ': ' + response.getContentText().substring(0, 800));
   } finally {
     lock.releaseLock();
   }
@@ -121,9 +160,9 @@ function relayZelleEmails() {
  * holds, which labels they carry, and whether the relay would pick them up.
  */
 function listRecentBankEmails() {
-  var threads = GmailApp.search('(from:wellsfargo.com OR from:zellepay.com OR from:zelle.com OR label:' + ZELLE_LABEL + ') newer_than:30d', 0, 20);
+  var threads = GmailApp.search('(from:bankofamerica.com OR from:wellsfargo.com OR from:zellepay.com OR from:zelle.com OR label:' + ZELLE_LABEL + ') newer_than:30d', 0, 20);
   if (threads.length === 0) {
-    console.log('No email from Wells Fargo or Zelle in the last 30 days in this mailbox. ' +
+    console.log('No email from Bank of America, Wells Fargo or Zelle in the last 30 days in this mailbox. ' +
       'Either the bank sends alerts to a different address, or forwarding from that address is not set up.');
     return;
   }
@@ -147,7 +186,7 @@ function listRecentBankEmails() {
  * wording can be checked against the website's parser.
  */
 function showNewestAlertText() {
-  var threads = GmailApp.search('(from:wellsfargo.com OR from:zellepay.com OR from:zelle.com OR label:' + ZELLE_LABEL + ') newer_than:60d', 0, 10);
+  var threads = GmailApp.search('(from:bankofamerica.com OR from:wellsfargo.com OR from:zellepay.com OR from:zelle.com OR label:' + ZELLE_LABEL + ') newer_than:60d', 0, 10);
   for (var i = 0; i < threads.length; i++) {
     var msgs = threads[i].getMessages();
     for (var j = msgs.length - 1; j >= 0; j--) {

@@ -45,26 +45,31 @@ Project Settings (gear icon) > Script Properties > Add:
 
 ## 4. Gmail labels and forwarding
 
-Same as before. The bank sends Zelle alerts to the email registered with Wells
-Fargo. If that is not the BPAU Gmail:
+The bank sends Zelle alerts to the email registered with the account. If that
+is not the BPAU Gmail:
 
-On the personal Gmail that receives the Wells Fargo alerts:
+On the personal Gmail that receives the alerts:
 1. Settings > Forwarding and POP/IMAP > Add a forwarding address: the BPAU Gmail.
 2. Confirm the code Google sends to the BPAU inbox.
-3. Settings > Filters > Create filter: From the Wells Fargo alerts sender,
-   Subject contains `sent you`, action Forward to the BPAU Gmail. Do not delete.
+3. Settings > Filters > Create filter: From the bank's alerts sender, action
+   Forward to the BPAU Gmail. Do not delete.
 
-On the BPAU Gmail, a filter is optional. The relay looks at every email from
-wellsfargo.com, zellepay.com, or zelle.com on its own, plus anything carrying
-the label `BPAU-Zelle`, and only passes on the ones that read like a Zelle
-alert. The label is still useful if the bank ever writes from another
-address: Settings > Filters > Create filter, action Apply label `BPAU-Zelle`.
+On the BPAU Gmail, no filter is needed. The relay looks at every email from
+bankofamerica.com, wellsfargo.com, zellepay.com, or zelle.com on its own, plus
+anything carrying the label `BPAU-Zelle`, and only passes on the ones that read
+like a Zelle alert.
+
+Match the sender, not the subject. Bank of America changed its alert subject
+from "You received money with Zelle" to "<name> sent you $24.00", and a filter
+written against the old wording stopped labelling anything, which stopped the
+automation without any error anywhere. Sender domains do not change when
+marketing rewrites a subject line.
 
 Two diagnostics you can run from the editor at any time:
 - `listRecentBankEmails`: every bank or Zelle email of the last 30 days, with
   its sender, subject, labels, and whether the relay would pick it up. If it
-  logs "No email from Wells Fargo or Zelle", the alerts are going to another
-  mailbox and that mailbox needs to forward them here.
+  logs "No email from Bank of America, Wells Fargo or Zelle", the alerts are
+  going to another mailbox and that mailbox needs to forward them here.
 - `showNewestAlertText`: the text of the newest alert, to compare with what
   the website expects.
 
@@ -78,8 +83,15 @@ the second line means the secret does not match Vercel.
 
 Then select `installTriggers` and Run once. From now on `sendQueuedEmails`
 runs every minute and sends whatever the website has queued, and
-`relayZelleEmails` runs every 5 minutes and labels each handled thread
-`BPAU-Zelle-Processed`.
+`relayZelleEmails` runs every 5 minutes.
+
+`relayZelleEmails` offers every alert of the last three days to the website on
+every run and lets the website drop the ones it already has, rather than
+deciding for itself what is new. It used to skip whole threads carrying
+`BPAU-Zelle-Processed`, but Gmail puts labels on threads and not on messages,
+so once a thread was marked, every later alert that landed in it was hidden
+from the script for good. The label is still applied, purely so a person
+reading the mailbox can see what has been handled.
 
 On Vercel, `EMAIL_PROVIDER` must be `relay` and `supabase/payments_email.sql`
 must have been run once, or there is nothing for the script to send.
