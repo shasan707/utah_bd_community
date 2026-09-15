@@ -120,8 +120,24 @@ const SKIN = `
   [class*="_header_"] { min-height: 62px !important; }
   [class*="_header_"] button,
   [class*="_header_"] svg,
-  [class*="_headerLogo"] {
+  [class*="_headerLogo"],
+  [class*="_navButton"] {
     color: ${IVORY} !important;
+  }
+
+  /* The close button is the one header control Retell give a filled box:
+     "background:#f4f6fb; color:#667085", which is a pale square with a grey
+     cross, and turning the cross ivory for the green bar left it white on
+     white. It is stripped back to the plain transparent button the menu on
+     the other side already is, so the two match. */
+  [class*="_closeButton"] {
+    background: transparent !important;
+    border-radius: 9999px !important;
+    color: ${IVORY} !important;
+  }
+
+  [class*="_closeButton"]:hover {
+    background: rgba(255, 255, 255, 0.16) !important;
   }
 
   [class*="_window_"] {
