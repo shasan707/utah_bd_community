@@ -143,6 +143,48 @@ export default async function RegisterPage() {
           <OfflineCard status={status} />
         )}
       </section>
+
+      {/* Students are looked after by the student association rather than
+          through this form, so they are pointed there before they fill it in
+          for nothing. Sits under the form, where somebody scanning for their
+          own case will reach it. */}
+      <section className="mx-auto max-w-6xl px-5 pb-16 md:pb-20">
+        <Reveal>
+          <a
+            href="https://www.facebook.com/BSAUofU"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative flex flex-col gap-5 overflow-hidden rounded-3xl border border-sand bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-forest/40 hover:shadow-lg hover:shadow-forest/10 sm:flex-row sm:items-center sm:gap-6 sm:p-7"
+          >
+            <Alpona className="floral-soft pointer-events-none absolute -right-14 -top-14 h-44 w-44 text-forest/10 transition-transform duration-700 group-hover:rotate-12" />
+            <span className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-forest text-ivory shadow-md shadow-forest/25 transition-transform duration-300 group-hover:scale-110">
+              <Icon name="facebook" className="h-7 w-7" />
+            </span>
+            <span className="relative min-w-0 flex-1">
+              <span className="block text-xs font-bold uppercase tracking-[0.2em] text-forest">
+                ✦ Students
+              </span>
+              <span className="mt-1 block font-heading text-xl font-black text-forest-ink md:text-2xl">
+                Are you a student? Please contact here.
+              </span>
+              <span className="mt-1.5 block text-sm leading-relaxed text-muted-ink">
+                Student places are arranged through the student association
+                rather than this form. Send them a message on Facebook and they
+                will take care of you.
+              </span>
+            </span>
+            <span className="relative inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full bg-forest px-6 py-3 text-sm font-semibold text-ivory transition-colors group-hover:bg-forest-deep sm:self-center">
+              Message on Facebook
+              <span
+                aria-hidden="true"
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              >
+                →
+              </span>
+            </span>
+          </a>
+        </Reveal>
+      </section>
     </div>
   );
 }
