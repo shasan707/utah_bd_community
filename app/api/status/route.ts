@@ -49,6 +49,7 @@ export async function GET(req: Request) {
       receipt_sent: Boolean(row.receipt_sent_at),
       email_queued: row.email_error === "queued",
       adults: row.adults,
+      youth: row.youth,
       children: row.children,
       coupons_qty: row.coupons_qty,
       breakdown: breakdownLines(row, settings),

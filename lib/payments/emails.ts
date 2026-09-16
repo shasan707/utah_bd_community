@@ -1,7 +1,7 @@
 import "server-only";
 import { SITE_URL } from "@/lib/site-url";
 import { formatDateOnly, formatInEventZone } from "./dates";
-import { breakdownLines, money } from "./pricing";
+import { breakdownLines, headcount, money, partySummary } from "./pricing";
 import type { Settings } from "./settings";
 import { ticketLinks } from "./ticket";
 import type { RegistrationRow } from "./types";
@@ -223,7 +223,7 @@ export function receiptEmail(row: RegistrationRow, s: Settings): EmailContent {
   const track = trackLink(row.code);
   const links = ticketLinks(row.code);
   const ticketPage = links?.ticket ?? track;
-  const people = row.adults + row.children;
+  const people = headcount(row);
 
   const text = [
     `Assalamu alaikum ${row.name},`,
@@ -251,11 +251,7 @@ export function receiptEmail(row: RegistrationRow, s: Settings): EmailContent {
     ["Ticket holder", row.name],
     [
       "Admits",
-      people > 0
-        ? `${row.adults} adult${row.adults === 1 ? "" : "s"}${
-            row.children ? `, ${row.children} child${row.children === 1 ? "" : "ren"}` : ""
-          }`
-        : "No seats (coupons or donation only)",
+      people > 0 ? partySummary(row) : "No seats (coupons or donation only)",
     ],
     ...(row.coupons_qty > 0
       ? [["Raffle draw coupons", String(row.coupons_qty)] as [string, string]]

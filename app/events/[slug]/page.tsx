@@ -10,6 +10,7 @@ import PhotoMarquee from "@/components/PhotoMarquee";
 import EventPhotoGrid from "@/components/EventPhotoGrid";
 import CopyAddress from "@/components/CopyAddress";
 import { fullAddress, mapsUrl, placeLine } from "@/lib/address";
+import { eventScheduleHtml } from "@/lib/schedule";
 import { getEventBySlug, getEventPhotos } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
 import { paletteGradient } from "@/lib/palette";
@@ -38,6 +39,7 @@ export default async function EventDetailPage({
     event.address?.trim() ||
     (placeLine(event) === event.venue ? "" : event.city);
   const photos = await getEventPhotos(slug);
+  const schedule = eventScheduleHtml();
 
   return (
     <div>
@@ -137,6 +139,39 @@ export default async function EventDetailPage({
           </div>
         </section>
       )}
+
+      {/* The running order. Written by hand in data/schedule.html, which is
+          committed with the code, so it is trusted and placed as written. */}
+      <section className="border-b border-sand bg-cream-dim/40 py-14 md:py-16">
+        <div className="mx-auto max-w-3xl px-5">
+          <Reveal>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
+              ✦ The day
+            </p>
+            <h2 className="mt-2 text-2xl font-bold text-forest-ink md:text-3xl">
+              Schedule
+            </h2>
+          </Reveal>
+          <Reveal delay={0.1}>
+            {schedule ? (
+              <div
+                className="event-schedule mt-7"
+                dangerouslySetInnerHTML={{ __html: schedule }}
+              />
+            ) : (
+              <div className="mt-7 rounded-2xl border border-dashed border-forest/25 bg-white/70 px-6 py-8 text-center">
+                <p className="font-heading text-lg font-black text-forest-ink">
+                  Coming soon
+                </p>
+                <p className="mt-1 text-sm text-muted-ink">
+                  The running order for the day is being put together. It will
+                  appear here before the picnic.
+                </p>
+              </div>
+            )}
+          </Reveal>
+        </div>
+      </section>
 
       <section className="mx-auto max-w-5xl px-5 py-16">
         <div className="grid gap-12 md:grid-cols-[2fr_1fr]">

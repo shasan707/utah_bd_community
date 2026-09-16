@@ -39,7 +39,7 @@ export const events: CommunityEvent[] = [
       "A day of adda, good food, and togetherness at South Fork Park. Please bring your family, your stories, and your festive spirit.",
     description: [
       "With the warmth of Bangladeshi hospitality and the joy of togetherness, we respectfully invite you to the 2026 Salt Lake City, BD Picnic.",
-      "Please join us on October 3, 2026, at noon at the beautiful South Fork Park, 4988 S Fork Rd, Provo, UT 84604, for a memorable gathering of our Bangladeshi community in Utah.",
+      "Please join us on October 3, 2026, at 11 in the morning at the beautiful South Fork Park, 4988 S Fork Rd, Provo, UT 84604, for a memorable gathering of our Bangladeshi community in Utah.",
       "A day to reconnect with familiar faces, welcome new friends, share laughter, enjoy good food, and celebrate the traditions that keep us close to home.",
       "From the spirit of adda to the warmth of sharing a meal together, we hope this picnic brings a little piece of Bangladesh to the heart of Utah.",
       "Please bring your family, your stories, and your festive spirit.",

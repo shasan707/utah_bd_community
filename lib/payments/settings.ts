@@ -25,7 +25,7 @@ export type Settings = {
   registration_open: boolean;
   price_adult: number;
   price_child: number;
-  price_student: number;
+  price_youth: number;
   coupon_single: number;
   coupon_bundle_qty: number;
   coupon_bundle_price: number;
@@ -59,7 +59,7 @@ export function parseSettings(raw: Partial<Record<string, string>>): Settings {
     registration_open: toBool(get("registration_open")),
     price_adult: toNumber(get("price_adult"), Number(d.price_adult)),
     price_child: toNumber(get("price_child"), Number(d.price_child)),
-    price_student: toNumber(get("price_student"), Number(d.price_student)),
+    price_youth: toNumber(get("price_youth"), Number(d.price_youth)),
     coupon_single: toNumber(get("coupon_single"), Number(d.coupon_single)),
     coupon_bundle_qty: toNumber(
       get("coupon_bundle_qty"),
@@ -103,7 +103,7 @@ export function publicPricing(s: Settings): Pricing {
     registration_closes: formatDateOnly(s.registration_closes),
     price_adult: s.price_adult,
     price_child: s.price_child,
-    price_student: s.price_student,
+    price_youth: s.price_youth,
     coupon_single: s.coupon_single,
     coupon_bundle_qty: s.coupon_bundle_qty,
     coupon_bundle_price: s.coupon_bundle_price,

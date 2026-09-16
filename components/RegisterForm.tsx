@@ -13,7 +13,6 @@ import {
   money,
   priceLabel,
   type Pricing,
-  type TicketType,
 } from "@/lib/payments/pricing";
 
 type Confirmation = {
@@ -39,8 +38,8 @@ const emptyForm = {
   phone: "",
   email: "",
   adults: 1,
+  youth: 0,
   children: 0,
-  ticket_type: "professional" as TicketType,
   coupons_qty: 0,
   bundles_qty: 0,
   comment: "",
@@ -135,8 +134,8 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
     form.coupons_qty + form.bundles_qty * bundleSize(pricing);
   const items = {
     adults: form.adults,
+    youth: form.youth,
     children: form.children,
-    ticket_type: form.ticket_type,
     coupons_qty: totalCoupons,
     donation: 0,
   };
@@ -441,9 +440,21 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
             <div className="grid gap-4 sm:grid-cols-2">
               <Stepper
                 label="Adults"
+                hint={`16 and over, ${money(pricing.price_adult)} each`}
                 value={form.adults}
                 max={50}
                 onChange={(v) => set({ adults: v })}
+              />
+              <Stepper
+                label="Youth"
+                hint={
+                  pricing.price_youth > 0
+                    ? `10 to 16, ${money(pricing.price_youth)} each`
+                    : "10 to 16, free"
+                }
+                value={form.youth}
+                max={50}
+                onChange={(v) => set({ youth: v })}
               />
               <Stepper
                 label="Children"
@@ -583,7 +594,8 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
           <SectionTitle>Prices</SectionTitle>
           <dl className="mt-3 space-y-2 text-sm">
             {[
-              ["Adult", priceLabel(pricing.price_adult)],
+              ["Adult, 16 and over", priceLabel(pricing.price_adult)],
+              ["Youth, 10 to 16", priceLabel(pricing.price_youth)],
               ["Child under 10", priceLabel(pricing.price_child)],
               ["Raffle draw coupon", money(pricing.coupon_single) + " each"],
               [

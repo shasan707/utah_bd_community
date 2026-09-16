@@ -25,7 +25,7 @@ insert into public.payment_settings (key, value) values
   ('registration_open', 'false'),
   ('price_adult', '20'),
   ('price_child', '0'),
-  ('price_student', '12'),
+  ('price_youth', '12'),
   ('coupon_single', '2'),
   ('coupon_bundle_qty', '10'),
   ('coupon_bundle_price', '15'),

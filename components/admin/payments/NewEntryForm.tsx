@@ -18,8 +18,8 @@ export default function NewEntryForm({
     phone: "",
     email: "",
     adults: 1,
+    youth: 0,
     children: 0,
-    ticket_type: "professional",
     coupons_qty: 0,
     donation: 0,
     mark_paid_now: true,
@@ -85,13 +85,24 @@ export default function NewEntryForm({
             className={inputCls}
           />
           <label className="text-sm font-semibold text-forest-ink">
-            Adults
+            Adults (16 and over)
             <input
               type="number"
               min={0}
               max={50}
               value={form.adults}
               onChange={(e) => set({ adults: Number(e.target.value) || 0 })}
+              className={`${inputCls} mt-1`}
+            />
+          </label>
+          <label className="text-sm font-semibold text-forest-ink">
+            Youth (10 to 16)
+            <input
+              type="number"
+              min={0}
+              max={50}
+              value={form.youth}
+              onChange={(e) => set({ youth: Number(e.target.value) || 0 })}
               className={`${inputCls} mt-1`}
             />
           </label>
@@ -105,16 +116,6 @@ export default function NewEntryForm({
               onChange={(e) => set({ children: Number(e.target.value) || 0 })}
               className={`${inputCls} mt-1`}
             />
-          </label>
-          <label className="text-sm font-semibold text-forest-ink">
-            Ticket type
-            <select
-              value={form.ticket_type}
-              onChange={(e) => set({ ticket_type: e.target.value })}
-              className={`${inputCls} mt-1`}
-            >
-              <option value="professional">Adult</option>
-            </select>
           </label>
           <label className="text-sm font-semibold text-forest-ink">
             Raffle draw coupons

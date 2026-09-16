@@ -17,7 +17,7 @@ On **Saturday, October 3, 2026**, we fix that for a day. The Bangladeshi Associa
 
 ## What the day looks like
 
-Come when you can, stay as long as you like. The park opens up to us from noon.
+Come when you can, stay as long as you like. The park opens up to us from 11 in the morning.
 
 There will be food, and plenty of it. There will be tea, and the kind of adda that starts with the weather and somehow reaches politics, cricket, and whose mother makes the better bhuna khichuri. The children will find each other within ten minutes, the way children do, and the rest of the afternoon will belong to them.
 
@@ -26,7 +26,7 @@ Bring your parents if they are visiting. Bring the friend who has been in Utah t
 ## Where and when
 
 - **Date:** Saturday, October 3, 2026
-- **Time:** From 12:00 PM
+- **Time:** From 11:00 AM
 - **Place:** South Fork Park, 4988 S Fork Rd, Provo, UT 84604
 
 South Fork Park sits up Provo Canyon with open lawn, shade, and room for the children to run. There is parking on site. The drive from Salt Lake City takes roughly an hour, so give yourself time and come with a full tank.

@@ -117,6 +117,7 @@ export default function Dashboard({
   const collected = paid.reduce((s, r) => s + (r.amount_received ?? 0), 0);
   const expectedPending = pending.reduce((s, r) => s + r.amount_due, 0);
   const adults = paid.reduce((s, r) => s + r.adults, 0);
+  const youth = paid.reduce((s, r) => s + r.youth, 0);
   const children = paid.reduce((s, r) => s + r.children, 0);
   const coupons = paid.reduce((s, r) => s + r.coupons_qty, 0);
   const donations = paid.reduce((s, r) => s + r.donation, 0);
@@ -183,9 +184,9 @@ export default function Dashboard({
           onClick={() => onJump({ tab: "pending" })}
         />
         <Tile
-          value={String(adults + children)}
+          value={String(adults + youth + children)}
           label="People attending"
-          sub={`${adults} adults, ${children} children, paid only`}
+          sub={`${adults} adults, ${youth} youth, ${children} children, paid only`}
         />
         <Tile
           value={String(coupons)}

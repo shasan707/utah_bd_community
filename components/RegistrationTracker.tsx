@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Icon from "@/components/Icon";
-import { money } from "@/lib/payments/pricing";
+import { money, partySummary } from "@/lib/payments/pricing";
 
 export type TrackerStatus = {
   code: string;
@@ -17,6 +17,7 @@ export type TrackerStatus = {
   receipt_sent: boolean;
   email_queued: boolean;
   adults: number;
+  youth: number;
   children: number;
   coupons_qty: number;
   breakdown: string[];
@@ -258,10 +259,7 @@ export default function RegistrationTracker({
             <div>
               <dt className="text-muted-ink">Admits</dt>
               <dd className="font-semibold text-forest-ink">
-                {status.adults} adult{status.adults === 1 ? "" : "s"}
-                {status.children
-                  ? `, ${status.children} child${status.children === 1 ? "" : "ren"}`
-                  : ""}
+                {partySummary(status)}
                 {status.coupons_qty
                   ? `, ${status.coupons_qty} raffle draw coupon${
                       status.coupons_qty > 1 ? "s" : ""

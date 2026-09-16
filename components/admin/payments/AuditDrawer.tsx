@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import StatusBadge from "./StatusBadge";
 import { getSupabase } from "@/lib/supabase";
-import { money } from "@/lib/payments/pricing";
+import { money, partySummary } from "@/lib/payments/pricing";
 import type { AuditRow, RegistrationRow } from "@/lib/payments/types";
 
 function when(iso: string | null): string {
@@ -77,7 +77,7 @@ export default function AuditDrawer({
           <Detail label="Email" value={row.email} />
           <Detail
             label="Party"
-            value={`${row.adults} adult${row.adults === 1 ? "" : "s"} (${row.ticket_type}), ${row.children} child${row.children === 1 ? "" : "ren"}`}
+            value={partySummary(row) || "No seats"}
           />
           <Detail
             label="Extras"

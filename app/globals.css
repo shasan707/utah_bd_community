@@ -197,6 +197,55 @@ body {
   box-shadow: 0 3px 10px rgba(204, 70, 63, 0.22);
 }
 
+/* The running order on an event page. The markup comes from
+   data/schedule.html, which is written by hand, so the styling lives here
+   rather than being repeated as classes on every row. It scrolls sideways
+   only if a row is genuinely too wide, never the page itself. */
+.event-schedule {
+  overflow-x: auto;
+}
+
+.event-schedule table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(29, 29, 31, 0.05);
+}
+
+.event-schedule td {
+  border-top: 1px solid var(--color-sand);
+  padding: 0.85rem 1.1rem;
+  vertical-align: top;
+}
+
+.event-schedule tr:first-child td {
+  border-top: 0;
+}
+
+/* The time column: narrow, and it must not wrap mid-time. */
+.event-schedule td.t {
+  width: 1%;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--color-forest);
+}
+
+.event-schedule strong {
+  display: block;
+  font-weight: 600;
+  color: var(--color-forest-ink);
+}
+
+.event-schedule span {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--color-muted-ink, rgba(29, 29, 31, 0.6));
+}
+
 /* ---- The two assistant orbs -------------------------------------------
    Shared by the voice orb, which is ours, and by the chat button inside
    Retell's widget, which is sent the same rules through its shadow root so

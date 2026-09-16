@@ -10,6 +10,7 @@ import {
   breakdownLines,
   codePrefix,
   computeAmount,
+  headcount,
   money,
   roundCents,
   type LineItems,
@@ -71,8 +72,8 @@ export function validateRegistrationInput(
     phone: String(data.phone ?? "").replace(/\D/g, "").slice(0, 20),
     email: String(data.email ?? "").trim().toLowerCase().slice(0, 200),
     adults: clampInt(data.adults, 0, 50),
+    youth: clampInt(data.youth, 0, 50),
     children: clampInt(data.children, 0, 50),
-    ticket_type: data.ticket_type === "student" ? "student" : "professional",
     coupons_qty: clampInt(data.coupons_qty, 0, 500),
     donation,
     comment: String(data.comment ?? "").trim().slice(0, 1000),
@@ -87,7 +88,7 @@ export function validateRegistrationInput(
   } else if (reg.email && !EMAIL_RE.test(reg.email)) {
     throw new ApiError(400, "That email address does not look right.");
   }
-  if (reg.adults + reg.children + reg.coupons_qty === 0 && reg.donation === 0) {
+  if (headcount(reg) + reg.coupons_qty === 0 && reg.donation === 0) {
     throw new ApiError(400, "Nothing selected.");
   }
   return reg;
@@ -387,8 +388,8 @@ export async function createRegistration(
         phone: input.phone,
         email: input.email,
         adults: input.adults,
+        youth: input.youth,
         children: input.children,
-        ticket_type: input.ticket_type,
         coupons_qty: input.coupons_qty,
         donation: input.donation,
         comment: input.comment,

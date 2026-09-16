@@ -5,7 +5,7 @@ import Alpona from "@/components/Alpona";
 import CheckInButton from "@/components/CheckInButton";
 import { CODE_PATTERN, normalizeCode } from "@/lib/payments/codes";
 import { formatDateOnly, formatInEventZone } from "@/lib/payments/dates";
-import { money } from "@/lib/payments/pricing";
+import { headcount, money, partySummary } from "@/lib/payments/pricing";
 import { getSettings } from "@/lib/payments/settings";
 import { qrImageUrl, verifyTicketToken } from "@/lib/payments/ticket";
 import { parseRegistration } from "@/lib/payments/types";
@@ -45,13 +45,9 @@ export default async function TicketPage({
   const row = parseRegistration(data);
 
   const paid = row.status === "PAID";
-  const people = row.adults + row.children;
+  const people = headcount(row);
   const admits =
-    people > 0
-      ? `${row.adults} adult${row.adults === 1 ? "" : "s"}${
-          row.children ? `, ${row.children} child${row.children === 1 ? "" : "ren"}` : ""
-        }`
-      : "No seats (coupons or donation only)";
+    people > 0 ? partySummary(row) : "No seats (coupons or donation only)";
 
   const state = !paid
     ? {

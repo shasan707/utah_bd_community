@@ -5,9 +5,12 @@
  */
 
 export type PriceTable = {
+  /** 16 and over. */
   price_adult: number;
+  /** Under 10. Free at the moment. */
   price_child: number;
-  price_student: number;
+  /** 10 to 16. */
+  price_youth: number;
   coupon_single: number;
   coupon_bundle_qty: number;
   coupon_bundle_price: number;
@@ -26,18 +29,23 @@ export type Pricing = PriceTable & {
 };
 
 /**
- * The student ticket is no longer offered: it is gone from the registration
- * form, from the admin settings, and from every price list. The type and the
- * student price stay because the database still accepts the value, and a
- * registration taken before this change must still price and print correctly.
- * Nothing new can be created as a student.
+ * The student ticket is no longer offered, and the seats are priced by age
+ * instead. The type stays only because the database column does, and a row
+ * written before the change still has to read back; nothing sets it now.
  */
 export type TicketType = "professional" | "student";
 
+/**
+ * Who is coming, by age band. The bands do not overlap: someone is an adult
+ * at 16, youth from 10 to 16, a child below that.
+ */
 export type LineItems = {
+  /** 16 and over. */
   adults: number;
+  /** 10 to 16. */
+  youth: number;
+  /** Under 10. */
   children: number;
-  ticket_type: TicketType;
   coupons_qty: number;
   donation: number;
 };
@@ -80,29 +88,61 @@ export function couponSummary(qty: number, p: PriceTable): string {
   return `${head} (${parts.join(" + ")})`;
 }
 
-export function perAdultPrice(ticket: TicketType, p: PriceTable): number {
-  return ticket === "student" ? p.price_student : p.price_adult;
-}
-
 export function computeAmount(items: LineItems, p: PriceTable): number {
   return roundCents(
-    items.adults * perAdultPrice(items.ticket_type, p) +
+    items.adults * p.price_adult +
+      items.youth * p.price_youth +
       items.children * p.price_child +
       couponCost(items.coupons_qty, p) +
       items.donation
   );
 }
 
+/** How many people a registration admits. */
+export function headcount(items: {
+  adults: number;
+  youth: number;
+  children: number;
+}): number {
+  return items.adults + items.youth + items.children;
+}
+
+/**
+ * "2 adults, 1 youth, 3 children", for tickets, receipts and the admin.
+ * Written once here so the three bands cannot be listed differently in the
+ * four places that show them.
+ */
+export function partySummary(items: {
+  adults: number;
+  youth: number;
+  children: number;
+}): string {
+  const parts: string[] = [];
+  if (items.adults > 0) {
+    parts.push(`${items.adults} adult${items.adults === 1 ? "" : "s"}`);
+  }
+  if (items.youth > 0) parts.push(`${items.youth} youth`);
+  if (items.children > 0) {
+    parts.push(`${items.children} child${items.children === 1 ? "" : "ren"}`);
+  }
+  return parts.join(", ");
+}
+
 /** Human-readable lines, e.g. "2 adults @ $25.00 = $50.00". */
 export function breakdownLines(items: LineItems, p: PriceTable): string[] {
   const lines: string[] = [];
-  const adultPrice = perAdultPrice(items.ticket_type, p);
-  const label = items.ticket_type === "student" ? "student" : "adult";
   if (items.adults > 0) {
     lines.push(
-      `${items.adults} ${label}${items.adults > 1 ? "s" : ""} @ ${money(
-        adultPrice
-      )} = ${money(items.adults * adultPrice)}`
+      `${items.adults} adult${items.adults > 1 ? "s" : ""} @ ${money(
+        p.price_adult
+      )} = ${money(items.adults * p.price_adult)}`
+    );
+  }
+  if (items.youth > 0) {
+    lines.push(
+      `${items.youth} youth (10 to 16) @ ${money(p.price_youth)} = ${money(
+        items.youth * p.price_youth
+      )}`
     );
   }
   if (items.children > 0) {
@@ -126,16 +166,17 @@ export function breakdownLines(items: LineItems, p: PriceTable): string[] {
   return lines;
 }
 
-/** The three entry fees, for the pages that show what the event costs. */
+/** The entry fees by age band, for the pages that show what the event costs. */
 export function feeItems(p: PriceTable): { label: string; value: string }[] {
   return [
-    { label: "Adult", value: priceLabel(p.price_adult) },
-    { label: "Under 10", value: priceLabel(p.price_child) },
+    { label: "Adult (16+)", value: priceLabel(p.price_adult) },
+    { label: "Youth (10 to 16)", value: priceLabel(p.price_youth) },
+    { label: "Child (under 10)", value: priceLabel(p.price_child) },
   ];
 }
 
 /** One code per payment, prefixed by what the payment is mostly for. */
 export function codePrefix(items: LineItems): "R" | "C" | "D" {
-  if (items.adults + items.children > 0) return "R";
+  if (headcount(items) > 0) return "R";
   return items.coupons_qty > 0 ? "C" : "D";
 }

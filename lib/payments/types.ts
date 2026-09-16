@@ -24,8 +24,13 @@ export type RegistrationRow = {
   name: string;
   phone: string;
   email: string;
+  /** 16 and over. */
   adults: number;
+  /** 10 to 16 (supabase/registration_youth.sql). */
+  youth: number;
+  /** Under 10. */
   children: number;
+  /** No longer set: the seats are priced by age now. Kept because the column is. */
   ticket_type: TicketType;
   coupons_qty: number;
   donation: number;
@@ -130,8 +135,8 @@ export const EXPORT_COLUMNS: (keyof RegistrationRow)[] = [
   "phone",
   "email",
   "adults",
+  "youth",
   "children",
-  "ticket_type",
   "coupons_qty",
   "donation",
   "comment",
@@ -176,6 +181,7 @@ export function parseRegistration(raw: Record<string, unknown>): RegistrationRow
     phone: str(raw.phone),
     email: str(raw.email),
     adults: num(raw.adults),
+    youth: num(raw.youth),
     children: num(raw.children),
     ticket_type: raw.ticket_type === "student" ? "student" : "professional",
     coupons_qty: num(raw.coupons_qty),
