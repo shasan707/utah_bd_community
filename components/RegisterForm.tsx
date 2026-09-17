@@ -581,7 +581,9 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
                     className={`${inputCls} pl-8 ${
                       donationShort ? "border-bengal-red" : ""
                     }`}
-                    placeholder={String(DONATION_MIN)}
+                    // A suggestion, not the floor: people give roughly what
+                    // the box hints at, and the minimum is stated below.
+                    placeholder="100"
                   />
                 </div>
                 <p
