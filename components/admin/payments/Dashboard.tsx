@@ -26,6 +26,7 @@ const ACTION_LABEL: Record<string, string> = {
   RESEND_RECEIPT: "ticket re-sent",
   MERGE: "merged",
   PAYMENT_IGNORED: "Zelle set aside",
+  TOPPED_UP: "added to an existing code",
   COUPONS_COLLECTED: "coupons handed over",
   COUPONS_COLLECTED_UNDO: "coupon handover undone",
   REASSIGNED: "reassigned to another person",
@@ -118,7 +119,15 @@ export default function Dashboard({
   const pending = rows.filter((r) => r.status === "PENDING");
   const expired = rows.filter((r) => r.status === "EXPIRED");
   const collected = paid.reduce((s, r) => s + (r.amount_received ?? 0), 0);
-  const expectedPending = pending.reduce((s, r) => s + r.amount_due, 0);
+  // Everything still owed, wherever it sits: unpaid registrations, and paid
+  // ones that have had coupons or a donation added to the same code since.
+  const expectedPending = rows.reduce(
+    (s, r) =>
+      r.status === "PENDING" || r.status === "PAID"
+        ? s + Math.max(0, r.amount_due - (r.amount_received ?? 0))
+        : s,
+    0
+  );
   const adults = paid.reduce((s, r) => s + r.adults, 0);
   const youth = paid.reduce((s, r) => s + r.youth, 0);
   const children = paid.reduce((s, r) => s + r.children, 0);

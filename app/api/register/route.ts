@@ -10,7 +10,9 @@ import { getSettings, openState } from "@/lib/payments/settings";
 import {
   checkThrottle,
   createRegistration,
+  addToRegistration,
   findRecentPending,
+  findTopUpTarget,
   toCreateResult,
   validateRegistrationInput,
 } from "@/lib/payments/registrations";
@@ -57,6 +59,19 @@ export async function POST(req: Request) {
 
     const ip = clientIpOf(req);
     await checkThrottle(input.email, ip);
+
+    // Somebody who has registered before keeps the code they already have,
+    // so one person carries one code, one link and one QR for everything
+    // they buy. Their earlier ticket is untouched; only the bill grows.
+    const target = await findTopUpTarget(input);
+    if (target) {
+      const { row } = await addToRegistration(target, input, settings, "web");
+      return jsonOk({
+        ...toCreateResult(row, settings),
+        reused: false,
+        added_to_existing: true,
+      });
+    }
 
     const { row } = await createRegistration(
       input,

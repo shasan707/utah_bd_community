@@ -1,6 +1,6 @@
 import "server-only";
 import { formatDateOnly } from "./dates";
-import { headcount, money } from "./pricing";
+import { headcount, money, outstanding } from "./pricing";
 import type { Settings } from "./settings";
 import { ticketLinks } from "./ticket";
 import type { RegistrationRow } from "./types";
@@ -26,9 +26,19 @@ function firstName(name: string): string {
  * halves what every registration costs to text.
  */
 export function pendingSms(row: RegistrationRow, s: Settings): string {
+  const owed = outstanding(row);
+  // Added to a code that was already paid once: they owe the difference and
+  // keep the code, the link and the QR they already have.
+  if ((row.amount_received ?? 0) > 0) {
+    return [
+      `BAU: ${firstName(row.name)}, added to your code ${row.code}.`,
+      `Send Zelle ${money(owed)} to ${s.zelle_recipient}, memo ${row.code}.`,
+      "Your existing ticket still works. Reply STOP to opt out.",
+    ].join(" ");
+  }
   return [
     `BAU: ${firstName(row.name)}, your ${shortEvent(s)} code is ${row.code}.`,
-    `Please send Zelle ${money(row.amount_due)} to ${s.zelle_recipient}, use memo ${row.code}.`,
+    `Please send Zelle ${money(owed)} to ${s.zelle_recipient}, use memo ${row.code}.`,
     `${headcount(row) > 0 ? "Ticket" : "Receipt"} follows once confirmed. Reply STOP to opt out.`,
   ].join(" ");
 }

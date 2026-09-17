@@ -1,7 +1,7 @@
 import "server-only";
 import { SITE_URL } from "@/lib/site-url";
 import { formatDateOnly, formatInEventZone } from "./dates";
-import { breakdownLines, headcount, money, partySummary } from "./pricing";
+import { breakdownLines, headcount, money, outstanding, partySummary } from "./pricing";
 import type { Settings } from "./settings";
 import { ticketLinks } from "./ticket";
 import type { RegistrationRow } from "./types";
@@ -148,19 +148,33 @@ function eventPairs(s: Settings): [string, string][] {
 
 /** Sent right after registering: the code, the amount, and where to Zelle. */
 export function pendingEmail(row: RegistrationRow, s: Settings): EmailContent {
-  const amount = money(row.amount_due);
+  // The balance, not the whole bill. Somebody adding coupons to a code they
+  // have already paid once owes only the difference, and the breakdown below
+  // shows everything on the code so the two together add up.
+  const owed = outstanding(row);
+  const amount = money(owed);
+  const topUp = (row.amount_received ?? 0) > 0;
   const lines = breakdownLines(row, s);
   const track = trackLink(row.code);
 
   const text = [
     `Assalamu alaikum ${row.name},`,
     "",
-    `Your registration for ${s.event_name} is saved.`,
+    topUp
+      ? `This is added to your existing registration for ${s.event_name}. Your code does not change, and the ticket already on your phone still works.`
+      : `Your registration for ${s.event_name} is saved.`,
     "",
     `Your code:  ${row.code}`,
-    `Amount:     ${amount}`,
+    `${topUp ? "Still to pay:" : "Amount:    "} ${amount}`,
     "",
+    ...(topUp ? [`Everything on this code:`] : []),
     ...lines.map((l) => `  ${l}`),
+    ...(topUp
+      ? [
+          `  Total = ${money(row.amount_due)}`,
+          `  Already paid = ${money(row.amount_received ?? 0)}`,
+        ]
+      : []),
     "",
     `Send ${amount} via Zelle to:`,
     `  ${s.zelle_recipient}`,

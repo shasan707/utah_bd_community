@@ -3,7 +3,7 @@ import { ApiError, getServiceClient } from "@/lib/supabase-server";
 import { audit } from "./audit";
 import { CODE_PATTERN, normalizeCode } from "./codes";
 import { formatInEventZone } from "./dates";
-import { headcount } from "./pricing";
+import { headcount, money, outstanding } from "./pricing";
 import { verifyTicketToken } from "./ticket";
 import { parseRegistration, type RegistrationRow } from "./types";
 
@@ -209,6 +209,18 @@ export async function collectCoupons(rawCode: unknown, actor: string): Promise<C
 
   if (row.coupons_qty === 0) {
     return { outcome: "no_coupons", message: `${code} has no coupons on it.`, row };
+  }
+  // Coupons added to a code after it was paid are not paid for until the
+  // balance is cleared, and goods are not handed over on credit. Entry is a
+  // different matter: those seats were settled by the earlier payment, so
+  // the door is not affected by this.
+  const owed = outstanding(row);
+  if (owed > 0) {
+    return {
+      outcome: "not_paid",
+      message: `${row.name} still owes ${money(owed)} on ${code}. Take the payment, then hand over the coupons.`,
+      row,
+    };
   }
   if (row.coupons_collected_at) {
     const at = formatInEventZone(new Date(row.coupons_collected_at));

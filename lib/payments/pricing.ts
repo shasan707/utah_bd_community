@@ -62,6 +62,23 @@ export type LineItems = {
  */
 export const DONATION_MIN = 50;
 
+/**
+ * What is still owed on a registration.
+ *
+ * A code is not one payment. Somebody may register and pay, then come back
+ * weeks later for coupons or to give a donation, and that is added to the
+ * same code rather than minting a second one. amount_due is everything ever
+ * ordered, amount_received everything ever sent, and the difference is what
+ * to Zelle. Nothing owed reads as zero, never as a negative, so an
+ * overpayment cannot make a later top-up look partly paid.
+ */
+export function outstanding(row: {
+  amount_due: number;
+  amount_received: number | null;
+}): number {
+  return Math.max(0, roundCents(row.amount_due - (row.amount_received ?? 0)));
+}
+
 export function money(n: number): string {
   return "$" + Number(n).toFixed(2);
 }

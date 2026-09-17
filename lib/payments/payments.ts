@@ -2,7 +2,7 @@ import "server-only";
 import { ApiError, getServiceClient } from "@/lib/supabase-server";
 import { sendEmail } from "@/lib/email";
 import { audit } from "./audit";
-import { money, roundCents } from "./pricing";
+import { money, outstanding, roundCents } from "./pricing";
 import { appendNote, deliverReceipt, getRegistration } from "./registrations";
 import { getSettings, type Settings } from "./settings";
 import {
@@ -128,12 +128,17 @@ export async function recordPayment(
     return insertPayment(record);
   }
 
+  // Anything with money still owed on it, which is not the same as anything
+  // unpaid: a PAID registration that has since had coupons or a donation
+  // added to the same code owes the difference and must be matchable too.
   const { data: pend, error } = await db
     .from("registrations")
     .select("*")
-    .in("status", ["PENDING", "EXPIRED"]);
+    .in("status", ["PENDING", "EXPIRED", "PAID"]);
   if (error) throw new ApiError(500, error.message);
-  const open = (pend ?? []).map((r) => parseRegistration(r));
+  const open = (pend ?? [])
+    .map((r) => parseRegistration(r))
+    .filter((r) => outstanding(r) > 0);
 
   const candidates = extractCandidates(parsed.memo_raw);
   let matches = open.filter((r) => candidates.has(r.code.replace("-", "")));
@@ -146,13 +151,15 @@ export async function recordPayment(
     record.extracted_code = reg.code;
     record.linked_code = reg.code;
     const got = cents(parsed.amount);
-    const due = cents(reg.amount_due);
+    // Against what is still owed, not the whole bill. Someone topping up a
+    // code they have already paid once sends only the difference.
+    const due = cents(outstanding(reg));
     record.match_status = got >= due ? "MATCHED" : "AMOUNT_MISMATCH";
     if (got < due) {
       await notifyAdmins(
         s,
         `Amount mismatch on ${reg.code}`,
-        `${reg.name} owes ${money(reg.amount_due)} but sent ${money(parsed.amount)} ` +
+        `${reg.name} owes ${money(outstanding(reg))} but sent ${money(parsed.amount)} ` +
           `(confirmation ${parsed.confirmation}). No receipt sent. Resolve it on the Zelle tab of the admin.`
       );
     }
@@ -164,7 +171,7 @@ export async function recordPayment(
     // Amount and name alone only make a suggestion for the treasurer.
     const senderTokens = nameTokens(parsed.sender_name);
     const amountFits = (reg: RegistrationRow) =>
-      cents(reg.amount_due) === cents(parsed.amount);
+      cents(outstanding(reg)) === cents(parsed.amount);
     const nameFits = (reg: RegistrationRow) =>
       senderTokens.length > 0 &&
       nameTokens(reg.name).some((t) => senderTokens.includes(t));
@@ -226,18 +233,27 @@ export async function applyPayment(
     .eq("code", pay.linked_code)
     .maybeSingle();
   const reg = regRaw ? parseRegistration(regRaw) : null;
-  if (!reg || (reg.status !== "PENDING" && reg.status !== "EXPIRED")) {
+  // Cancelled and refunded rows are closed. A PAID row is open again only
+  // when something was added to it after it was paid, which is what a
+  // balance above zero means.
+  const open =
+    reg &&
+    (reg.status === "PENDING" ||
+      reg.status === "EXPIRED" ||
+      (reg.status === "PAID" && outstanding(reg) > 0));
+  if (!reg || !open) {
     await patchPayment(pay.id, { processed_at: now });
     return null;
   }
 
-  const overpaid = cents(pay.amount) > cents(reg.amount_due);
+  const owed = outstanding(reg);
+  const overpaid = cents(pay.amount) > cents(owed);
   const memoCodes = extractCandidates(pay.memo_raw);
   const exactMemo =
     memoCodes.has(reg.code.replace("-", "")) || memoCodes.has(reg.code.slice(2));
   let notes = reg.notes;
   if (overpaid) {
-    notes = appendNote(notes, `[OVERPAID by ${money(pay.amount - reg.amount_due)}]`);
+    notes = appendNote(notes, `[OVERPAID by ${money(pay.amount - owed)}]`);
   }
   if (!exactMemo) {
     notes = appendNote(
@@ -259,14 +275,18 @@ export async function applyPayment(
     .update({
       status: "PAID",
       payment_method: "zelle",
-      amount_received: pay.amount,
+      // Added to, never overwritten: a second payment on the same code is
+      // money on top of the first, not instead of it.
+      amount_received: roundCents((reg.amount_received ?? 0) + pay.amount),
       paid_at: pay.received_at,
       zelle_confirmation_id: pay.confirmation_id,
       zelle_sender_name: pay.sender_name,
       notes,
     })
     .eq("code", reg.code)
-    .in("status", ["PENDING", "EXPIRED"])
+    // The row must still look the way it did when the balance was read, or
+    // two payments arriving together could both credit the same amount.
+    .eq("amount_received", reg.amount_received)
     .select("*")
     .maybeSingle();
   if (error) throw new ApiError(500, error.message);

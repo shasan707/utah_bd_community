@@ -5,7 +5,7 @@ import Alpona from "@/components/Alpona";
 import CheckInButton from "@/components/CheckInButton";
 import { CODE_PATTERN, normalizeCode } from "@/lib/payments/codes";
 import { formatDateOnly, formatInEventZone } from "@/lib/payments/dates";
-import { headcount, money, partySummary } from "@/lib/payments/pricing";
+import { headcount, money, outstanding, partySummary } from "@/lib/payments/pricing";
 import { getSettings } from "@/lib/payments/settings";
 import { qrImageUrl, verifyTicketToken } from "@/lib/payments/ticket";
 import { parseRegistration } from "@/lib/payments/types";
@@ -142,6 +142,14 @@ export default async function TicketPage({
                 <dd className="font-semibold text-forest-ink">
                   {money(row.amount_received ?? row.amount_due)}
                   {row.payment_method ? ` via ${row.payment_method}` : ""}
+                </dd>
+              </>
+            )}
+            {outstanding(row) > 0 && (
+              <>
+                <dt className="text-forest-ink/60">Still to pay</dt>
+                <dd className="font-semibold text-bengal-red">
+                  {money(outstanding(row))}, memo {code}
                 </dd>
               </>
             )}

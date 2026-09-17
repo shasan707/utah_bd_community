@@ -13,6 +13,7 @@ import {
   DONATION_MIN,
   headcount,
   money,
+  outstanding,
   roundCents,
   type LineItems,
 } from "./pricing";
@@ -353,10 +354,13 @@ export function toCreateResult(
   row: RegistrationRow,
   s: Settings
 ): CreateResult {
+  // What to send is the balance, not the whole bill: a top-up on a code that
+  // was already paid once owes only the difference.
+  const owed = outstanding(row);
   return {
     code: row.code,
-    amount: money(row.amount_due),
-    amount_due: row.amount_due,
+    amount: money(owed),
+    amount_due: owed,
     zelle_recipient: s.zelle_recipient,
     zelle_recipient_name: s.zelle_recipient_name,
     breakdown: breakdownLines(row, s),
@@ -365,6 +369,115 @@ export function toCreateResult(
     contact_email: s.contact_email,
     status: row.status,
   };
+}
+
+/** Names match when they are the same words, whatever the spacing or case. */
+function sameName(a: string, b: string): boolean {
+  const tidy = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+  return tidy(a) !== "" && tidy(a) === tidy(b);
+}
+
+/**
+ * The registration a new order should be added to, or null to start a fresh
+ * one.
+ *
+ * Someone who registered before and comes back for coupons or to leave a
+ * donation keeps the code they already have, so they keep one code, one
+ * link and one QR for everything they ever buy. Matching needs the phone
+ * and the name to agree: a household shares a phone, and a husband
+ * registering his wife must never be folded into his own row.
+ *
+ * Cancelled, refunded and expired rows are left alone, and so is anything
+ * where a payment has been recorded but not yet applied, because raising the
+ * bill underneath a payment already on its way would turn a good transfer
+ * into a shortfall.
+ */
+export async function findTopUpTarget(
+  input: CleanInput
+): Promise<RegistrationRow | null> {
+  if (!input.phone) return null;
+  const db = getServiceClient();
+  const { data, error } = await db
+    .from(TABLE)
+    .select("*")
+    .eq("phone", input.phone)
+    .in("status", ["PENDING", "PAID"])
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (error || !data?.length) return null;
+
+  const mine = data
+    .map((r) => parseRegistration(r))
+    .filter((r) => sameName(r.name, input.name));
+  if (!mine.length) return null;
+
+  // Prefer one that is settled: adding to it is unambiguous. A row that
+  // still owes money is only safe to touch when nothing has been paid
+  // against it at all.
+  const settled = mine.find((r) => r.status === "PAID" && outstanding(r) === 0);
+  if (settled) return settled;
+
+  const untouched = mine.find(
+    (r) => r.status === "PENDING" && (r.amount_received ?? 0) === 0
+  );
+  if (!untouched) return null;
+
+  const { count } = await db
+    .from("payments")
+    .select("id", { count: "exact", head: true })
+    .eq("linked_code", untouched.code);
+  return (count ?? 0) > 0 ? null : untouched;
+}
+
+/**
+ * Adds an order to a registration that already exists, keeping its code.
+ *
+ * Only what was bought and what is owed change. The code, and therefore the
+ * ticket link and the QR already in somebody's phone, stay exactly as they
+ * were. A settled row stays PAID so its ticket keeps working at the door
+ * while the new balance is outstanding; the coupons on it are what the desk
+ * withholds until that balance is cleared.
+ */
+export async function addToRegistration(
+  target: RegistrationRow,
+  input: CleanInput,
+  s: Settings,
+  actor: string
+): Promise<{ row: RegistrationRow; email: EmailResult | null }> {
+  const added = computeAmount(input, s);
+  if (added <= 0) {
+    throw new ApiError(400, "The total is zero, so there is nothing to add.");
+  }
+  const merged = {
+    adults: target.adults + input.adults,
+    youth: target.youth + input.youth,
+    children: target.children + input.children,
+    coupons_qty: target.coupons_qty + input.coupons_qty,
+    donation: roundCents(target.donation + input.donation),
+  };
+  const row = await patchRow(target.code, {
+    ...merged,
+    amount_due: roundCents(target.amount_due + added),
+    comment: input.comment
+      ? appendNote(target.comment, input.comment)
+      : target.comment,
+  });
+
+  await audit(
+    actor,
+    "TOPPED_UP",
+    target.code,
+    { amount_due: target.amount_due, coupons_qty: target.coupons_qty, donation: target.donation },
+    { amount_due: row.amount_due, coupons_qty: row.coupons_qty, donation: row.donation },
+    `added ${money(added)}, balance now ${money(outstanding(row))}`
+  );
+
+  // Same two messages a new registration gets, carrying the balance to send
+  // rather than the whole bill, because toCreateResult and the templates
+  // both read what is outstanding.
+  const email = await deliverPendingEmail(row, s);
+  await deliverSms(row, s, "pending");
+  return { row: await getRegistration(target.code), email };
 }
 
 /**
@@ -464,7 +577,11 @@ export async function markPaid(
 ): Promise<ActionResult> {
   const s = await getSettings();
   const existing = await getRegistration(code);
-  if (existing.status === "PAID") {
+  const owed = outstanding(existing);
+  // Already PAID is only a mistake when nothing is owed. A code that was
+  // paid and has since had coupons or a donation added owes the difference,
+  // and taking that at the desk is exactly this action.
+  if (existing.status === "PAID" && owed === 0) {
     throw new ApiError(409, `${code} is already PAID. Use Resend receipt.`);
   }
   if (existing.status === "CANCELLED" || existing.status === "REFUNDED") {
@@ -476,24 +593,22 @@ export async function markPaid(
   const method: PaymentMethod = isMethod(opts.method) ? opts.method : "cash";
   const requested = Number(opts.amount);
   const amt =
-    Number.isFinite(requested) && requested > 0
-      ? roundCents(requested)
-      : existing.amount_due;
+    Number.isFinite(requested) && requested > 0 ? roundCents(requested) : owed;
   const note = String(opts.note ?? "").trim().slice(0, 500);
 
-  // The status filter makes a double click or two admins at once harmless:
-  // only one of them updates anything.
+  // Filtering on the amount already received makes a double click, or two
+  // admins at once, harmless: only the first of them updates anything.
   const { data, error } = await getServiceClient()
     .from(TABLE)
     .update({
       status: "PAID",
       payment_method: method,
-      amount_received: amt,
+      amount_received: roundCents((existing.amount_received ?? 0) + amt),
       paid_at: nowIso(),
       notes: appendNote(existing.notes, note),
     })
     .eq("code", code)
-    .in("status", ["PENDING", "EXPIRED"])
+    .eq("amount_received", existing.amount_received)
     .select("*")
     .maybeSingle();
   if (error) throw new ApiError(500, error.message);

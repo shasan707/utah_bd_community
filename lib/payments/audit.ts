@@ -18,6 +18,7 @@ export type AuditAction =
   | "PAYMENT_IGNORED"
   | "CHECK_IN"
   | "CHECK_IN_UNDO"
+  | "TOPPED_UP"
   | "COUPONS_COLLECTED"
   | "COUPONS_COLLECTED_UNDO"
   | "REASSIGNED";

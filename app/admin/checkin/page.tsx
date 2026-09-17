@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { inputCls } from "@/components/admin/AdminShell";
 import Scanner from "@/components/admin/checkin/Scanner";
 import { adminRequest } from "@/lib/admin-api";
-import { headcount } from "@/lib/payments/pricing";
+import { headcount, money, outstanding } from "@/lib/payments/pricing";
 import { parseScannedTicket } from "@/lib/payments/ticket-parse";
 import { parseRegistration, type RegistrationRow } from "@/lib/payments/types";
 import { getSupabase } from "@/lib/supabase";
@@ -217,6 +217,7 @@ export default function AdminCheckin() {
   const controls = (r: RegistrationRow) => {
     const isPaid = r.status === "PAID";
     const seats = headcount(r);
+    const owed = outstanding(r);
     if (!isPaid) {
       return (
         <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
@@ -226,6 +227,11 @@ export default function AdminCheckin() {
     }
     return (
       <>
+        {owed > 0 && (
+          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">
+            {money(owed)} still owing
+          </span>
+        )}
         {seats > 0 &&
           (r.checked_in_at ? (
             <span className="inline-flex items-center gap-2 text-xs font-semibold text-forest">
@@ -265,9 +271,10 @@ export default function AdminCheckin() {
           ) : (
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || owed > 0}
+              title={owed > 0 ? `${money(owed)} still owing on this code` : undefined}
               onClick={() => run({ code: r.code, action: "collect" })}
-              className="rounded-full border-2 border-forest px-4 py-1.5 text-xs font-bold text-forest disabled:opacity-60"
+              className="rounded-full border-2 border-forest px-4 py-1.5 text-xs font-bold text-forest disabled:opacity-40"
             >
               Hand over {r.coupons_qty} coupon{r.coupons_qty === 1 ? "" : "s"}
             </button>

@@ -26,6 +26,8 @@ type Confirmation = {
   email_queued?: boolean;
   contact_email: string;
   reused?: boolean;
+  /** Added to a code this person already had, rather than a new one. */
+  added_to_existing?: boolean;
 };
 
 const inputCls =
@@ -244,7 +246,7 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
           <Alpona className="floral-soft absolute -right-16 -top-16 h-56 w-56" />
           <div className="relative">
             <div className="text-xs font-bold uppercase tracking-[0.25em] text-mint">
-              Your payment code
+              {done.added_to_existing ? "Your existing code" : "Your payment code"}
             </div>
             <div className="font-heading mt-3 text-5xl font-black tracking-[0.15em] md:text-6xl">
               {done.code}
@@ -262,6 +264,13 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
               <p className="mt-4 text-sm text-mint">
                 You already had a pending code for this registration, so here it
                 is again.
+              </p>
+            )}
+            {done.added_to_existing && (
+              <p className="mt-4 text-sm text-mint">
+                We found your earlier registration, so this was added to the
+                same code. The amount above is what is left to pay. Your
+                existing ticket and QR code still work.
               </p>
             )}
           </div>
