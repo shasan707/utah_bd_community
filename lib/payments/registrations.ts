@@ -455,9 +455,24 @@ export async function addToRegistration(
     coupons_qty: target.coupons_qty + input.coupons_qty,
     donation: roundCents(target.donation + input.donation),
   };
+  const due = roundCents(target.amount_due + added);
+
+  // Adding to a settled code puts it back in debt, so the label has to go
+  // back too. Leaving it on PAID was how a row could sit in the admin list
+  // marked paid while owing a hundred and fifty dollars. The door and the
+  // matcher both read the balance rather than the label, so nothing was let
+  // through, but the desk was being told the opposite of the truth.
+  //
+  // Only PAID and EXPIRED move. A cancelled or refunded row keeps its status,
+  // which is the record of what happened to it.
+  const reopen =
+    Math.round(due * 100) > Math.round((target.amount_received ?? 0) * 100) &&
+    (target.status === "PAID" || target.status === "EXPIRED");
+
   const row = await patchRow(target.code, {
     ...merged,
-    amount_due: roundCents(target.amount_due + added),
+    amount_due: due,
+    ...(reopen ? { status: "PENDING" as const } : {}),
     comment: input.comment
       ? appendNote(target.comment, input.comment)
       : target.comment,
@@ -467,8 +482,8 @@ export async function addToRegistration(
     actor,
     "TOPPED_UP",
     target.code,
-    { amount_due: target.amount_due, coupons_qty: target.coupons_qty, donation: target.donation },
-    { amount_due: row.amount_due, coupons_qty: row.coupons_qty, donation: row.donation },
+    { amount_due: target.amount_due, coupons_qty: target.coupons_qty, donation: target.donation, status: target.status },
+    { amount_due: row.amount_due, coupons_qty: row.coupons_qty, donation: row.donation, status: row.status },
     `added ${money(added)}, balance now ${money(outstanding(row))}`
   );
 
@@ -852,18 +867,53 @@ export async function createAdminEntry(
   };
 }
 
-/** PENDING rows older than the cutoff become EXPIRED. Returns their codes. */
+/**
+ * PENDING rows older than the cutoff become EXPIRED. Returns their codes.
+ *
+ * Two things are deliberately spared, because the row's age is not the same
+ * as the debt's age and this sweep only has the former to go on:
+ *
+ *  - anything with money on it. Part payment is not nothing, and a code that
+ *    was settled and then added to reads as PENDING again.
+ *  - anything topped up since the cutoff. The row may be a week old while the
+ *    balance was only put there this morning.
+ *
+ * Without these, someone who registered last week, paid, and bought coupons
+ * today would be expired minutes after buying them.
+ */
 export async function expirePending(
   hours: number,
   actor = "system"
 ): Promise<string[]> {
   const safeHours = Number.isFinite(hours) && hours > 0 ? hours : 72;
   const cutoff = new Date(Date.now() - safeHours * 3600 * 1000).toISOString();
-  const { data, error } = await getServiceClient()
+  const db = getServiceClient();
+
+  const { data: candidates, error: findErr } = await db
+    .from(TABLE)
+    .select("code")
+    .eq("status", "PENDING")
+    .lt("created_at", cutoff)
+    .or("amount_received.is.null,amount_received.eq.0");
+  if (findErr) throw new ApiError(500, findErr.message);
+  let wanted = (candidates ?? []).map((r) => String(r.code));
+  if (wanted.length === 0) return [];
+
+  const { data: toppedUp } = await db
+    .from("audit_log")
+    .select("entity_code")
+    .eq("action", "TOPPED_UP")
+    .gte("at", cutoff)
+    .in("entity_code", wanted);
+  const recent = new Set((toppedUp ?? []).map((r) => String(r.entity_code)));
+  wanted = wanted.filter((c) => !recent.has(c));
+  if (wanted.length === 0) return [];
+
+  const { data, error } = await db
     .from(TABLE)
     .update({ status: "EXPIRED" })
     .eq("status", "PENDING")
-    .lt("created_at", cutoff)
+    .in("code", wanted)
     .select("code");
   if (error) throw new ApiError(500, error.message);
   const codes = (data ?? []).map((r) => String(r.code));

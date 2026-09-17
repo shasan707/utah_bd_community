@@ -18,7 +18,7 @@ const U = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1`;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const H = { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=representation" };
 const ACTOR = "topup-sweep@local";
-const CODES = ["R-TQAA", "R-TQAB", "R-TQAC", "R-TQAD"];
+const CODES = ["R-TQAA", "R-TQAB", "R-TQAC", "R-TQAD", "R-TQAE", "R-TQAF", "R-TQAG"];
 const PHONE = "5559990000";
 
 let pass = 0, fail = 0;
@@ -45,8 +45,9 @@ try {
 
   console.log("\n== A PAID TICKET, THEN COUPONS ADDED TO THE SAME CODE ==");
   await make("R-TQAA", { adults: 1, amount_due: 20, amount_received: 20, status: "PAID", payment_method: "zelle", paid_at: new Date().toISOString() });
-  let row = REG.parseRegistration ? await read("R-TQAA") : await read("R-TQAA");
+  let row = await read("R-TQAA");
   t("starts settled", P.outstanding(row), 0);
+  t("starts labelled PAID", row.status, "PAID");
 
   const added = await REG.addToRegistration(
     { ...row, amount_due: Number(row.amount_due), amount_received: Number(row.amount_received), donation: Number(row.donation) },
@@ -59,7 +60,10 @@ try {
   t("bill grew by the bundle price", Number(row.amount_due), 35);
   t("already paid is untouched", Number(row.amount_received), 20);
   t("balance is the difference", P.outstanding(row), 15);
-  t("still PAID, ticket keeps working", row.status, "PAID");
+  // The label has to follow the money. A row that owes fifteen dollars must
+  // not sit in the admin list saying PAID, which is how the desk ended up
+  // being told the opposite of the truth.
+  t("back to PENDING, because it owes again", row.status, "PENDING");
 
   console.log("\n== OWING MONEY HOLDS BACK EVERYTHING, NOT JUST THE COUPONS ==");
   let r = await C.checkIn("R-TQAA", "", ACTOR);
@@ -78,6 +82,7 @@ try {
   row = await read("R-TQAA");
   t("credit added, not overwritten", Number(row.amount_received), 35);
   t("balance cleared", P.outstanding(row), 0);
+  t("PAID again once settled", row.status, "PAID");
   t("applied returned the row", applied?.code, "R-TQAA");
 
   console.log("\n== THE SAME PAYMENT CANNOT BE CREDITED TWICE ==");
@@ -123,6 +128,45 @@ try {
   t("no phone, no joining", noPhone, null);
   const stranger = await REG.findTopUpTarget({ name: "Nobody At All", phone: "5550001111", email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, comment: "", announcements_opt_in: false });
   t("a stranger starts fresh", stranger, null);
+
+  // The sweep only knows how old the ROW is, which is not how old the DEBT
+  // is. Someone who registered last week, paid, and bought coupons this
+  // morning reads as an old PENDING row, and must not be expired for it.
+  console.log("\n== THE EXPIRY SWEEP SPARES WHAT IT SHOULD ==");
+  const old = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+  await make("R-TQAE", { adults: 1, amount_due: 20, amount_received: 0, status: "PENDING", created_at: old });
+  await make("R-TQAF", { adults: 1, amount_due: 35, amount_received: 20, status: "PENDING", created_at: old });
+  await make("R-TQAG", { adults: 1, amount_due: 20, amount_received: 20, status: "PAID", created_at: old, paid_at: old });
+
+  // An old row, settled, topped up just now: the bill rises and it reopens.
+  const oldRow = await read("R-TQAG");
+  await REG.addToRegistration(
+    { ...oldRow, amount_due: Number(oldRow.amount_due), amount_received: Number(oldRow.amount_received), donation: Number(oldRow.donation) },
+    { name: "TopUp Tester", phone: PHONE, email: "", adults: 0, youth: 0, children: 0, coupons_qty: 10, donation: 0, comment: "", announcements_opt_in: false },
+    s, "web"
+  );
+  t("an old settled row reopens when topped up", (await read("R-TQAG")).status, "PENDING");
+
+  // expirePending sweeps the whole table, so note every real PENDING row
+  // first and put back anything this test knocks over.
+  const livePending: string[] = (await (await fetch(`${U}/registrations?status=eq.PENDING&select=code`, { headers: H })).json())
+    .map((r: { code: string }) => r.code)
+    .filter((c: string) => !CODES.includes(c));
+
+  const expired = await REG.expirePending(72, ACTOR);
+
+  const collateral = expired.filter((c: string) => livePending.includes(c));
+  for (const c of collateral) {
+    await fetch(`${U}/registrations?code=eq.${c}`, { method: "PATCH", headers: H, body: JSON.stringify({ status: "PENDING" }) });
+    console.log(`  .. put ${c} back to PENDING (it was swept by this test)`);
+  }
+  t("no real registration was expired by the test", collateral.length, 0);
+  t("the genuinely abandoned one expires", expired.includes("R-TQAE"), true);
+  t("part paid is spared", expired.includes("R-TQAF"), false);
+  t("topped up this minute is spared", expired.includes("R-TQAG"), false);
+  t("part paid still PENDING", (await read("R-TQAF")).status, "PENDING");
+  t("topped up still PENDING", (await read("R-TQAG")).status, "PENDING");
+  t("no live registration was touched", expired.every((c: string) => CODES.includes(c)), true);
 } catch (err) {
   fail++;
   console.log(`\n  !! THREW: ${err instanceof Error ? err.stack : String(err)}`);
@@ -135,7 +179,11 @@ try {
   await fetch(`${U}/payments?sender_name=eq.TopUp%20Tester`, { method: "DELETE", headers: H });
   await fetch(`${U}/payments?sender_name=eq.Someone%20Else`, { method: "DELETE", headers: H });
   await fetch(`${U}/audit_log?actor=eq.${encodeURIComponent(ACTOR)}`, { method: "DELETE", headers: H });
-  await fetch(`${U}/audit_log?actor=eq.web`, { method: "DELETE", headers: H });
+  // Only this suite's own codes. An earlier version cleaned up by actor=web,
+  // which would have taken real top-up history with it.
+  for (const c of CODES) {
+    await fetch(`${U}/audit_log?entity_code=eq.${c}`, { method: "DELETE", headers: H });
+  }
   const left = await (await fetch(`${U}/registrations?phone=eq.${PHONE}&select=code`, { headers: H })).json();
   t("throwaway rows removed", left.length, 0);
   const regs = await fetch(`${U}/registrations?select=code`, { headers: { ...H, Prefer: "count=exact", Range: "0-0" } });

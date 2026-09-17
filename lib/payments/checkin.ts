@@ -68,9 +68,14 @@ async function paidRow(
     return { outcome: "unknown", message: `No registration with code ${code}.`, row: null };
   }
   if (row.status !== "PAID") {
+    // Whoever is on the desk needs the number, not just the word. Say what is
+    // owed whenever there is a figure to give.
+    const owed = outstanding(row);
     return {
       outcome: "not_paid",
-      message: `${row.name} is ${row.status}, not paid. Take payment at the desk first.`,
+      message: owed > 0
+        ? `${row.name} owes ${money(owed)}. Take payment at the desk first.`
+        : `${row.name} is ${row.status}, not paid. Take payment at the desk first.`,
       row,
     };
   }
