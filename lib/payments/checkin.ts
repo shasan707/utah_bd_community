@@ -110,6 +110,19 @@ export async function checkIn(
   if ("outcome" in found) return found;
   const { code, row } = found;
 
+  // Owing money holds everything back, entry included. A registration can
+  // be PAID and still owe: seats added to a code that was settled for a
+  // donation are not paid for merely because something on the row once was.
+  // Money is fungible, so the honest rule is that a balance is a balance.
+  const owed = outstanding(row);
+  if (owed > 0) {
+    return {
+      outcome: "not_paid",
+      message: `${row.name} still owes ${money(owed)} on ${code}. Take the payment at the desk, then hand everything over.`,
+      row,
+    };
+  }
+
   if (headcount(row) === 0) {
     if (row.coupons_qty > 0) {
       return {

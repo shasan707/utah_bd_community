@@ -225,13 +225,18 @@ export default function AdminCheckin() {
         </span>
       );
     }
+    // Owing money holds everything back, wristbands included, so the desk
+    // never hands out half of an order. Take the balance on the Payments
+    // page and the buttons come back.
+    if (owed > 0) {
+      return (
+        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">
+          {money(owed)} owing, take payment first
+        </span>
+      );
+    }
     return (
       <>
-        {owed > 0 && (
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">
-            {money(owed)} still owing
-          </span>
-        )}
         {seats > 0 &&
           (r.checked_in_at ? (
             <span className="inline-flex items-center gap-2 text-xs font-semibold text-forest">
@@ -271,8 +276,7 @@ export default function AdminCheckin() {
           ) : (
             <button
               type="button"
-              disabled={busy || owed > 0}
-              title={owed > 0 ? `${money(owed)} still owing on this code` : undefined}
+              disabled={busy}
               onClick={() => run({ code: r.code, action: "collect" })}
               className="rounded-full border-2 border-forest px-4 py-1.5 text-xs font-bold text-forest disabled:opacity-40"
             >

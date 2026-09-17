@@ -411,22 +411,22 @@ export async function findTopUpTarget(
     .filter((r) => sameName(r.name, input.name));
   if (!mine.length) return null;
 
-  // Prefer one that is settled: adding to it is unambiguous. A row that
-  // still owes money is only safe to touch when nothing has been paid
-  // against it at all.
+  // A settled row first: adding to it is unambiguous. Otherwise the most
+  // recent one they hold, even if it still owes money, because the whole
+  // point is that a person carries one code and the bill simply grows.
   const settled = mine.find((r) => r.status === "PAID" && outstanding(r) === 0);
-  if (settled) return settled;
+  const candidate = settled ?? mine[0];
+  if (!candidate) return null;
 
-  const untouched = mine.find(
-    (r) => r.status === "PENDING" && (r.amount_received ?? 0) === 0
-  );
-  if (!untouched) return null;
-
+  // Unless a payment is sitting against it that has not been applied yet.
+  // Raising the bill underneath money already in flight would turn a good
+  // transfer into a shortfall, so that person starts a fresh code instead.
   const { count } = await db
     .from("payments")
     .select("id", { count: "exact", head: true })
-    .eq("linked_code", untouched.code);
-  return (count ?? 0) > 0 ? null : untouched;
+    .eq("linked_code", candidate.code)
+    .is("processed_at", null);
+  return (count ?? 0) > 0 ? null : candidate;
 }
 
 /**
@@ -602,13 +602,18 @@ export async function markPaid(
   // A row nobody has paid yet holds null here rather than zero, and null has
   // to be matched with is(), not eq(): eq sends the word "null", which the
   // database then tries to read as a number and refuses.
+  // PAID means the bill is covered, nothing less. Taking part of what is
+  // owed credits the money and leaves the registration owing the rest,
+  // rather than calling it settled and letting the desk hand everything over.
+  const received = roundCents((existing.amount_received ?? 0) + amt);
+  const covered = Math.round(received * 100) >= Math.round(existing.amount_due * 100);
   const query = getServiceClient()
     .from(TABLE)
     .update({
-      status: "PAID",
+      status: covered ? "PAID" : "PENDING",
       payment_method: method,
-      amount_received: roundCents((existing.amount_received ?? 0) + amt),
-      paid_at: nowIso(),
+      amount_received: received,
+      paid_at: covered ? nowIso() : existing.paid_at,
       notes: appendNote(existing.notes, note),
     })
     .eq("code", code);
