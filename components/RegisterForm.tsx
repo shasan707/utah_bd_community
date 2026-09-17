@@ -10,6 +10,7 @@ import {
   breakdownLines,
   bundleSize,
   computeAmount,
+  DONATION_MIN,
   money,
   priceLabel,
   type Pricing,
@@ -40,6 +41,11 @@ const emptyForm = {
   adults: 1,
   youth: 0,
   children: 0,
+  // The donation is off until it is deliberately switched on, so nobody
+  // gives by accident. Held as text while typing, so the box can be cleared
+  // without a zero jumping back into it.
+  donate: false,
+  donation_text: "",
   coupons_qty: 0,
   bundles_qty: 0,
   comment: "",
@@ -132,18 +138,32 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
   // the server prices the total, charging the bundle rate for every full ten.
   const totalCoupons =
     form.coupons_qty + form.bundles_qty * bundleSize(pricing);
+  // Only counts once the box is ticked, so an amount left behind after
+  // unticking is not charged.
+  const donationTyped = Math.max(0, Number(form.donation_text) || 0);
+  const donation = form.donate ? donationTyped : 0;
+  // Ticked but not yet at the minimum. Blocks the button rather than letting
+  // the server refuse after the fact.
+  const donationShort = form.donate && donation < DONATION_MIN;
+
   const items = {
     adults: form.adults,
     youth: form.youth,
     children: form.children,
     coupons_qty: totalCoupons,
-    donation: 0,
+    donation,
   };
   const estimate = computeAmount(items, pricing);
   const lines = breakdownLines(items, pricing);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (donationShort) {
+      setError(
+        `A donation has to be at least ${money(DONATION_MIN)}. Please raise the amount, or untick the donation box.`
+      );
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -153,6 +173,7 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
         body: JSON.stringify({
           ...form,
           coupons_qty: totalCoupons,
+          donation,
           name: `${form.first_name.trim()} ${form.last_name.trim()}`.trim(),
           started_at: startedAt,
         }),
@@ -499,6 +520,78 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
           </div>
 
           <div className="space-y-4 border-t border-sand pt-8">
+            <SectionTitle>Donation</SectionTitle>
+            <label className="flex items-start gap-3 text-sm text-forest-ink">
+              <input
+                type="checkbox"
+                checked={form.donate}
+                onChange={(e) => {
+                  // Clearing the amount on untick means a number typed and
+                  // then thought better of cannot come back with the box.
+                  set(
+                    e.target.checked
+                      ? { donate: true }
+                      : { donate: false, donation_text: "" }
+                  );
+                  setError("");
+                }}
+                className="mt-0.5 h-4 w-4 accent-forest"
+              />
+              <span>
+                <span className="font-semibold">
+                  I would like to add a donation
+                </span>
+                <span className="mt-0.5 block text-muted-ink">
+                  Optional, and it goes towards running the day.
+                </span>
+              </span>
+            </label>
+
+            {form.donate && (
+              <div>
+                <label htmlFor="reg-donation" className={labelCls}>
+                  Donation amount
+                </label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-semibold text-forest-ink/50">
+                    $
+                  </span>
+                  <input
+                    id="reg-donation"
+                    type="number"
+                    inputMode="decimal"
+                    min={DONATION_MIN}
+                    step="1"
+                    value={form.donation_text}
+                    onChange={(e) => {
+                      set({ donation_text: e.target.value });
+                      setError("");
+                    }}
+                    aria-invalid={donationShort}
+                    aria-describedby="reg-donation-help"
+                    className={`${inputCls} pl-8 ${
+                      donationShort ? "border-bengal-red" : ""
+                    }`}
+                    placeholder={String(DONATION_MIN)}
+                  />
+                </div>
+                <p
+                  id="reg-donation-help"
+                  className={
+                    donationShort
+                      ? "mt-1.5 text-sm font-semibold text-bengal-red"
+                      : helpCls
+                  }
+                >
+                  {donationShort
+                    ? `Please enter at least ${money(DONATION_MIN)}, or untick the box above.`
+                    : `${money(DONATION_MIN)} or more. Thank you.`}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4 border-t border-sand pt-8">
             <SectionTitle>Anything else</SectionTitle>
             <div>
               <label htmlFor="reg-comment" className={labelCls}>
@@ -543,12 +636,19 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
                 {error}
               </p>
             )}
+            {/* No code is asked for while the donation is short of the
+                minimum. The server refuses it too, for anyone who skips
+                the form and posts to the API directly. */}
             <button
               type="submit"
-              disabled={busy}
+              disabled={busy || donationShort}
               className="cta-accent mt-4 w-full rounded-full py-4 font-heading text-base font-bold disabled:opacity-60"
             >
-              {busy ? "Saving..." : "Get my payment code"}
+              {busy
+                ? "Saving..."
+                : donationShort
+                  ? `Donation must be ${money(DONATION_MIN)} or more`
+                  : "Get my payment code"}
             </button>
             <p className="mt-3 text-center text-xs text-muted-ink">
               No payment is taken here. You get a code, then pay by Zelle.

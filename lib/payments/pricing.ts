@@ -50,6 +50,18 @@ export type LineItems = {
   donation: number;
 };
 
+/**
+ * The smallest donation the public form will take.
+ *
+ * Someone either gives this much or turns the donation off; there is no
+ * middle. It lives in this file because this file has no server imports, so
+ * the form and the server can hold each other to the same number instead of
+ * writing it down twice. The server is the one that counts: the form can be
+ * bypassed by posting to the API, and refusing there is what stops a code
+ * from being generated at all.
+ */
+export const DONATION_MIN = 50;
+
 export function money(n: number): string {
   return "$" + Number(n).toFixed(2);
 }

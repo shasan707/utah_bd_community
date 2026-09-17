@@ -10,6 +10,7 @@ import {
   breakdownLines,
   codePrefix,
   computeAmount,
+  DONATION_MIN,
   headcount,
   money,
   roundCents,
@@ -90,6 +91,16 @@ export function validateRegistrationInput(
   }
   if (headcount(reg) + reg.coupons_qty === 0 && reg.donation === 0) {
     throw new ApiError(400, "Nothing selected.");
+  }
+  // A donation is all or nothing on the public form: give at least the
+  // minimum or give nothing. No code is created for anything in between.
+  // The admin is exempt, the same way it is exempt from the phone and email
+  // rules, so a smaller amount handed over in cash can still be recorded.
+  if (mode === "web" && reg.donation > 0 && reg.donation < DONATION_MIN) {
+    throw new ApiError(
+      400,
+      `A donation has to be at least ${money(DONATION_MIN)}. Please raise the amount, or turn the donation off.`
+    );
   }
   return reg;
 }
