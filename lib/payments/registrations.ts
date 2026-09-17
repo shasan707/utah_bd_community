@@ -598,7 +598,11 @@ export async function markPaid(
 
   // Filtering on the amount already received makes a double click, or two
   // admins at once, harmless: only the first of them updates anything.
-  const { data, error } = await getServiceClient()
+  //
+  // A row nobody has paid yet holds null here rather than zero, and null has
+  // to be matched with is(), not eq(): eq sends the word "null", which the
+  // database then tries to read as a number and refuses.
+  const query = getServiceClient()
     .from(TABLE)
     .update({
       status: "PAID",
@@ -607,8 +611,11 @@ export async function markPaid(
       paid_at: nowIso(),
       notes: appendNote(existing.notes, note),
     })
-    .eq("code", code)
-    .eq("amount_received", existing.amount_received)
+    .eq("code", code);
+  const { data, error } = await (existing.amount_received === null
+    ? query.is("amount_received", null)
+    : query.eq("amount_received", existing.amount_received)
+  )
     .select("*")
     .maybeSingle();
   if (error) throw new ApiError(500, error.message);

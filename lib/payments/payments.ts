@@ -270,7 +270,7 @@ export async function applyPayment(
     .filter(Boolean)
     .join("; ");
 
-  const { data, error } = await db
+  const update = db
     .from("registrations")
     .update({
       status: "PAID",
@@ -283,10 +283,15 @@ export async function applyPayment(
       zelle_sender_name: pay.sender_name,
       notes,
     })
-    .eq("code", reg.code)
-    // The row must still look the way it did when the balance was read, or
-    // two payments arriving together could both credit the same amount.
-    .eq("amount_received", reg.amount_received)
+    .eq("code", reg.code);
+  // The row must still hold the amount the balance was read from, or two
+  // payments arriving together could both credit the same money. A row
+  // nobody has paid yet holds null, which needs is() rather than eq():
+  // eq sends the word "null" and the database refuses to read it as a number.
+  const { data, error } = await (reg.amount_received === null
+    ? update.is("amount_received", null)
+    : update.eq("amount_received", reg.amount_received)
+  )
     .select("*")
     .maybeSingle();
   if (error) throw new ApiError(500, error.message);
