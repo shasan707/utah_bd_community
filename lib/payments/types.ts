@@ -52,6 +52,9 @@ export type RegistrationRow = {
   /** Set by the door scanner (supabase/checkin.sql). Null until the person arrives. */
   checked_in_at: string | null;
   checked_in_by: string;
+  /** Set when the raffle coupons are handed over (supabase/coupons_collected.sql). */
+  coupons_collected_at: string | null;
+  coupons_collected_by: string;
   /** Set by the Twilio sender (supabase/sms.sql). Null until a text goes out. */
   code_sms_at: string | null;
   ticket_sms_at: string | null;
@@ -150,6 +153,8 @@ export const EXPORT_COLUMNS: (keyof RegistrationRow)[] = [
   "receipt_sent_at",
   "checked_in_at",
   "checked_in_by",
+  "coupons_collected_at",
+  "coupons_collected_by",
   "created_by",
   "announcements_opt_in",
   "notes",
@@ -205,6 +210,8 @@ export function parseRegistration(raw: Record<string, unknown>): RegistrationRow
     client_ip: strOrNull(raw.client_ip),
     checked_in_at: strOrNull(raw.checked_in_at),
     checked_in_by: str(raw.checked_in_by),
+    coupons_collected_at: strOrNull(raw.coupons_collected_at),
+    coupons_collected_by: str(raw.coupons_collected_by),
     code_sms_at: strOrNull(raw.code_sms_at),
     ticket_sms_at: strOrNull(raw.ticket_sms_at),
     sms_error: strOrNull(raw.sms_error),

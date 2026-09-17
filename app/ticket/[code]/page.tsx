@@ -46,20 +46,32 @@ export default async function TicketPage({
 
   const paid = row.status === "PAID";
   const people = headcount(row);
-  const admits =
-    people > 0 ? partySummary(row) : "No seats (coupons or donation only)";
+  // No seats means this page is a receipt, not an admission ticket, and it
+  // must not read as one at the gate.
+  const seats = people > 0;
+  const admits = seats ? partySummary(row) : "Nobody. Coupons or donation only";
 
   const state = !paid
     ? {
         label: `Payment not confirmed yet (${row.status})`,
         cls: "bg-amber-100 text-amber-900",
       }
-    : row.checked_in_at
-      ? {
-          label: `Checked in ${formatInEventZone(new Date(row.checked_in_at))}`,
-          cls: "bg-stone-200 text-stone-800",
-        }
-      : { label: "Valid ticket", cls: "bg-forest text-cream" };
+    : !seats
+      ? row.coupons_collected_at
+        ? {
+            label: `Coupons collected ${formatInEventZone(new Date(row.coupons_collected_at))}`,
+            cls: "bg-stone-200 text-stone-800",
+          }
+        : {
+            label: row.coupons_qty > 0 ? "Paid. Collect coupons at the desk" : "Donation received",
+            cls: "bg-forest text-cream",
+          }
+      : row.checked_in_at
+        ? {
+            label: `Checked in ${formatInEventZone(new Date(row.checked_in_at))}`,
+            cls: "bg-stone-200 text-stone-800",
+          }
+        : { label: "Valid ticket", cls: "bg-forest text-cream" };
 
   return (
     <div>
@@ -67,7 +79,7 @@ export default async function TicketPage({
         <Alpona className="floral-soft absolute -right-24 -top-24 h-96 w-96" />
         <div className="relative mx-auto max-w-6xl px-5">
           <span className="text-sm font-bold uppercase tracking-[0.2em] text-mint">
-            ✦ Admission ticket
+            ✦ {seats ? "Admission ticket" : "Receipt, not a ticket"}
           </span>
           <h1 className="mt-2 text-3xl font-black md:text-5xl">{s.event_name}</h1>
           <p className="mt-3 text-lg text-ivory-dim">
@@ -107,14 +119,14 @@ export default async function TicketPage({
           )}
 
           <div className="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-forest-ink/50">
-            Ticket number
+            {seats ? "Ticket number" : "Receipt number"}
           </div>
           <div className="font-heading mt-1 text-4xl font-black tracking-[0.15em] text-forest">
             {code}
           </div>
 
           <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-left text-sm">
-            <dt className="text-forest-ink/60">Ticket holder</dt>
+            <dt className="text-forest-ink/60">{seats ? "Ticket holder" : "Name"}</dt>
             <dd className="font-semibold text-forest-ink">{row.name}</dd>
             <dt className="text-forest-ink/60">Admits</dt>
             <dd className="font-semibold text-forest-ink">{admits}</dd>
@@ -136,7 +148,11 @@ export default async function TicketPage({
           </dl>
 
           <p className="mt-6 text-sm text-forest-ink/70">
-            Show this screen at the check-in desk, or just give your name.
+            {seats
+              ? "Show this screen at the check-in desk, or just give your name."
+              : row.coupons_qty > 0
+                ? "This does not admit anyone. To collect your coupons, show this screen or give your phone number at the coupon desk."
+                : "This does not admit anyone. Thank you for your donation; there is nothing further to do."}
           </p>
 
           <CheckInButton code={code} token={token} />

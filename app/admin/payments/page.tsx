@@ -281,6 +281,22 @@ export default function AdminPayments() {
           onConfirm: () => run(() => patch({ action: "resend_receipt" })),
         });
         break;
+      case "reassign":
+        setDialog({
+          title: `Reassign ${r.code} to someone else`,
+          description: `${r.name} paid but cannot come. Only the holder changes; what was bought and paid stays as it is, and the ticket is emailed to the new person.`,
+          confirmLabel: "Reassign",
+          fields: [
+            { name: "name", label: "New holder's name", type: "text", required: true },
+            { name: "phone", label: "Their phone", type: "text", placeholder: "Digits only" },
+            { name: "email", label: "Their email", type: "text", placeholder: "For the ticket" },
+          ],
+          onConfirm: (v) =>
+            run(() =>
+              patch({ action: "reassign", name: v.name, phone: v.phone, email: v.email })
+            ),
+        });
+        break;
       case "merge":
         setDialog({
           title: `Merge ${r.code} into another code`,

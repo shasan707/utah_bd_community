@@ -26,6 +26,9 @@ const ACTION_LABEL: Record<string, string> = {
   RESEND_RECEIPT: "ticket re-sent",
   MERGE: "merged",
   PAYMENT_IGNORED: "Zelle set aside",
+  COUPONS_COLLECTED: "coupons handed over",
+  COUPONS_COLLECTED_UNDO: "coupon handover undone",
+  REASSIGNED: "reassigned to another person",
 };
 
 function ago(iso: string): string {

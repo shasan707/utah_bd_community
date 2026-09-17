@@ -224,14 +224,30 @@ export function receiptEmail(row: RegistrationRow, s: Settings): EmailContent {
   const links = ticketLinks(row.code);
   const ticketPage = links?.ticket ?? track;
   const people = headcount(row);
+  // Someone who bought coupons or gave a donation without registering has no
+  // seats, so this is a receipt rather than a ticket, and it says so. The QR
+  // stays because coupons are collected at the desk against it.
+  const seats = people > 0;
+  const noSeatsIntro =
+    row.coupons_qty > 0
+      ? `Thank you. Your payment is confirmed and your ${row.coupons_qty} raffle draw coupon${row.coupons_qty === 1 ? " is" : "s are"} in the draw.`
+      : "Thank you. Your donation is received, and it goes towards running the day.";
+  const noSeatsHow =
+    row.coupons_qty > 0
+      ? "To collect your coupons at the picnic, show this code or give your phone number at the coupon desk. This is not an admission ticket."
+      : "There is nothing further to do. This is a receipt, not an admission ticket.";
 
   const text = [
     `Assalamu alaikum ${row.name},`,
     "",
-    `Thank you. Your payment is confirmed and your seats for ${s.event_name} are reserved.`,
-    "This email is your ticket. Show the QR code, or just give your name, at the check-in desk.",
+    ...(seats
+      ? [
+          `Thank you. Your payment is confirmed and your seats for ${s.event_name} are reserved.`,
+          "This email is your ticket. Show the QR code, or just give your name, at the check-in desk.",
+        ]
+      : [noSeatsIntro, noSeatsHow]),
     "",
-    `Ticket number: ${row.code}`,
+    `${seats ? "Ticket number" : "Receipt number"}: ${row.code}`,
     `Name:          ${row.name}`,
     `Paid:          ${money(paid)} via ${method} on ${paidOn}`,
     "",
@@ -240,19 +256,16 @@ export function receiptEmail(row: RegistrationRow, s: Settings): EmailContent {
     "",
     ...eventLines(s),
     "",
-    "We look forward to seeing you there.",
-    `Your ticket with the QR code: ${ticketPage}`,
+    seats ? "We look forward to seeing you there." : "Thank you for supporting the association.",
+    `${seats ? "Your ticket with the QR code" : "Your receipt"}: ${ticketPage}`,
     questionsLine(s),
     "",
     "BPAU",
   ].join("\n");
 
   const ticketPairs: [string, string][] = [
-    ["Ticket holder", row.name],
-    [
-      "Admits",
-      people > 0 ? partySummary(row) : "No seats (coupons or donation only)",
-    ],
+    [seats ? "Ticket holder" : "Name", row.name],
+    ["Admits", seats ? partySummary(row) : "Nobody. Coupons or donation only, not a ticket"],
     ...(row.coupons_qty > 0
       ? [["Raffle draw coupons", String(row.coupons_qty)] as [string, string]]
       : []),
@@ -260,16 +273,19 @@ export function receiptEmail(row: RegistrationRow, s: Settings): EmailContent {
   ];
 
   const inner = [
-    header("Admission ticket", s.event_name, [
+    header(seats ? "Admission ticket" : "Receipt", s.event_name, [
       `${esc(formatDateOnly(s.event_date))}${s.event_time ? `, ${esc(s.event_time)}` : ""}`,
       s.event_venue ? esc(s.event_venue) : "",
     ]),
     `<tr><td style="padding:28px 32px 8px;font-size:16px;line-height:1.6;">
 Assalamu alaikum ${esc(firstName(row.name))},<br><br>
-Thank you. Your payment is confirmed and your seats are reserved. This email is your ticket:
-show the QR code at the check-in desk, or simply give your name. We look forward to celebrating with you.
+${
+      seats
+        ? "Thank you. Your payment is confirmed and your seats are reserved. This email is your ticket: show the QR code at the check-in desk, or simply give your name. We look forward to celebrating with you."
+        : `${esc(noSeatsIntro)} ${esc(noSeatsHow)}`
+    }
 </td></tr>`,
-    `<tr><td style="padding:8px 32px 12px;">${codeBlock("Ticket number", row.code, `Paid ${money(paid)}`)}</td></tr>`,
+    `<tr><td style="padding:8px 32px 12px;">${codeBlock(seats ? "Ticket number" : "Receipt number", row.code, `Paid ${money(paid)}`)}</td></tr>`,
     ...(links
       ? [
           `<tr><td align="center" style="padding:4px 32px 16px;">
@@ -292,8 +308,10 @@ Keep this email. You can also <a href="${esc(ticketPage)}" style="color:${COLORS
   ].join("\n");
 
   return {
-    subject: `BPAU - your ticket for ${s.event_name} (${row.code})`,
+    subject: seats
+      ? `BPAU - your ticket for ${s.event_name} (${row.code})`
+      : `BPAU - your receipt for ${s.event_name} (${row.code})`,
     text,
-    html: shell(`Ticket ${row.code}`, inner, s),
+    html: shell(`${seats ? "Ticket" : "Receipt"} ${row.code}`, inner, s),
   };
 }

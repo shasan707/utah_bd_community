@@ -9,6 +9,7 @@ export type RowAction =
   | "void"
   | "adjust"
   | "resend"
+  | "reassign"
   | "merge"
   | "history";
 
@@ -228,6 +229,9 @@ export default function RegistrationTable({
               )}
               {r.status === "PAID" && (
                 <Btn onClick={() => onAction("resend", r)}>Resend receipt</Btn>
+              )}
+              {(canPay || r.status === "PAID") && r.donation === 0 && (
+                <Btn onClick={() => onAction("reassign", r)}>Reassign</Btn>
               )}
               {(canPay || r.status === "PAID") && (
                 <Btn danger onClick={() => onAction("void", r)}>

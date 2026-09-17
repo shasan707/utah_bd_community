@@ -598,6 +598,70 @@ export async function resendReceipt(
   return { row, email, message: `Receipt re-sent for ${code}.` };
 }
 
+/**
+ * Hands a registration to a different person: someone paid, cannot come, and
+ * a friend goes in their place. Only who changes; what was bought and what
+ * was paid never do, so the money trail stays exactly as it was matched.
+ *
+ * Refused when the row carries a donation. Everything on a row moves with it,
+ * and a donation is credited to the person who gave it; moving that under a
+ * new name would misstate who supported the association.
+ */
+export async function reassignRegistration(
+  code: string,
+  to: { name?: unknown; phone?: unknown; email?: unknown },
+  actor: string
+): Promise<ActionResult> {
+  const s = await getSettings();
+  const existing = await getRegistration(code);
+  if (existing.status !== "PAID" && existing.status !== "PENDING") {
+    throw new ApiError(409, `${code} is ${existing.status}, so it cannot be reassigned.`);
+  }
+  if (existing.donation > 0) {
+    throw new ApiError(
+      409,
+      `${code} carries a ${money(existing.donation)} donation, which belongs to ${existing.name}. Tickets can be reassigned; donations stay with the giver.`
+    );
+  }
+  const name = String(to.name ?? "").trim().slice(0, 120);
+  const phone = String(to.phone ?? "").replace(/\D/g, "").slice(0, 20);
+  const email = String(to.email ?? "").trim().toLowerCase().slice(0, 200);
+  if (!name) throw new ApiError(400, "The new holder needs a name.");
+  if (email && !EMAIL_RE.test(email)) {
+    throw new ApiError(400, "That email address does not look right.");
+  }
+
+  const { data, error } = await getServiceClient()
+    .from(TABLE)
+    .update({ name, phone, email })
+    .eq("code", code)
+    .select("*")
+    .maybeSingle();
+  if (error) throw new ApiError(500, error.message);
+  if (!data) throw new ApiError(404, `Code not found: ${code}`);
+  let row = parseRegistration(data);
+
+  await audit(
+    actor,
+    "REASSIGNED",
+    code,
+    { name: existing.name, phone: existing.phone, email: existing.email },
+    { name, phone, email },
+    `paid by ${existing.name}`
+  );
+
+  // The new holder needs the ticket in their own hands.
+  let sent = "";
+  if (row.status === "PAID" && row.email) {
+    const delivered = await deliverReceipt(row, s);
+    row = delivered.row;
+    sent = delivered.email.sent || delivered.email.reason === "queued"
+      ? ` Ticket sent to ${email}.`
+      : " The ticket could not be emailed; resend it once email is set up.";
+  }
+  return { row, message: `${code} now belongs to ${name}.${sent}` };
+}
+
 export async function mergeInto(
   keepCode: string,
   dropCode: string,

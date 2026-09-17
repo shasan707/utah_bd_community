@@ -1,6 +1,6 @@
 import "server-only";
 import { formatDateOnly } from "./dates";
-import { money } from "./pricing";
+import { headcount, money } from "./pricing";
 import type { Settings } from "./settings";
 import { ticketLinks } from "./ticket";
 import type { RegistrationRow } from "./types";
@@ -29,7 +29,7 @@ export function pendingSms(row: RegistrationRow, s: Settings): string {
   return [
     `BAU: ${firstName(row.name)}, your ${shortEvent(s)} code is ${row.code}.`,
     `Please send Zelle ${money(row.amount_due)} to ${s.zelle_recipient}, use memo ${row.code}.`,
-    "Ticket follows once confirmed. Reply STOP to opt out.",
+    `${headcount(row) > 0 ? "Ticket" : "Receipt"} follows once confirmed. Reply STOP to opt out.`,
   ].join(" ");
 }
 
@@ -37,6 +37,15 @@ export function pendingSms(row: RegistrationRow, s: Settings): string {
 export function receiptSms(row: RegistrationRow, s: Settings): string {
   const links = ticketLinks(row.code);
   const when = formatDateOnly(s.event_date);
+  // No seats means no ticket: coupons are collected at the desk against the
+  // code, and a donation needs nothing further at all.
+  if (headcount(row) === 0) {
+    const what =
+      row.coupons_qty > 0
+        ? `${row.coupons_qty} raffle coupon${row.coupons_qty === 1 ? "" : "s"} received. Collect at the coupon desk with code ${row.code} or your phone number.`
+        : "Donation received, thank you. Nothing further to do.";
+    return `BAU: ${what} This is a receipt, not a ticket.`;
+  }
   const tail = links
     ? ` Your ticket: ${links.ticket}`
     : ` Your ticket number is ${row.code}.`;

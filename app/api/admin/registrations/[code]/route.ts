@@ -10,6 +10,7 @@ import {
   adjustAmount,
   markPaid,
   mergeInto,
+  reassignRegistration,
   resendReceipt,
   voidRegistration,
   type ActionResult,
@@ -57,6 +58,13 @@ export async function PATCH(
         break;
       case "resend_receipt":
         result = await resendReceipt(code, admin.email);
+        break;
+      case "reassign":
+        result = await reassignRegistration(
+          code,
+          { name: body.name, phone: body.phone, email: body.email },
+          admin.email
+        );
         break;
       case "merge_into": {
         const keep = parseCode(String(body.keep_code ?? ""));
