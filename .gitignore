@@ -6,3 +6,7 @@
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+# Database dumps taken before clearing data. They hold names, phones and
+# email addresses, so they stay on the machine and never go to GitHub.
+/backups

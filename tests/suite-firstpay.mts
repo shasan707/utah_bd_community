@@ -84,6 +84,21 @@ try {
   const res2 = await REG.markPaid("R-FPAC", { method: "cash", amount: 20, note: "paid at the desk" }, ACTOR);
   t("desk payment succeeds", res2.row.status, "PAID");
   t("credited", Number((await read("R-FPAC")).amount_received), 20);
+
+  // The database, not the application, is what stops two people being handed
+  // the same code. Checked here because this suite owns a row to collide
+  // with. It used to live in suite-db pointed at a real registration by name,
+  // so the day that registration was cleared it stopped colliding, was
+  // accepted, and left a stray row in the table.
+  console.log("\n== THE SAME CODE CANNOT BE ISSUED TWICE ==");
+  const clash = await fetch(`${U}/registrations`, {
+    method: "POST", headers: H,
+    body: JSON.stringify({ code: "R-FPAC", name: "Someone Else", phone: "5550009999", email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, amount_due: 20, status: "PENDING", created_by: "firstpay-sweep" }),
+  });
+  const clashBody = await clash.text();
+  t("a second row with the same code is refused", clash.ok, false);
+  t("and the database says why", /duplicate|unique/i.test(clashBody), true);
+  t("the original is untouched", Number((await read("R-FPAC")).amount_received), 20);
 } catch (err) {
   fail++;
   console.log(`\n  !! THREW: ${err instanceof Error ? err.message : String(err)}`);

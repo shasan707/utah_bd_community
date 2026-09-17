@@ -1,6 +1,11 @@
-// End-to-end exercise of the desk against the two existing TEST rows
-// (both Qudrat's), then puts everything back and proves it was restored.
-// Snapshots first, restores in a finally block even if something throws.
+// End-to-end exercise of the desk: entry, coupon handover, the undo of each,
+// and the codes that must be turned away.
+//
+// Every row here is built by this file and deleted again. An earlier version
+// borrowed two real registrations, checked them in, and put them back from a
+// snapshot. That was wrong twice over: a crash between the check-in and the
+// restore would have left a real guest marked as arrived, and the day those
+// two registrations were cleared the suite could not run at all.
 import fs from "node:fs";
 for (const line of fs.readFileSync(".env.local", "utf8").split(/\r?\n/)) {
   if (!line.includes("=") || line.startsWith("#")) continue;
@@ -13,7 +18,13 @@ const C = await import(`${B}/lib/payments/checkin.ts`);
 const U = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1`;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const hdr = { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=representation" };
-const ACTOR = "test-sweep@local";
+const ACTOR = "desk-sweep@local";
+const TICKET = "R-DSKA";   // paid, 1 adult, 1 coupon
+const UNPAID = "R-DSKB";   // pending, nothing received
+const COUPON = "C-DSKC";   // coupons only, paid
+const DONOR = "D-DSKD";    // donation only, paid
+const CODES = [TICKET, UNPAID, COUPON, DONOR];
+const PHONE = "5559993333";   // distinct from the other suites: cleanup deletes by phone
 
 let pass = 0, fail = 0;
 const t = (name: string, got: unknown, want: unknown) => {
@@ -25,87 +36,87 @@ const t = (name: string, got: unknown, want: unknown) => {
 const read = async (code: string) =>
   (await (await fetch(`${U}/registrations?code=eq.${code}&select=*`, { headers: hdr })).json())[0];
 
-const FIELDS = ["checked_in_at", "checked_in_by", "coupons_collected_at", "coupons_collected_by", "name", "phone", "email", "amount_due", "status"];
-const snap = (r: Record<string, unknown>) => Object.fromEntries(FIELDS.map((f) => [f, r[f]]));
-
-const before: Record<string, Record<string, unknown>> = {};
-for (const code of ["R-8E3U", "R-89YK"]) before[code] = snap(await read(code));
-console.log("Snapshot taken of R-8E3U and R-89YK.\n");
+const make = async (code: string, o: Record<string, unknown>) => {
+  const res = await fetch(`${U}/registrations`, {
+    method: "POST", headers: hdr,
+    body: JSON.stringify({
+      code, name: "Desk Tester", phone: PHONE, email: "",
+      adults: 0, youth: 0, children: 0, coupons_qty: 0, donation: 0,
+      amount_due: 0, status: "PENDING", created_by: "desk-sweep", ...o,
+    }),
+  });
+  if (!res.ok) throw new Error(`could not create ${code}: ${await res.text()}`);
+};
 
 try {
-  console.log("== A PAID TICKET WITH COUPONS (R-8E3U: 1 adult, 1 coupon) ==");
-  let r = await C.checkIn("R-8E3U", "", ACTOR);
+  await make(TICKET, { adults: 1, coupons_qty: 1, amount_due: 22, amount_received: 22, status: "PAID", payment_method: "cash", paid_at: new Date().toISOString() });
+  await make(UNPAID, { adults: 1, amount_due: 20, amount_received: 0, status: "PENDING" });
+
+  console.log("== A PAID TICKET WITH COUPONS (1 adult, 1 coupon) ==");
+  let r = await C.checkIn(TICKET, "", ACTOR);
   t("first scan admits", r.outcome, "checked_in");
   t("prompts for the coupon too", /hand over 1 coupon/i.test(r.message), true);
-  r = await C.checkIn("R-8E3U", "", ACTOR);
+  r = await C.checkIn(TICKET, "", ACTOR);
   t("second scan refused", r.outcome, "already");
 
-  r = await C.collectCoupons("R-8E3U", ACTOR);
+  r = await C.collectCoupons(TICKET, ACTOR);
   t("coupons handed over", r.outcome, "collected");
   t("says how many", /1 coupon/.test(r.message), true);
-  r = await C.collectCoupons("R-8E3U", ACTOR);
+  r = await C.collectCoupons(TICKET, ACTOR);
   t("cannot collect twice", r.outcome, "already_collected");
 
-  const mid = await read("R-8E3U");
+  const mid = await read(TICKET);
   t("entry stamped", !!mid.checked_in_at, true);
   t("coupon stamp written", !!mid.coupons_collected_at, true);
   t("volunteer recorded", mid.coupons_collected_by, ACTOR);
 
-  r = await C.undoCollectCoupons("R-8E3U", ACTOR);
+  r = await C.undoCollectCoupons(TICKET, ACTOR);
   t("coupon handover undone", r.outcome, "undone");
-  r = await C.undoCheckIn("R-8E3U", ACTOR);
+  r = await C.undoCheckIn(TICKET, ACTOR);
   t("entry undone", r.outcome, "undone");
+  const after = await read(TICKET);
+  t("both stamps cleared", [!!after.checked_in_at, !!after.coupons_collected_at], [false, false]);
 
-  console.log("\n== A PENDING ROW (R-89YK, underpaid, never confirmed) ==");
-  r = await C.checkIn("R-89YK", "", ACTOR);
+  console.log("\n== A PENDING ROW (never paid) ==");
+  r = await C.checkIn(UNPAID, "", ACTOR);
   t("unpaid refused at the door", r.outcome, "not_paid");
-  r = await C.collectCoupons("R-89YK", ACTOR);
+  t("the desk is told the amount", /\$20\.00/.test(r.message), true);
+  r = await C.collectCoupons(UNPAID, ACTOR);
   t("unpaid refused coupons", r.outcome, "not_paid");
 
   console.log("\n== CODES THAT DO NOT EXIST OR ARE MALFORMED ==");
   t("unknown code", (await C.checkIn("R-ZZZZ", "", ACTOR)).outcome, "unknown");
   t("nonsense code", (await C.checkIn("hello", "", ACTOR)).outcome, "unknown");
   t("empty code", (await C.checkIn("", "", ACTOR)).outcome, "unknown");
-  t("bad QR signature", (await C.checkIn("R-8E3U", "not-a-real-token", ACTOR)).outcome, "invalid");
-  t("no coupons on a row", (await C.collectCoupons("R-89YK", ACTOR)).outcome, "not_paid");
+  t("bad QR signature", (await C.checkIn(TICKET, "not-a-real-token", ACTOR)).outcome, "invalid");
 
   console.log("\n== A COUPON-ONLY CODE MUST NOT ADMIT ANYONE ==");
-  // Built here, exercised, and deleted in the finally block below.
-  const made = await fetch(`${U}/registrations`, {
-    method: "POST", headers: hdr,
-    body: JSON.stringify({ code: "C-TEST", name: "Sweep Coupon Buyer", phone: "5550000000", email: "", adults: 0, youth: 0, children: 0, coupons_qty: 10, donation: 0, amount_due: 15, amount_received: 15, status: "PAID", payment_method: "cash", created_by: "test-sweep" }),
-  });
-  if (!made.ok) throw new Error(`could not create the probe row: ${await made.text()}`);
-  r = await C.checkIn("C-TEST", "", ACTOR);
+  await make(COUPON, { coupons_qty: 10, amount_due: 15, amount_received: 15, status: "PAID", payment_method: "cash", paid_at: new Date().toISOString() });
+  r = await C.checkIn(COUPON, "", ACTOR);
   t("coupon code is NOT admitted", r.outcome, "coupons_only");
   t("says no wristband", /no wristband/i.test(r.message), true);
-  t("no entry stamp written", !!(await read("C-TEST")).checked_in_at, false);
-  r = await C.collectCoupons("C-TEST", ACTOR);
+  t("no entry stamp written", !!(await read(COUPON)).checked_in_at, false);
+  r = await C.collectCoupons(COUPON, ACTOR);
   t("but coupons can be collected", r.outcome, "collected");
   t("all ten", /10 coupons/.test(r.message), true);
 
   console.log("\n== A DONATION-ONLY CODE ==");
-  const made2 = await fetch(`${U}/registrations`, {
-    method: "POST", headers: hdr,
-    body: JSON.stringify({ code: "D-TEST", name: "Sweep Donor", phone: "5550000001", email: "", adults: 0, youth: 0, children: 0, coupons_qty: 0, donation: 50, amount_due: 50, amount_received: 50, status: "PAID", payment_method: "cash", created_by: "test-sweep" }),
-  });
-  if (!made2.ok) throw new Error(`could not create the probe row: ${await made2.text()}`);
-  r = await C.checkIn("D-TEST", "", ACTOR);
+  await make(DONOR, { donation: 50, amount_due: 50, amount_received: 50, status: "PAID", payment_method: "cash", paid_at: new Date().toISOString() });
+  r = await C.checkIn(DONOR, "", ACTOR);
   t("donation code is NOT admitted", r.outcome, "nothing_to_admit");
-  r = await C.collectCoupons("D-TEST", ACTOR);
+  r = await C.collectCoupons(DONOR, ACTOR);
   t("nothing to collect", r.outcome, "no_coupons");
+} catch (err) {
+  fail++;
+  console.log(`\n  !! THREW: ${err instanceof Error ? err.stack : String(err)}`);
 } finally {
   console.log("\n== CLEAN UP ==");
-  for (const code of ["C-TEST", "D-TEST"]) {
+  for (const code of CODES) {
     await fetch(`${U}/registrations?code=eq.${code}`, { method: "DELETE", headers: hdr });
+    await fetch(`${U}/audit_log?entity_code=eq.${code}`, { method: "DELETE", headers: hdr });
   }
   await fetch(`${U}/audit_log?actor=eq.${encodeURIComponent(ACTOR)}`, { method: "DELETE", headers: hdr });
-  for (const code of ["R-8E3U", "R-89YK"]) {
-    await fetch(`${U}/registrations?code=eq.${code}`, { method: "PATCH", headers: hdr, body: JSON.stringify(before[code]) });
-    const now = snap(await read(code));
-    t(`${code} restored exactly`, now, before[code]);
-  }
-  const left = await (await fetch(`${U}/registrations?or=(code.eq.C-TEST,code.eq.D-TEST)&select=code`, { headers: hdr })).json();
+  const left = await (await fetch(`${U}/registrations?phone=eq.${PHONE}&select=code`, { headers: hdr })).json();
   t("probe rows removed", left.length, 0);
   const auditLeft = await (await fetch(`${U}/audit_log?actor=eq.${encodeURIComponent(ACTOR)}&select=id`, { headers: hdr })).json();
   t("test audit rows removed", auditLeft.length, 0);

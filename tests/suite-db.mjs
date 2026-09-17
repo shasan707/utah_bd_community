@@ -13,18 +13,21 @@ let pass = 0, fail = 0;
 
 const good = { name: "constraint probe", amount_due: 0, created_by: "test-sweep" };
 async function refuses(name, patch, expect) {
+  // Remember the code we send. A plain POST returns an empty body, so reading
+  // it back off the response found nothing and the tidy-up never ran: when a
+  // probe was unexpectedly accepted, the row stayed in the table.
+  const sent = { code: `X-${Math.random().toString(36).slice(2, 6).toUpperCase()}`, ...good, ...patch };
   const res = await fetch(`${U}/registrations`, {
-    method: "POST", headers: hdr,
-    body: JSON.stringify({ code: `X-${Math.random().toString(36).slice(2, 6).toUpperCase()}`, ...good, ...patch }),
+    method: "POST", headers: hdr, body: JSON.stringify(sent),
   });
   const body = await res.json().catch(() => ({}));
   const refused = !res.ok;
   const right = refused && (!expect || new RegExp(expect, "i").test(JSON.stringify(body)));
   right ? pass++ : fail++;
   console.log(`  ${right ? "ok  " : "FAIL"} ${name.padEnd(38)} ${refused ? "refused" : "!! ACCEPTED, a row may exist"}`);
-  if (!refused && body.code) {
-    await fetch(`${U}/registrations?code=eq.${body.code}`, { method: "DELETE", headers: hdr });
-    console.log("       (created row deleted again)");
+  if (!refused) {
+    await fetch(`${U}/registrations?code=eq.${sent.code}`, { method: "DELETE", headers: hdr });
+    console.log("       (the row it should have refused has been deleted again)");
   }
 }
 
@@ -38,7 +41,10 @@ await refuses("negative donation", { donation: -10 }, "donation_check");
 await refuses("negative amount due", { amount_due: -1 }, "amount_due_check");
 await refuses("invented status", { status: "BANANA" }, "status_check");
 await refuses("invented payment method", { payment_method: "bitcoin" }, "payment_method_check");
-await refuses("duplicate code", { code: "R-8E3U" }, "duplicate|unique");
+// The duplicate-code check needs a row to collide with, so it lives in
+// suite-firstpay, which makes its own. It used to sit here pointed at a real
+// registration by name, and the day that registration was cleared the probe
+// stopped colliding, was accepted, and left its row behind.
 
 console.log("\n== COLUMNS THE APP DEPENDS ON ==");
 const cols = ["code", "name", "phone", "email", "adults", "youth", "children", "coupons_qty", "donation", "amount_due", "amount_received", "status", "payment_method", "paid_at", "checked_in_at", "checked_in_by", "coupons_collected_at", "coupons_collected_by", "zelle_confirmation_id", "receipt_sent_at", "code_sms_at", "ticket_sms_at"];
