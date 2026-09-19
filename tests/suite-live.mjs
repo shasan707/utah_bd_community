@@ -53,7 +53,17 @@ t("pavilion named", has("Pavilion 1"), true);
 t("street address shown", has("4988 S Fork Rd"), true);
 t("no wrong city", has("84604, Salt Lake City"), false);
 t("schedule section", has("Schedule"), true);
-t("schedule placeholder", has("Coming soon"), true);
+// The running order is published, so "Coming soon" going missing is now the
+// pass rather than the failure. These check the day is really on the page:
+// its first and last blocks, an item from the middle, and the photograph
+// behind it. If data/schedule.html is ever emptied these go red, which is
+// the point — the page would silently fall back to the placeholder.
+t("no longer says coming soon", has("Coming soon"), false);
+t("first block", has("Check-in and Mingle"), true);
+t("last block", has("Raffle and Closing"), true);
+t("an item from the middle", has("Hari Bhanga"), true);
+t("the 12:20 AM typo is corrected", has("12:20 PM") && !has("12:20 AM"), true);
+t("photograph behind it", has("schedule-backdrop"), true);
 t("bangla intact", has("আসুন"), true);
 t("no mojibake", /\?{4,}/.test(page.replace(/\?\?/g, "")), false);
 t("three fee bands", has("Adult (16+)") && has("Youth (10 to 16)") && has("Child (under 10)"), true);
