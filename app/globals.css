@@ -246,6 +246,137 @@ body {
   color: var(--color-muted-ink, rgba(29, 29, 31, 0.6));
 }
 
+/* A block heading row, <tr class="h">, which opens one part of the day.
+   The day runs to twenty-odd items, which is a wall to read as one list;
+   these break it into the four parts the committee planned it in. */
+.event-schedule tr.h td {
+  background: var(--color-forest);
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+}
+
+/* The time range beside a block heading, quieter than the heading itself
+   and pushed to its own line on a narrow screen. */
+.event-schedule tr.h span {
+  display: inline;
+  margin-left: 0.5rem;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+@media (max-width: 30rem) {
+  .event-schedule tr.h span {
+    display: block;
+    margin-left: 0;
+  }
+}
+
+/* The heading row draws its own edge, so the usual one would double up. */
+.event-schedule tr.h td {
+  border-top: 0;
+}
+
+/* ---- The picnic photograph behind the running order -------------------
+
+   The photograph stays SHARP. The blurring is done by the schedule card
+   itself, which is real glass: backdrop-filter blurs whatever shows through
+   it, so the picture is crisp around the card and soft behind it. That is
+   the effect on tazmahal-resturent.vercel.app, and it is not the same as
+   blurring a picture and laying it down flat.
+
+   Set as a CSS background rather than an <img>: if the file is ever missing
+   the browser draws nothing and the section still looks deliberate, with no
+   broken image and no error.
+
+   Glass is the whole point, so it is worth saying what happens without it.
+   Every current browser supports backdrop-filter, but where it is missing
+   the card would be a see-through panel with text sitting on a photograph,
+   which is unreadable. The @supports block at the end makes the card solid
+   in that case. */
+.schedule-backdrop {
+  position: absolute;
+  inset: 0;
+  background-image: url("/picnic-group.jpg");
+  background-size: cover;
+  background-position: center 42%;
+}
+
+.schedule-wash {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---- The band itself: the photograph dimmed the way the reference site
+   dims its hero, with the running order on dark glass over it. --------- */
+
+.schedule-band .schedule-backdrop {
+  filter: brightness(0.38) saturate(0.9);
+}
+
+.schedule-band .schedule-wash {
+  background: linear-gradient(
+    to bottom,
+    rgba(18, 63, 56, 0.58),
+    rgba(13, 79, 66, 0.34) 45%,
+    rgba(18, 63, 56, 0.76)
+  );
+}
+
+/* The section heading sits straight on the photograph rather than on the
+   glass, so it has to flip to light. Only the heading is here; the running
+   order is inside the table below. */
+.schedule-band h2 {
+  color: var(--color-ivory);
+}
+
+.schedule-band > div > div p {
+  color: var(--color-mint);
+}
+
+.schedule-band .event-schedule table {
+  background: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+}
+
+.schedule-band .event-schedule td {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.schedule-band .event-schedule td.t {
+  color: var(--color-mint);
+}
+
+.schedule-band .event-schedule strong {
+  color: var(--color-ivory);
+}
+
+.schedule-band .event-schedule span {
+  color: rgba(250, 250, 248, 0.68);
+}
+
+.schedule-band .event-schedule tr.h td {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.schedule-band .event-schedule tr.h span {
+  color: rgba(250, 250, 248, 0.66);
+}
+
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .schedule-band .event-schedule table {
+    background: rgba(18, 63, 56, 0.94);
+  }
+}
+
 /* ---- The two assistant orbs -------------------------------------------
    Shared by the voice orb, which is ours, and by the chat button inside
    Retell's widget, which is sent the same rules through its shadow root so

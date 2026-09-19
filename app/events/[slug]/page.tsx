@@ -142,8 +142,24 @@ export default async function EventDetailPage({
 
       {/* The running order. Written by hand in data/schedule.html, which is
           committed with the code, so it is trusted and placed as written. */}
-      <section className="border-b border-sand bg-cream-dim/40 py-14 md:py-16">
-        <div className="mx-auto max-w-3xl px-5">
+      <section
+        className={`relative overflow-hidden border-b border-sand py-14 md:py-16 ${
+          schedule ? "schedule-band" : "bg-cream-dim/40"
+        }`}
+      >
+        {/* The picnic photograph and the wash over it. Both are decoration
+            and carry no meaning, so they are hidden from a screen reader and
+            sit behind everything else. The photograph itself stays sharp:
+            the blur is done by the schedule card, which is real glass and
+            blurs what shows through it. Styled in globals.css, where the
+            reason for each layer is written down. */}
+        {schedule && (
+          <>
+            <div className="schedule-backdrop" aria-hidden="true" />
+            <div className="schedule-wash" aria-hidden="true" />
+          </>
+        )}
+        <div className="relative mx-auto max-w-3xl px-5">
           <Reveal>
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-forest">
               ✦ The day
