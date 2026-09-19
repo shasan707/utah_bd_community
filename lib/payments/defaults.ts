@@ -34,7 +34,7 @@ export type SettingKey = (typeof SETTING_KEYS)[number];
 export const DEFAULT_SETTINGS: Record<SettingKey, string> = {
   event_name: "2026 SLC BD Picnic",
   event_date: "2026-10-03",
-  event_time: "11:00 AM",
+  event_time: "10:00 AM",
   event_venue: "South Fork Park, 4988 S Fork Rd, Provo, UT 84604",
   registration_closes: "2026-09-26",
   registration_open: "false",
