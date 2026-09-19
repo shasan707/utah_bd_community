@@ -14,14 +14,19 @@ import {
   DONATION_MIN,
   money,
   priceLabel,
+  venmoLinks,
   type Pricing,
 } from "@/lib/payments/pricing";
 
 type Confirmation = {
   code: string;
   amount: string;
+  amount_due: number;
   zelle_recipient: string;
   zelle_recipient_name: string;
+  /** Blank when Venmo is not offered. */
+  venmo_handle: string;
+  venmo_name: string;
   breakdown: string[];
   email_sent: boolean;
   email_queued?: boolean;
@@ -240,11 +245,15 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
   };
 
   if (done) {
+    const venmo = venmoLinks(done.venmo_handle, done.amount_due, done.code);
     const mailBody = [
       `Your code: ${done.code}`,
       `Amount: ${done.amount}`,
       `Send via Zelle to: ${done.zelle_recipient} (${done.zelle_recipient_name})`,
-      `Put ${done.code} in the Zelle memo/note field.`,
+      ...(venmo
+        ? [`Or via Venmo to @${done.venmo_handle}${done.venmo_name ? ` (${done.venmo_name})` : ""}: ${venmo.pay}`]
+        : []),
+      `Put ${done.code} in the memo/note field.`,
       "",
       ...done.breakdown,
     ].join("\n");
@@ -332,6 +341,37 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
             ))}
           </ol>
 
+          {venmo && (
+            <div className="mt-6 rounded-2xl border border-[#008CFF]/30 bg-[#008CFF]/5 px-5 py-4">
+              <div className="text-xs font-bold uppercase tracking-[0.2em] text-[#0074D4]">
+                Or send it with Venmo
+              </div>
+              <p className="mt-2 text-sm leading-relaxed text-forest-ink/80">
+                Same amount, same code. Pay{" "}
+                <b className="text-forest-ink">@{done.venmo_handle}</b>
+                {done.venmo_name && (
+                  <span className="text-muted-ink"> ({done.venmo_name})</span>
+                )}{" "}
+                and put <b className="text-bengal-red">{done.code}</b> in the note.
+              </p>
+              <a
+                href={venmo.pay}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 inline-block rounded-full bg-[#008CFF] px-5 py-2 text-sm font-bold text-white"
+              >
+                Open Venmo with the amount and note filled in
+              </a>
+              <p className="mt-2 text-xs text-muted-ink">
+                If that does not open the app, go to{" "}
+                <a href={venmo.profile} target="_blank" rel="noreferrer" className="font-semibold text-forest underline">
+                  venmo.com/u/{done.venmo_handle}
+                </a>{" "}
+                and type them in.
+              </p>
+            </div>
+          )}
+
           <div className="mt-6 rounded-2xl bg-cream-dim px-5 py-4">
             <div className="text-xs font-bold uppercase tracking-[0.2em] text-forest">
               What you are paying for
@@ -366,7 +406,7 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
                 <a href={mailHref} className="font-semibold text-forest underline">
                   email these instructions to yourself
                 </a>
-                . Once your Zelle is confirmed you are in; bring your name or
+                . Once your payment is confirmed you are in; bring your name or
                 this code to the check-in desk.
               </p>
             )}
@@ -688,7 +728,8 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
                   : "Get my payment code"}
             </button>
             <p className="mt-3 text-center text-xs text-muted-ink">
-              No payment is taken here. You get a code, then pay by Zelle.
+              No payment is taken here. You get a code, then pay by Zelle
+              {pricing.venmo_handle ? " or Venmo" : ""}.
             </p>
             {adminToken !== null && (
               <label className="mt-4 flex items-start gap-3 rounded-2xl border border-dashed border-bengal-red/50 bg-bengal-red/5 px-4 py-3 text-sm text-forest-ink/80">
@@ -737,6 +778,15 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
               {pricing.zelle_recipient_name && (
                 <div className="text-xs text-ivory-dim">
                   {pricing.zelle_recipient_name}
+                </div>
+              )}
+              {pricing.venmo_handle && (
+                <div className="mt-3 border-t border-white/10 pt-3">
+                  <span className="glass-label text-xs uppercase tracking-widest">or Venmo</span>
+                  <div className="mt-1 font-semibold text-ivory">@{pricing.venmo_handle}</div>
+                  {pricing.venmo_name && (
+                    <div className="text-xs text-ivory-dim">{pricing.venmo_name}</div>
+                  )}
                 </div>
               )}
             </div>

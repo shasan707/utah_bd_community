@@ -63,6 +63,12 @@ export async function GET(req: Request) {
         recipient: settings.zelle_recipient,
         recipient_name: settings.zelle_recipient_name,
       },
+      // Blank handle means Venmo is not offered; the tracker then says
+      // nothing about it.
+      venmo: {
+        handle: settings.venmo_handle,
+        name: settings.venmo_name,
+      },
       contact_email: settings.contact_email,
     });
   } catch (err) {

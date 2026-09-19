@@ -30,6 +30,7 @@ expects to be rejected, and `suite-live` fetches the deployed site.
 |---|---|---|
 | `suite-logic` | no | pricing across the three age bands, coupon bundles, the donation minimum, Zelle memo matching, bank email parsing, Utah times, venue addresses |
 | `suite-msg` | no | every email and text, for attendees, coupon buyers, donors and top-ups, plus what each text costs in segments |
+| `suite-venmo` | no | the Venmo notification parser, the pay and profile links, and what members are told with Venmo off and on |
 | `suite-live` | no | the deployed pages, the pricing API, and that the two venue records agree |
 | `suite-db` | no | the database refusing out-of-range counts, invented statuses and duplicate codes on its own |
 | `suite-desk` | yes | entry and coupon handover, each stamped once, and a coupon-only code never admitting anyone |

@@ -23,6 +23,8 @@ export type TrackerStatus = {
   breakdown: string[];
   event: { name: string; date: string; time: string; venue: string };
   zelle: { recipient: string; recipient_name: string };
+  /** Handle blank when Venmo is not offered. Older responses may omit it. */
+  venmo?: { handle: string; name: string };
   contact_email: string;
 };
 
@@ -47,7 +49,7 @@ export function stepsFor(s: TrackerStatus | null): {
   if (!s) {
     return [
       { title: "Registered", detail: "", state: "done" },
-      { title: "Zelle received", detail: "Checking...", state: "active" },
+      { title: "Payment received", detail: "Checking...", state: "active" },
       { title: "Confirmed, ticket sent", detail: "", state: "todo" },
     ];
   }
@@ -60,7 +62,7 @@ export function stepsFor(s: TrackerStatus | null): {
     return [
       registered,
       {
-        title: "Zelle received",
+        title: "Payment received",
         detail: `${money(s.amount_received ?? s.amount_due)} on ${when(s.paid_at)}`,
         state: "done",
       },
@@ -77,8 +79,8 @@ export function stepsFor(s: TrackerStatus | null): {
     return [
       registered,
       {
-        title: "Zelle received",
-        detail: "No payment arrived in time, so this code expired. Send the Zelle and contact us, or register again.",
+        title: "Payment received",
+        detail: "No payment arrived in time, so this code expired. Send the payment and contact us, or register again.",
         state: "failed",
       },
       { title: "Confirmed, ticket sent", detail: "", state: "todo" },
@@ -98,8 +100,8 @@ export function stepsFor(s: TrackerStatus | null): {
   return [
     registered,
     {
-      title: "Zelle received",
-      detail: `Waiting for ${money(s.amount_due)} with ${s.code} in the memo. This page updates by itself.`,
+      title: "Payment received",
+      detail: `Waiting for ${money(s.amount_due)} by Zelle${s.venmo?.handle ? " or Venmo" : ""} with ${s.code} in the memo. This page updates by itself.`,
       state: "active",
     },
     { title: "Confirmed, ticket sent", detail: "Sent by email the moment the payment is matched.", state: "todo" },

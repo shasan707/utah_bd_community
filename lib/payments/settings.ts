@@ -31,6 +31,9 @@ export type Settings = {
   coupon_bundle_price: number;
   zelle_recipient: string;
   zelle_recipient_name: string;
+  /** Blank means Venmo is not offered. See lib/payments/defaults.ts. */
+  venmo_handle: string;
+  venmo_name: string;
   contact_email: string;
   pending_expiry_hours: number;
   auto_confirm: boolean;
@@ -44,6 +47,21 @@ function toNumber(v: string, fallback: number): number {
 
 function toBool(v: string): boolean {
   return /^(true|1|yes|on)$/i.test(v.trim());
+}
+
+/**
+ * Accepts whatever the admin pastes, "@evue007", "evue007" or the whole
+ * "https://venmo.com/u/evue007", and keeps the handle alone. Venmo handles
+ * are letters, digits, hyphens and underscores.
+ */
+function cleanHandle(v: string): string {
+  const h = v
+    .trim()
+    .replace(/^https?:\/\/(www\.)?venmo\.com\/(u\/)?/i, "")
+    .replace(/^@/, "")
+    .replace(/[/?#].*$/, "")
+    .trim();
+  return /^[A-Za-z0-9_-]{1,40}$/.test(h) ? h : "";
 }
 
 export function parseSettings(raw: Partial<Record<string, string>>): Settings {
@@ -71,6 +89,8 @@ export function parseSettings(raw: Partial<Record<string, string>>): Settings {
     ),
     zelle_recipient: get("zelle_recipient").trim(),
     zelle_recipient_name: get("zelle_recipient_name").trim(),
+    venmo_handle: cleanHandle(get("venmo_handle")),
+    venmo_name: get("venmo_name").trim(),
     contact_email: get("contact_email").trim(),
     pending_expiry_hours: toNumber(
       get("pending_expiry_hours"),
@@ -109,6 +129,8 @@ export function publicPricing(s: Settings): Pricing {
     coupon_bundle_price: s.coupon_bundle_price,
     zelle_recipient: s.zelle_recipient,
     zelle_recipient_name: s.zelle_recipient_name,
+    venmo_handle: s.venmo_handle,
+    venmo_name: s.venmo_name,
     contact_email: s.contact_email,
   };
 }

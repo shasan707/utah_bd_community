@@ -26,6 +26,10 @@ t("event time", p.event_time, "11:00 AM");
 t("registration closes", p.registration_closes, "Sep 26, 2026");
 t("registration open", j.result.registration_open, true);
 t("zelle recipient name", p.zelle_recipient_name, "Md Shamim Ahmmed");
+// Blank until the admin turns Venmo on in Settings. The key being present is
+// what proves the Venmo code is deployed; the value is the switch.
+t("venmo handle key exposed", typeof p.venmo_handle, "string");
+console.log(`  venmo ${p.venmo_handle ? "ON: @" + p.venmo_handle : "off (handle blank)"}`);
 
 console.log("\n== VENUE CONSISTENCY (settings vs the event row) ==");
 const U = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1`;

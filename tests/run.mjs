@@ -18,6 +18,7 @@ const ROOT = path.resolve(HERE, "..");
 const SUITES = [
   { file: "suite-logic.mts", writes: false, what: "pricing, parsing, dates, addresses" },
   { file: "suite-msg.mts", writes: false, what: "email and text wording" },
+  { file: "suite-venmo.mts", writes: false, what: "Venmo: parser, links, wording" },
   { file: "suite-live.mjs", writes: false, what: "the deployed site" },
   { file: "suite-db.mjs", writes: false, what: "database constraints (rejections only)" },
   { file: "suite-desk.mts", writes: true, what: "the door and the coupon desk" },

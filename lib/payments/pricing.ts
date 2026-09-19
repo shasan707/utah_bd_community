@@ -25,8 +25,38 @@ export type Pricing = PriceTable & {
   registration_closes: string;
   zelle_recipient: string;
   zelle_recipient_name: string;
+  /** Blank when Venmo is not offered. */
+  venmo_handle: string;
+  venmo_name: string;
   contact_email: string;
 };
+
+/**
+ * The two Venmo links for a payment. The first opens Venmo with the amount
+ * and the note already filled in, which is what stops people forgetting the
+ * code; the second is the plain profile, for anyone whose phone does not
+ * hand the first one to the app. Blank handle, no links.
+ *
+ * Pure, so the form, the emails and the tests all build the same thing.
+ */
+export function venmoLinks(
+  handle: string,
+  amount: number,
+  note: string
+): { pay: string; profile: string } | null {
+  const h = handle.trim();
+  if (!h) return null;
+  const q = new URLSearchParams({
+    txn: "pay",
+    recipients: h,
+    amount: roundCents(amount).toFixed(2),
+    note,
+  });
+  return {
+    pay: `https://account.venmo.com/pay?${q.toString()}`,
+    profile: `https://venmo.com/u/${encodeURIComponent(h)}`,
+  };
+}
 
 /**
  * The student ticket is no longer offered, and the seats are priced by age

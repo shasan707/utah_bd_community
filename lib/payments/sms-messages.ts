@@ -27,18 +27,21 @@ function firstName(name: string): string {
  */
 export function pendingSms(row: RegistrationRow, s: Settings): string {
   const owed = outstanding(row);
+  // Venmo rides on the same sentence when it is offered. The text is
+  // already two segments, and this keeps it there.
+  const orVenmo = s.venmo_handle ? ` or Venmo @${s.venmo_handle}` : "";
   // Added to a code that was already paid once: they owe the difference and
   // keep the code, the link and the QR they already have.
   if ((row.amount_received ?? 0) > 0) {
     return [
       `BAU: ${firstName(row.name)}, added to your code ${row.code}.`,
-      `Send Zelle ${money(owed)} to ${s.zelle_recipient}, memo ${row.code}.`,
+      `Send Zelle ${money(owed)} to ${s.zelle_recipient}${orVenmo}, memo ${row.code}.`,
       "Your existing ticket still works. Reply STOP to opt out.",
     ].join(" ");
   }
   return [
     `BAU: ${firstName(row.name)}, your ${shortEvent(s)} code is ${row.code}.`,
-    `Please send Zelle ${money(owed)} to ${s.zelle_recipient}, use memo ${row.code}.`,
+    `Please send Zelle ${money(owed)} to ${s.zelle_recipient}${orVenmo}, use memo ${row.code}.`,
     `${headcount(row) > 0 ? "Ticket" : "Receipt"} follows once confirmed. Reply STOP to opt out.`,
   ].join(" ");
 }

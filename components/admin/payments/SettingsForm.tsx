@@ -69,6 +69,18 @@ const groups: { title: string; fields: Field[] }[] = [
         help: "Pre-filled. Members see it so they can check they have the right recipient.",
       },
       {
+        key: "venmo_handle",
+        label: "Venmo handle (the part after venmo.com/u/)",
+        type: "text",
+        help: "Leave blank and Venmo is offered nowhere. Fill it in and every code email, text and the register page offer Venmo beside Zelle. Blank it again to turn Venmo off.",
+      },
+      {
+        key: "venmo_name",
+        label: "Name shown on that Venmo profile",
+        type: "text",
+        help: "Members see it so they can check they have the right account before they pay.",
+      },
+      {
         key: "contact_email",
         label: "Contact email (reply-to on emails)",
         type: "email",

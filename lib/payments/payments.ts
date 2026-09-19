@@ -11,6 +11,7 @@ import {
   parseZelleEmail,
   type ParsedZelle,
 } from "./zelle-parse";
+import { parseVenmoEmail } from "./venmo-parse";
 import {
   parsePayment,
   parseRegistration,
@@ -33,6 +34,7 @@ const RAW = "raw_emails";
 const MAX_BODY = 40_000;
 
 export { parseZelleEmail, type ParsedZelle } from "./zelle-parse";
+export { parseVenmoEmail } from "./venmo-parse";
 
 export { extractCandidates };
 
@@ -398,12 +400,24 @@ export async function ingestEmails(messages: InboundMessage[]): Promise<{
       throw new ApiError(500, `Could not store the email: ${ins.error.message}`);
     }
 
-    const parsed = parseZelleEmail(m.body, m.subject, m.message_id);
+    // Zelle first, exactly as before, and only then Venmo. An email neither
+    // reads is stored and never looked at again, which is why the relay must
+    // not be told to forward Venmo alerts until this code is deployed.
+    const zelle = parseZelleEmail(m.body, m.subject, m.message_id);
+    const venmo = zelle ? null : parseVenmoEmail(m.body, m.subject, m.message_id);
+    const parsed = zelle ?? venmo;
     if (!parsed) {
       results.push({ message_id: m.message_id, status: "not_zelle" });
       continue;
     }
-    const pay = await recordPayment(parsed, receivedAt, "email", m.message_id, s);
+    const pay = await recordPayment(
+      parsed,
+      receivedAt,
+      "email",
+      m.message_id,
+      s,
+      zelle ? "zelle" : "venmo"
+    );
     await db.from(RAW).update({ parsed: true }).eq("message_id", m.message_id);
     results.push({
       message_id: m.message_id,

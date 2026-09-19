@@ -1,7 +1,14 @@
 import "server-only";
 import { SITE_URL } from "@/lib/site-url";
 import { formatDateOnly, formatInEventZone } from "./dates";
-import { breakdownLines, headcount, money, outstanding, partySummary } from "./pricing";
+import {
+  breakdownLines,
+  headcount,
+  money,
+  outstanding,
+  partySummary,
+  venmoLinks,
+} from "./pricing";
 import type { Settings } from "./settings";
 import { ticketLinks } from "./ticket";
 import type { RegistrationRow } from "./types";
@@ -156,6 +163,8 @@ export function pendingEmail(row: RegistrationRow, s: Settings): EmailContent {
   const topUp = (row.amount_received ?? 0) > 0;
   const lines = breakdownLines(row, s);
   const track = trackLink(row.code);
+  // Null when Venmo is not offered, and then nothing below mentions it.
+  const venmo = venmoLinks(s.venmo_handle, owed, row.code);
 
   const text = [
     `Assalamu alaikum ${row.name},`,
@@ -179,8 +188,15 @@ export function pendingEmail(row: RegistrationRow, s: Settings): EmailContent {
     `Send ${amount} via Zelle to:`,
     `  ${s.zelle_recipient}`,
     `  (${s.zelle_recipient_name})`,
+    ...(venmo
+      ? [
+          "",
+          `Or via Venmo to @${s.venmo_handle}${s.venmo_name ? ` (${s.venmo_name})` : ""}:`,
+          `  ${venmo.pay}`,
+        ]
+      : []),
     "",
-    `IMPORTANT: put ${row.code} in the Zelle memo/note field.`,
+    `IMPORTANT: put ${row.code} in the ${venmo ? "memo or note" : "Zelle memo/note field"}.`,
     "",
     "You will get your ticket by email once we confirm the payment.",
     `Track your registration: ${track}`,
@@ -196,7 +212,7 @@ export function pendingEmail(row: RegistrationRow, s: Settings): EmailContent {
     ]),
     `<tr><td style="padding:28px 32px 8px;font-size:16px;line-height:1.6;">
 Assalamu alaikum ${esc(firstName(row.name))},<br><br>
-Your registration is saved. One more step: send the Zelle below and your ticket follows by email.
+Your registration is saved. One more step: send the payment below and your ticket follows by email.
 </td></tr>`,
     `<tr><td style="padding:8px 32px 20px;">${codeBlock("Your payment code", row.code, amount)}</td></tr>`,
     `<tr><td style="padding:0 32px 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.forest};font-weight:700;">Now send the Zelle</td></tr>`,
@@ -207,6 +223,18 @@ Your registration is saved. One more step: send the Zelle below and your ticket 
       }.`,
       `Type <strong style="color:${COLORS.red};">${esc(row.code)}</strong> in the memo or note field. This is how we match the payment to you.`,
     ])}</td></tr>`,
+    ...(venmo
+      ? [
+          `<tr><td style="padding:4px 32px 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.forest};font-weight:700;">Or send it with Venmo</td></tr>`,
+          `<tr><td style="padding:0 32px 20px;font-size:15px;line-height:1.6;color:${COLORS.ink};">
+Same amount, same code. Pay <strong>@${esc(s.venmo_handle)}</strong>${
+            s.venmo_name ? ` <span style="color:${COLORS.muted};">(${esc(s.venmo_name)})</span>` : ""
+          } and put <strong style="color:${COLORS.red};">${esc(row.code)}</strong> in the note.<br>
+<a href="${esc(venmo.pay)}" style="display:inline-block;margin-top:10px;padding:10px 18px;border-radius:999px;background:#008CFF;color:#ffffff;font-weight:700;text-decoration:none;">Open Venmo with the amount and note filled in</a><br>
+<span style="font-size:12px;color:${COLORS.muted};">If that does not open the app, go to <a href="${esc(venmo.profile)}" style="color:${COLORS.forest};">venmo.com/u/${esc(s.venmo_handle)}</a> and type them in.</span>
+</td></tr>`,
+        ]
+      : []),
     `<tr><td style="padding:0 32px 20px;"><div style="background:${COLORS.cream};border-radius:14px;padding:14px 18px;">
 <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.forest};font-weight:700;">What you are paying for</div>
 <div style="margin-top:6px;font-size:14px;line-height:1.7;color:${COLORS.ink};">${lines.map(esc).join("<br>")}</div>

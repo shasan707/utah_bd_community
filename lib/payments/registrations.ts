@@ -352,6 +352,9 @@ export type CreateResult = {
   amount_due: number;
   zelle_recipient: string;
   zelle_recipient_name: string;
+  /** Blank when Venmo is not offered. */
+  venmo_handle: string;
+  venmo_name: string;
   breakdown: string[];
   email_sent: boolean;
   /** True while the Gmail relay still has the code email to send. */
@@ -373,6 +376,8 @@ export function toCreateResult(
     amount_due: owed,
     zelle_recipient: s.zelle_recipient,
     zelle_recipient_name: s.zelle_recipient_name,
+    venmo_handle: s.venmo_handle,
+    venmo_name: s.venmo_name,
     breakdown: breakdownLines(row, s),
     email_sent: Boolean(row.pending_email_sent_at),
     email_queued: !row.pending_email_sent_at && row.email_error === "queued",

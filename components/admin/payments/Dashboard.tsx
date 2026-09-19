@@ -139,7 +139,10 @@ export default function Dashboard({
     (r) => Date.now() - new Date(r.created_at).getTime() > 48 * 3600000
   ).length;
   const zelleAttention = payments.filter(needsAttention).length;
-  const autoConfirmed = paid.filter((r) => r.created_by === "web" && r.payment_method === "zelle").length;
+  const autoConfirmed = paid.filter(
+    (r) =>
+      r.created_by === "web" && (r.payment_method === "zelle" || r.payment_method === "venmo")
+  ).length;
 
   const funnel = [
     { label: "Registered", n: live.length },
@@ -240,8 +243,8 @@ export default function Dashboard({
               ))}
             </ol>
             <p className="mt-4 text-xs text-forest-ink/50">
-              {autoConfirmed} of {paid.length} paid registrations were confirmed by the Zelle relay
-              without a click. {expired.length} expired unpaid.
+              {autoConfirmed} of {paid.length} paid registrations were confirmed automatically from
+              a Zelle or Venmo email, without a click. {expired.length} expired unpaid.
             </p>
           </div>
 

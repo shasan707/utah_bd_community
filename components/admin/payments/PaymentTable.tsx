@@ -106,7 +106,13 @@ export default function PaymentTable({
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-forest-ink/60">
               <span>{when(p.received_at)}</span>
               <span>conf. {p.confirmation_id}</span>
-              <span>{p.source === "email" ? "from bank email" : "typed in"}</span>
+              <span>
+                {p.source === "email"
+                  ? p.provider === "venmo"
+                    ? "from Venmo email"
+                    : "from bank email"
+                  : "typed in"}
+              </span>
               {p.linked_code && (
                 <span className="font-semibold text-forest">
                   code {p.linked_code}

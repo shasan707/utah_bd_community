@@ -64,12 +64,16 @@ var ALERT_QUERIES = [
   'label:' + ZELLE_LABEL,
   'from:bankofamerica.com',
   'from:wellsfargo.com',
-  'from:zellepay.com OR from:zelle.com'
+  'from:zellepay.com OR from:zelle.com',
+  // Venmo's "<name> paid you $x" notifications. Push this line to Google
+  // only AFTER the website that reads Venmo emails is deployed: an email
+  // the site cannot read is stored once and never looked at again.
+  'from:venmo.com'
 ];
 
 /** Cheap check before relaying, so statements and marketing are not sent over. */
 function looksLikeZelleAlert_(subject, body) {
-  return /zelle|sent you|received money|payment received|you received/i.test(subject + '\n' + body);
+  return /zelle|venmo|sent you|paid you|received money|payment received|you received/i.test(subject + '\n' + body);
 }
 
 /**
