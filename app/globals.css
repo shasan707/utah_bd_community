@@ -280,7 +280,18 @@ body {
   border-top: 0;
 }
 
-/* ---- The picnic photograph behind the running order -------------------
+/* ---- The photographs behind the running order -------------------------
+
+   Four pictures of the day in a square of four, clockwise from the top
+   left: chai and samosas, the crescent moon over the sand, the ball coming
+   down, a stack of stones. They were taken in very different light, so each
+   was evened towards the others' brightness and a soft shadow laid down the
+   cross where they meet; the joins are meant to be felt rather than seen.
+
+   Four quadrants rather than a row, because this band is tall -- the running
+   order is a long table, some 1800px of it -- and cover would crop a wide
+   picture down to a centre sliver with two of the four lost entirely. The
+   file is built, not photographed: public/schedule-collage.jpg.
 
    The photograph stays SHARP. The blurring is done by the schedule card
    itself, which is real glass: backdrop-filter blurs whatever shows through
@@ -300,9 +311,9 @@ body {
 .schedule-backdrop {
   position: absolute;
   inset: 0;
-  background-image: url("/picnic-group.jpg");
+  background-image: url("/schedule-collage.jpg");
   background-size: cover;
-  background-position: center 42%;
+  background-position: center center;
 }
 
 .schedule-wash {

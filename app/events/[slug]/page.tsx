@@ -147,7 +147,7 @@ export default async function EventDetailPage({
           schedule ? "schedule-band" : "bg-cream-dim/40"
         }`}
       >
-        {/* The picnic photograph and the wash over it. Both are decoration
+        {/* The collage of the day and the wash over it. Both are decoration
             and carry no meaning, so they are hidden from a screen reader and
             sit behind everything else. The photograph itself stays sharp:
             the blur is done by the schedule card, which is real glass and
