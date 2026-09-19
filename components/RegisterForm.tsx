@@ -6,6 +6,7 @@ import { getSupabase, supabaseConfigured } from "@/lib/supabase";
 import Icon from "@/components/Icon";
 import RegistrationTracker, { type TrackerStatus } from "@/components/RegistrationTracker";
 import ZelleLogo from "@/components/ZelleLogo";
+import VenmoLogo from "@/components/VenmoLogo";
 import UsFlag from "@/components/UsFlag";
 import {
   breakdownLines,
@@ -320,11 +321,23 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
         >
           <h2 className="flex flex-wrap items-center gap-2 text-xl font-bold text-forest-ink">
             Now send with <ZelleLogo size="md" />
+            {venmo && (
+              <>
+                <span className="text-base font-semibold text-muted-ink">or</span>
+                <VenmoLogo size="md" />
+              </>
+            )}
           </h2>
           <ol className="mt-5 space-y-4">
             {[
               <>
-                Open your bank app and choose <ZelleLogo size="sm" />.
+                Open your bank app and choose <ZelleLogo size="sm" />
+                {venmo && (
+                  <>
+                    , or open <VenmoLogo size="sm" /> (steps below)
+                  </>
+                )}
+                .
               </>,
               payLine,
               <>
@@ -343,8 +356,8 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
 
           {venmo && (
             <div className="mt-6 rounded-2xl border border-[#008CFF]/30 bg-[#008CFF]/5 px-5 py-4">
-              <div className="text-xs font-bold uppercase tracking-[0.2em] text-[#0074D4]">
-                Or send it with Venmo
+              <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#0074D4]">
+                Or send it with <VenmoLogo size="sm" />
               </div>
               <p className="mt-2 text-sm leading-relaxed text-forest-ink/80">
                 Same amount, same code. Pay{" "}
@@ -770,8 +783,14 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
               <div className="flex items-center gap-2">
                 <span className="glass-label text-xs uppercase tracking-widest">Pay with</span>
                 <ZelleLogo size="sm" pill />
-                <span className="glass-label text-xs uppercase tracking-widest">to</span>
+                {pricing.venmo_handle && (
+                  <>
+                    <span className="glass-label text-xs uppercase tracking-widest">or</span>
+                    <VenmoLogo size="sm" pill />
+                  </>
+                )}
               </div>
+              <div className="mt-2 glass-label text-xs uppercase tracking-widest">Zelle to</div>
               <div className="mt-1 font-semibold text-ivory">
                 {pricing.zelle_recipient || "Shown with your code"}
               </div>
@@ -782,7 +801,7 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
               )}
               {pricing.venmo_handle && (
                 <div className="mt-3 border-t border-white/10 pt-3">
-                  <span className="glass-label text-xs uppercase tracking-widest">or Venmo</span>
+                  <span className="glass-label text-xs uppercase tracking-widest">Venmo to</span>
                   <div className="mt-1 font-semibold text-ivory">@{pricing.venmo_handle}</div>
                   {pricing.venmo_name && (
                     <div className="text-xs text-ivory-dim">{pricing.venmo_name}</div>
@@ -816,7 +835,8 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
             <Icon name="clock" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-forest" />
             <p>
               Registration closes {pricing.registration_closes}. Send your Zelle
-              soon after registering; unpaid codes expire.
+              {pricing.venmo_handle ? " or Venmo" : ""} soon after registering; unpaid
+              codes expire.
             </p>
           </div>
         </div>

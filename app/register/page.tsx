@@ -5,6 +5,7 @@ import Icon from "@/components/Icon";
 import Reveal from "@/components/Reveal";
 import RegisterForm from "@/components/RegisterForm";
 import ZelleLogo from "@/components/ZelleLogo";
+import VenmoLogo from "@/components/VenmoLogo";
 import {
   getRegistrationStatus,
   type RegistrationStatus,
@@ -110,6 +111,14 @@ export default async function RegisterPage() {
                     Pay with
                   </span>
                   <ZelleLogo size="sm" pill />
+                  {pricing.venmo_handle && (
+                    <>
+                      <span className="text-xs font-semibold uppercase tracking-wider text-ivory">
+                        or
+                      </span>
+                      <VenmoLogo size="sm" pill />
+                    </>
+                  )}
                 </span>
               </div>
             )}
@@ -124,7 +133,17 @@ export default async function RegisterPage() {
                   <div>
                     <div className="flex flex-wrap items-center gap-2 font-bold text-ivory">
                       {s.title}
-                      {"zelle" in s && s.zelle && <ZelleLogo size="sm" pill />}
+                      {"zelle" in s && s.zelle && (
+                        <>
+                          <ZelleLogo size="sm" pill />
+                          {pricing?.venmo_handle && (
+                            <>
+                              <span className="text-xs font-semibold uppercase text-ivory/80">or</span>
+                              <VenmoLogo size="sm" pill />
+                            </>
+                          )}
+                        </>
+                      )}
                     </div>
                     <div className="glass-label mt-1 text-sm leading-relaxed">
                       {s.text}

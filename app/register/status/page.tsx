@@ -6,7 +6,7 @@ import StatusLookup from "@/components/StatusLookup";
 
 export const metadata: Metadata = {
   title: "Track your registration | Bangladeshi Association of Utah",
-  description: "See whether your Zelle has arrived and your ticket has been sent.",
+  description: "See whether your payment has arrived and your ticket has been sent.",
   robots: { index: false, follow: false },
 };
 
@@ -29,8 +29,8 @@ export default async function StatusPage({
             </span>
             <h1 className="mt-2 text-4xl font-black md:text-5xl">Track your registration</h1>
             <p className="mt-4 max-w-xl text-lg text-ivory-dim">
-              Enter your code and the email you used. You will see whether your Zelle has
-              arrived and whether your ticket has gone out.
+              Enter your code and the email you used. You will see whether your Zelle or
+              Venmo has arrived and whether your ticket has gone out.
             </p>
           </Reveal>
         </div>

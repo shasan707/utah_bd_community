@@ -133,7 +133,8 @@ export default async function MembershipPage() {
                 Event registration is open
               </div>
               <p className="mt-1 text-sm text-cream/80">
-                Register for the next event and pay by Zelle in two minutes.
+                Register for the next event and pay by Zelle
+                {registration.pricing?.venmo_handle ? " or Venmo" : ""} in two minutes.
               </p>
               <Link
                 href="/register"

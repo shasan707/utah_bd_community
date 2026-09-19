@@ -227,7 +227,7 @@ Your registration is saved. One more step: send the payment below and your ticke
       ? [
           `<tr><td style="padding:4px 32px 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.forest};font-weight:700;">Or send it with Venmo</td></tr>`,
           `<tr><td style="padding:0 32px 20px;font-size:15px;line-height:1.6;color:${COLORS.ink};">
-Same amount, same code. Pay <strong>@${esc(s.venmo_handle)}</strong>${
+Same amount, same code. Open <strong style="color:#008CFF;">Venmo</strong> and pay <strong>@${esc(s.venmo_handle)}</strong>${
             s.venmo_name ? ` <span style="color:${COLORS.muted};">(${esc(s.venmo_name)})</span>` : ""
           } and put <strong style="color:${COLORS.red};">${esc(row.code)}</strong> in the note.<br>
 <a href="${esc(venmo.pay)}" style="display:inline-block;margin-top:10px;padding:10px 18px;border-radius:999px;background:#008CFF;color:#ffffff;font-weight:700;text-decoration:none;">Open Venmo with the amount and note filled in</a><br>
