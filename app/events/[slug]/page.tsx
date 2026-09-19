@@ -228,7 +228,8 @@ export default async function EventDetailPage({
                       Register &amp; Pay
                     </Link>
                     <p className="mt-4 text-sm text-mint">
-                      Two minutes. You get a code, then pay by Zelle.
+                      Two minutes. You get a code, then pay by Zelle
+                      {registration.pricing?.venmo_handle ? " or Venmo" : ""}.
                     </p>
                   </div>
                 </div>

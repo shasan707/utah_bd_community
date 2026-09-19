@@ -15,7 +15,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "Register | Bangladeshi Association of Utah",
   description:
-    "Register for the next BPAU event and pay by Zelle in two minutes.",
+    "Register for the next BPAU event and pay in two minutes.",
 };
 
 const steps = [
@@ -92,7 +92,8 @@ export default async function RegisterPage() {
             </h1>
             <p className="mt-4 max-w-xl text-lg text-ivory-dim">
               Reserve your seats in two minutes. Fill the form, send a Zelle
-              with your code in the memo, and your receipt follows.
+              {pricing?.venmo_handle ? " or Venmo" : ""} with your code in the
+              memo, and your receipt follows.
             </p>
             {pricing && (
               <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-ivory-dim">
