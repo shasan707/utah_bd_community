@@ -89,7 +89,7 @@ export default function EventHero({ event }: { event: CommunityEvent }) {
           initial={reduce ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.4 }}
-          className="mt-6 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-base text-ivory-dim md:text-lg"
+          className="mt-6 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-lg font-semibold text-ivory-dim md:text-xl"
         >
           <span>{formatDate(event.date)}</span>
           <span aria-hidden="true" className="text-ivory/30">
