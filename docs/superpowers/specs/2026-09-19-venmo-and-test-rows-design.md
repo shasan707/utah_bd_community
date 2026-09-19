@@ -20,7 +20,7 @@ One column on `registrations` and one on `payments`: `is_test boolean not null d
 
 ### How a test row is born
 
-The public `/register` form shows a "This is a test" switch only when a signed-in admin's Supabase session exists in that browser. On submit the form sends the admin's access token, and the server accepts `test: true` only after `requireAdmin` verifies it. Anyone without a valid admin token who sends `test: true` gets 403. The admin's own create form has the same switch.
+The public `/register` form shows a "This is a test" switch only when a signed-in admin's Supabase session exists in that browser AND the page was opened as `/register?test=1`. An admin on an ordinary visit sees the plain form, exactly as a member does (changed 19 September after the user saw the switch while signed in and did not want it on the public page). On submit the form sends the admin's access token, and the server accepts `test: true` only after `requireAdmin` verifies it. Anyone without a valid admin token who sends `test: true` gets 403. The admin's own create form has the same switch, always visible there.
 
 ### What "not mixing" means
 

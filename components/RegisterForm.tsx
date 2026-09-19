@@ -135,13 +135,17 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
   const [doneEmail, setDoneEmail] = useState("");
   const [live, setLive] = useState<TrackerStatus | null>(null);
   const [copied, setCopied] = useState(false);
-  // Only a signed-in admin sees the test switch, and only their token makes
-  // the server honour it. A member never sees any of this.
+  // The test switch is shown only to a signed-in admin who has opened
+  // /register?test=1 on purpose, and only their token makes the server
+  // honour it. A member never sees any of this, and neither does an admin
+  // on an ordinary visit: the public form stays the public form.
   const [adminToken, setAdminToken] = useState<string | null>(null);
   const [isTest, setIsTest] = useState(false);
+  const [testRequested, setTestRequested] = useState(false);
 
   useEffect(() => {
     setStartedAt(Date.now());
+    setTestRequested(new URLSearchParams(window.location.search).has("test"));
   }, []);
 
   useEffect(() => {
@@ -744,7 +748,7 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
               No payment is taken here. You get a code, then pay by Zelle
               {pricing.venmo_handle ? " or Venmo" : ""}.
             </p>
-            {adminToken !== null && (
+            {adminToken !== null && testRequested && (
               <label className="mt-4 flex items-start gap-3 rounded-2xl border border-dashed border-bengal-red/50 bg-bengal-red/5 px-4 py-3 text-sm text-forest-ink/80">
                 <input
                   type="checkbox"
@@ -753,10 +757,11 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
                   className="mt-0.5"
                 />
                 <span>
-                  <b className="text-bengal-red">Admin: this is a test.</b> You are signed in,
-                  so this switch is shown to you only. The registration is made exactly as a
-                  member&apos;s would be, including the email and text, but it is hidden from
-                  the lists, never counted, and marked TEST at the desk and on the ticket.
+                  <b className="text-bengal-red">Admin: this is a test.</b> Shown because you
+                  are signed in and opened this page with ?test=1. The registration is made
+                  exactly as a member&apos;s would be, including the email and text, but it is
+                  hidden from the lists, never counted, and marked TEST at the desk and on
+                  the ticket.
                 </span>
               </label>
             )}
