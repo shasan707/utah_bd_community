@@ -44,7 +44,9 @@ export function venmoLinks(
   amount: number,
   note: string
 ): { pay: string; profile: string } | null {
-  const h = handle.trim();
+  // Coerced rather than trusted: a settings row that is missing reads as
+  // blank, which means off, and never as a crash in the code email.
+  const h = String(handle ?? "").trim();
   if (!h) return null;
   const q = new URLSearchParams({
     txn: "pay",

@@ -22,6 +22,7 @@ const s = {
   registration_closes: "2026-09-26", price_adult: 20, price_youth: 12, price_child: 0,
   coupon_single: 2, coupon_bundle_qty: 10, coupon_bundle_price: 15,
   zelle_recipient: "bpau.pay@gmail.com", zelle_recipient_name: "Md Shamim Ahmmed",
+  venmo_handle: "", venmo_name: "",
   contact_email: "bpau.pay@gmail.com",
 };
 const base = {
