@@ -16,7 +16,11 @@ export async function POST(req: Request) {
     const body = await readJsonBody(req);
     const result = await createAdminEntry(
       body,
-      { markPaidNow: Boolean(body.mark_paid_now), method: body.method },
+      {
+        markPaidNow: Boolean(body.mark_paid_now),
+        method: body.method,
+        isTest: body.test === true,
+      },
       admin.email
     );
     return jsonOk({

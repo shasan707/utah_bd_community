@@ -24,6 +24,7 @@ export default function NewEntryForm({
     donation: 0,
     mark_paid_now: true,
     method: "cash",
+    test: false,
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -148,6 +149,18 @@ export default function NewEntryForm({
               onChange={(e) => set({ mark_paid_now: e.target.checked })}
             />
             Mark as paid now
+          </label>
+          <label className="flex items-center gap-2 text-sm text-forest-ink/80 sm:col-span-2">
+            <input
+              type="checkbox"
+              checked={form.test}
+              onChange={(e) => set({ test: e.target.checked })}
+            />
+            <span>
+              <b className="text-bengal-red">This is a test.</b> Hidden from the lists, never
+              counted, marked TEST at the desk and on the ticket. Remove it later with
+              &quot;Delete all test data&quot;.
+            </span>
           </label>
           {form.mark_paid_now && (
             <label className="text-sm font-semibold text-forest-ink sm:col-span-2">

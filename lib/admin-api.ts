@@ -10,7 +10,7 @@ type Envelope<T> = { ok: true; result: T } | { ok: false; error: string };
 export async function adminRequest<T = unknown>(
   path: string,
   body?: unknown,
-  method: "GET" | "POST" | "PATCH" = "POST"
+  method: "GET" | "POST" | "PATCH" | "DELETE" = "POST"
 ): Promise<T> {
   const { data } = await getSupabase().auth.getSession();
   const token = data.session?.access_token;

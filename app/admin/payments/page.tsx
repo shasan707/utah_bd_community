@@ -86,6 +86,10 @@ export default function AdminPayments() {
   const [dialog, setDialog] = useState<DialogSpec | null>(null);
   const [auditFor, setAuditFor] = useState<RegistrationRow | null>(null);
   const [showNew, setShowNew] = useState(false);
+  // Rehearsal rows are hidden unless asked for, and even then they never
+  // enter a total or the export. What the treasurer sees by default is what
+  // the members did.
+  const [showTest, setShowTest] = useState(false);
 
   const load = useCallback(async () => {
     const supabase = getSupabase();
@@ -152,13 +156,19 @@ export default function AdminPayments() {
     load();
   }, [load]);
 
-  const pending = useMemo(() => rows.filter((r) => r.status === "PENDING"), [rows]);
-  const paid = useMemo(() => rows.filter((r) => r.status === "PAID"), [rows]);
-  const attention = useMemo(() => payments.filter(needsAttention), [payments]);
+  const real = useMemo(() => rows.filter((r) => !r.is_test), [rows]);
+  const realPayments = useMemo(() => payments.filter((p) => !p.is_test), [payments]);
+  const testCount = rows.length - real.length;
+  const visible = showTest ? rows : real;
+  const visiblePayments = showTest ? payments : realPayments;
+
+  const pending = useMemo(() => visible.filter((r) => r.status === "PENDING"), [visible]);
+  const paid = useMemo(() => visible.filter((r) => r.status === "PAID"), [visible]);
+  const attention = useMemo(() => visiblePayments.filter(needsAttention), [visiblePayments]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return rows.filter((r) => {
+    return visible.filter((r) => {
       if (statusFilter && r.status !== statusFilter) return false;
       if (!q) return true;
       return (
@@ -168,7 +178,7 @@ export default function AdminPayments() {
         r.phone.includes(q)
       );
     });
-  }, [rows, search, statusFilter]);
+  }, [visible, search, statusFilter]);
 
   const jump = (to: DashboardJump) => {
     setTab(to.tab);
@@ -430,7 +440,27 @@ export default function AdminPayments() {
 
   const exportCsv = () => {
     const stamp = new Date().toISOString().slice(0, 10);
-    downloadText(`bpau-registrations-${stamp}.csv`, registrationsCsv(rows));
+    // Members only, whatever the toggle says. A rehearsal has no business
+    // in a spreadsheet that goes to the committee.
+    downloadText(`bpau-registrations-${stamp}.csv`, registrationsCsv(real));
+  };
+
+  const deleteTestData = () => {
+    const n = testCount;
+    if (n === 0) {
+      setMessage("No test data to remove.");
+      return;
+    }
+    if (
+      !window.confirm(
+        `Delete ${n} test registration${n === 1 ? "" : "s"} and every test payment linked to them? Real registrations are not touched.`
+      )
+    ) {
+      return;
+    }
+    run(() =>
+      adminRequest<{ message: string }>("/api/admin/test-data", undefined, "DELETE")
+    ).catch((err) => setMessage(err instanceof Error ? err.message : String(err)));
   };
 
   const tabBtn = (t: Tab, label: string) => (
@@ -536,7 +566,7 @@ export default function AdminPayments() {
       <div className="mt-6 flex flex-wrap items-center gap-2">
         {tabBtn("overview", "Overview")}
         {tabBtn("pending", `Pending (${pending.length})`)}
-        {tabBtn("all", `All registrations (${rows.length})`)}
+        {tabBtn("all", `All registrations (${visible.length})`)}
         {tabBtn("zelle", `Zelle${attention.length ? ` (${attention.length} to check)` : ""}`)}
         {tabBtn("settings", "Settings")}
         <div className="ml-auto flex flex-wrap gap-2">
@@ -571,6 +601,31 @@ export default function AdminPayments() {
         </div>
       </div>
 
+      {testCount > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-bengal-red/40 bg-bengal-red/5 px-4 py-2 text-sm">
+          <span className="font-semibold text-bengal-red">
+            {testCount} test registration{testCount === 1 ? "" : "s"}
+          </span>
+          <span className="text-forest-ink/60">
+            {showTest ? "shown, marked TEST" : "hidden"}. Never counted in the totals or the export.
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowTest((v) => !v)}
+            className="rounded-full border border-sand bg-white px-3 py-1 text-xs font-semibold text-forest-ink/80"
+          >
+            {showTest ? "Hide test" : "Show test"}
+          </button>
+          <button
+            type="button"
+            onClick={deleteTestData}
+            className="rounded-full border border-bengal-red/50 bg-white px-3 py-1 text-xs font-semibold text-bengal-red"
+          >
+            Delete all test data
+          </button>
+        </div>
+      )}
+
       {message && (
         <p className="mt-4 rounded-2xl bg-forest/10 px-5 py-3 text-sm font-medium text-forest">
           {message}
@@ -580,8 +635,8 @@ export default function AdminPayments() {
       <div className="mt-6">
         {tab === "overview" && (
           <Dashboard
-            rows={rows}
-            payments={payments}
+            rows={real}
+            payments={realPayments}
             audit={auditRows}
             outbox={outbox}
             onJump={jump}
@@ -670,7 +725,7 @@ export default function AdminPayments() {
               </>
             )}
             <PaymentTable
-              rows={payments.filter((p) => !needsAttention(p))}
+              rows={visiblePayments.filter((p) => !needsAttention(p))}
               onAction={onPaymentAction}
               emptyText="No Zelle transactions recorded yet."
             />

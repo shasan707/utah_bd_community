@@ -29,7 +29,7 @@ const t = (n: string, got: unknown, want: unknown) => {
 };
 const read = async (c: string) => (await (await fetch(`${U}/registrations?code=eq.${c}&select=*`, { headers: H })).json())[0];
 const make = async (c: string, o: Record<string, unknown>) => {
-  const res = await fetch(`${U}/registrations`, { method: "POST", headers: H, body: JSON.stringify({ code: c, name: "TopUp Tester", phone: PHONE, email: "", adults: 0, youth: 0, children: 0, coupons_qty: 0, donation: 0, amount_due: 0, status: "PENDING", created_by: "topup-sweep", ...o }) });
+  const res = await fetch(`${U}/registrations`, { method: "POST", headers: H, body: JSON.stringify({ code: c, name: "TopUp Tester", phone: PHONE, email: "", adults: 0, youth: 0, children: 0, coupons_qty: 0, donation: 0, amount_due: 0, status: "PENDING", created_by: "topup-sweep", is_test: true, ...o }) });
   if (!res.ok) throw new Error(`${c}: ${await res.text()}`);
 };
 
@@ -120,14 +120,27 @@ try {
   t("not credited", Number((await read("R-TQAD")).amount_received), 20);
 
   console.log("\n== WHO A TOP-UP IS ALLOWED TO JOIN ==");
-  const target = await REG.findTopUpTarget({ name: "TopUp Tester", phone: PHONE, email: "", adults: 0, youth: 0, children: 0, coupons_qty: 5, donation: 0, comment: "", announcements_opt_in: false });
+  const target = await REG.findTopUpTarget({ name: "TopUp Tester", phone: PHONE, email: "", adults: 0, youth: 0, children: 0, coupons_qty: 5, donation: 0, comment: "", announcements_opt_in: false }, true);
   t("same name and phone finds a settled row", CODES.includes(target?.code ?? ""), true);
-  const other = await REG.findTopUpTarget({ name: "A Different Person", phone: PHONE, email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, comment: "", announcements_opt_in: false });
+  const other = await REG.findTopUpTarget({ name: "A Different Person", phone: PHONE, email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, comment: "", announcements_opt_in: false }, true);
   t("different name on the same phone does NOT join", other, null);
-  const noPhone = await REG.findTopUpTarget({ name: "TopUp Tester", phone: "", email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, comment: "", announcements_opt_in: false });
+  const noPhone = await REG.findTopUpTarget({ name: "TopUp Tester", phone: "", email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, comment: "", announcements_opt_in: false }, true);
   t("no phone, no joining", noPhone, null);
-  const stranger = await REG.findTopUpTarget({ name: "Nobody At All", phone: "5550001111", email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, comment: "", announcements_opt_in: false });
+  const stranger = await REG.findTopUpTarget({ name: "Nobody At All", phone: "5550001111", email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, comment: "", announcements_opt_in: false }, true);
   t("a stranger starts fresh", stranger, null);
+
+  // Every row in this suite is a rehearsal. The same name and phone asked
+  // for as a MEMBER must find nothing, or an admin rehearsing with their
+  // own number would have their test order added to their real ticket.
+  console.log("\n== A REHEARSAL NEVER TOUCHES A MEMBER ==");
+  const asMember = await REG.findTopUpTarget({ name: "TopUp Tester", phone: PHONE, email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, comment: "", announcements_opt_in: false }, false);
+  t("a member with the same phone does not join a test row", asMember, null);
+  // And a payment with no memo, whose amount and sender name fit a test row
+  // exactly, must not be pointed at it. R-TQAB owes 15 to "TopUp Tester".
+  const blind = await PAY.recordPayment({ amount: 15, sender_name: "TopUp Tester", confirmation: `TU5-${Date.now()}`, memo_raw: "" }, new Date().toISOString(), "admin", null, s);
+  t("no memo: not matched to a test row", blind.match_status, "UNMATCHED");
+  t("no memo: not even suggested", blind.suggested_code, null);
+  t("a payment naming a test code is flagged test", payRow.is_test, true);
 
   // The sweep only knows how old the ROW is, which is not how old the DEBT
   // is. Someone who registered last week, paid, and bought coupons this

@@ -42,7 +42,7 @@ const make = async (code: string, o: Record<string, unknown>) => {
     body: JSON.stringify({
       code, name: "Desk Tester", phone: PHONE, email: "",
       adults: 0, youth: 0, children: 0, coupons_qty: 0, donation: 0,
-      amount_due: 0, status: "PENDING", created_by: "desk-sweep", ...o,
+      amount_due: 0, status: "PENDING", created_by: "desk-sweep", is_test: true, ...o,
     }),
   });
   if (!res.ok) throw new Error(`could not create ${code}: ${await res.text()}`);

@@ -17,6 +17,7 @@ import {
   type MatchStatus,
   type PaymentRow,
   type PaymentSource,
+  type Provider,
   type RegistrationRow,
 } from "./types";
 
@@ -96,10 +97,15 @@ export async function recordPayment(
   receivedAt: string,
   source: PaymentSource,
   messageId: string | null,
-  s: Settings
+  s: Settings,
+  provider: Provider = "zelle"
 ): Promise<PaymentRow> {
   const db = getServiceClient();
   const record: Record<string, unknown> = {
+    // Named only when it is not the default. Zelle payments then write the
+    // same columns they always did, so the live matcher is unchanged on a
+    // database that has not had supabase/venmo_and_test.sql run yet.
+    ...(provider !== "zelle" ? { provider } : {}),
     confirmation_id: parsed.confirmation.slice(0, 100),
     received_at: receivedAt,
     sender_name: parsed.sender_name.slice(0, 200),
@@ -150,6 +156,9 @@ export async function recordPayment(
     const reg = matches[0];
     record.extracted_code = reg.code;
     record.linked_code = reg.code;
+    // Money sent to a rehearsal code is a rehearsal payment, and stays out
+    // of the totals with it.
+    if (reg.is_test) record.is_test = true;
     const got = cents(parsed.amount);
     // Against what is still owed, not the whole bill. Someone topping up a
     // code they have already paid once sends only the difference.
@@ -169,6 +178,11 @@ export async function recordPayment(
     // No exact code in the memo. A one-character typo still counts when the
     // amount and the sender's name both agree with exactly one registration.
     // Amount and name alone only make a suggestion for the treasurer.
+    //
+    // Only real rows are considered here. A member who forgot the memo must
+    // never be matched to an admin's rehearsal because the amounts happened
+    // to agree; a rehearsal is reached by its code or not at all.
+    const real = open.filter((reg) => !reg.is_test);
     const senderTokens = nameTokens(parsed.sender_name);
     const amountFits = (reg: RegistrationRow) =>
       cents(outstanding(reg)) === cents(parsed.amount);
@@ -176,7 +190,7 @@ export async function recordPayment(
       senderTokens.length > 0 &&
       nameTokens(reg.name).some((t) => senderTokens.includes(t));
 
-    const typo = open.filter(
+    const typo = real.filter(
       (reg) => amountFits(reg) && nameFits(reg) && memoNearCode(parsed.memo_raw, reg.code)
     );
     if (typo.length === 1) {
@@ -184,7 +198,7 @@ export async function recordPayment(
       record.linked_code = typo[0].code;
       record.match_status = "MATCHED";
     } else {
-      const hits = open.filter((reg) => amountFits(reg) && nameFits(reg));
+      const hits = real.filter((reg) => amountFits(reg) && nameFits(reg));
       if (hits.length === 1) record.suggested_code = hits[0].code;
     }
   }
@@ -274,7 +288,7 @@ export async function applyPayment(
     .from("registrations")
     .update({
       status: "PAID",
-      payment_method: "zelle",
+      payment_method: pay.provider,
       // Added to, never overwritten: a second payment on the same code is
       // money on top of the first, not instead of it.
       amount_received: roundCents((reg.amount_received ?? 0) + pay.amount),
@@ -495,6 +509,8 @@ export async function linkPayment(
     linked_code: reg.code,
     extracted_code: reg.code,
     processed_at: null,
+    // Takes on the code's nature: linked to a rehearsal, it is one.
+    ...(reg.is_test ? { is_test: true } : {}),
   });
   await audit(
     actor,
@@ -573,7 +589,7 @@ export async function resolveMismatch(
     .from("registrations")
     .update({
       status: "PAID",
-      payment_method: "zelle",
+      payment_method: pay.provider,
       amount_received: pay.amount,
       paid_at: pay.received_at,
       zelle_confirmation_id: pay.confirmation_id,

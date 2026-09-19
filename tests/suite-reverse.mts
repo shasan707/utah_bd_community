@@ -29,7 +29,7 @@ const t = (n: string, got: unknown, want: unknown) => {
 };
 const read = async (c: string) => (await (await fetch(`${U}/registrations?code=eq.${c}&select=*`, { headers: H })).json())[0];
 const make = async (c: string, o: Record<string, unknown>) => {
-  const res = await fetch(`${U}/registrations`, { method: "POST", headers: H, body: JSON.stringify({ code: c, name: "Reverse Tester", phone: PHONE, email: "", adults: 0, youth: 0, children: 0, coupons_qty: 0, donation: 0, amount_due: 0, status: "PENDING", created_by: "reverse-sweep", ...o }) });
+  const res = await fetch(`${U}/registrations`, { method: "POST", headers: H, body: JSON.stringify({ code: c, name: "Reverse Tester", phone: PHONE, email: "", adults: 0, youth: 0, children: 0, coupons_qty: 0, donation: 0, amount_due: 0, status: "PENDING", created_by: "reverse-sweep", is_test: true, ...o }) });
   if (!res.ok) throw new Error(`${c}: ${await res.text()}`);
 };
 const seats = (o: Record<string, number>) => ({ name: "Reverse Tester", phone: PHONE, email: "", adults: 0, youth: 0, children: 0, coupons_qty: 0, donation: 0, comment: "", announcements_opt_in: false, ...o });
@@ -42,7 +42,7 @@ try {
   let row = await read("C-RVAA");
   t("starts with no seats", P.headcount({ adults: Number(row.adults), youth: Number(row.youth), children: Number(row.children) }), 0);
 
-  const found = await REG.findTopUpTarget(seats({ adults: 2 }));
+  const found = await REG.findTopUpTarget(seats({ adults: 2 }), true);
   t("their coupon code is found for the top-up", found?.code, "C-RVAA");
 
   await REG.addToRegistration(
@@ -77,7 +77,7 @@ try {
   console.log("\n== DONATION FIRST (D- code, paid), SEATS ADDED AFTER ==");
   await make("D-RVAB", { donation: 50, amount_due: 50, amount_received: 50, status: "PAID", payment_method: "zelle", paid_at: new Date().toISOString() });
   row = await read("D-RVAB");
-  const found2 = await REG.findTopUpTarget(seats({ adults: 1, youth: 1 }));
+  const found2 = await REG.findTopUpTarget(seats({ adults: 1, youth: 1 }), true);
   t("a donation-only code is joinable", CODES.includes(found2?.code ?? ""), true);
 
   await REG.addToRegistration(

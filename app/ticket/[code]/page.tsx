@@ -91,7 +91,21 @@ export default async function TicketPage({
       </section>
 
       <section className="mx-auto max-w-lg px-5 py-12">
-        <div className="rounded-3xl border border-sand bg-white p-7 text-center shadow-sm">
+        <div
+          className={`relative overflow-hidden rounded-3xl border bg-white p-7 text-center shadow-sm ${
+            row.is_test ? "border-bengal-red" : "border-sand"
+          }`}
+        >
+          {/* A rehearsal ticket. The ribbon is drawn across the card so that
+              no photo, screenshot or print of it can pass at the door. */}
+          {row.is_test && (
+            <div
+              aria-label="Test ticket, not valid for entry"
+              className="absolute -right-12 top-6 rotate-45 bg-bengal-red px-14 py-1 text-xs font-black tracking-[0.3em] text-white shadow"
+            >
+              TEST
+            </div>
+          )}
           <div className={`inline-block rounded-full px-4 py-1.5 text-sm font-bold ${state.cls}`}>
             {state.label}
           </div>

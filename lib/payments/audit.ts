@@ -21,7 +21,8 @@ export type AuditAction =
   | "TOPPED_UP"
   | "COUPONS_COLLECTED"
   | "COUPONS_COLLECTED_UNDO"
-  | "REASSIGNED";
+  | "REASSIGNED"
+  | "TEST_DATA_DELETED";
 
 /**
  * Writes one audit row. Called after every change to money. If the log

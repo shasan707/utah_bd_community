@@ -28,7 +28,7 @@ const t = (n: string, got: unknown, want: unknown) => {
 };
 const read = async (c: string) => (await (await fetch(`${U}/registrations?code=eq.${c}&select=*`, { headers: H })).json())[0];
 const make = async (c: string, o: Record<string, unknown> = {}) => {
-  const res = await fetch(`${U}/registrations`, { method: "POST", headers: H, body: JSON.stringify({ code: c, name: "FirstPay Tester", phone: PHONE, email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, amount_due: 20, status: "PENDING", created_by: "firstpay-sweep", ...o }) });
+  const res = await fetch(`${U}/registrations`, { method: "POST", headers: H, body: JSON.stringify({ code: c, name: "FirstPay Tester", phone: PHONE, email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, amount_due: 20, status: "PENDING", created_by: "firstpay-sweep", is_test: true, ...o }) });
   if (!res.ok) throw new Error(`${c}: ${await res.text()}`);
 };
 
@@ -93,7 +93,7 @@ try {
   console.log("\n== THE SAME CODE CANNOT BE ISSUED TWICE ==");
   const clash = await fetch(`${U}/registrations`, {
     method: "POST", headers: H,
-    body: JSON.stringify({ code: "R-FPAC", name: "Someone Else", phone: "5550009999", email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, amount_due: 20, status: "PENDING", created_by: "firstpay-sweep" }),
+    body: JSON.stringify({ code: "R-FPAC", name: "Someone Else", phone: "5550009999", email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, amount_due: 20, status: "PENDING", created_by: "firstpay-sweep", is_test: true }),
   });
   const clashBody = await clash.text();
   t("a second row with the same code is refused", clash.ok, false);

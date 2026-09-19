@@ -91,6 +91,11 @@ export default function PaymentTable({
                   memo: {p.memo_raw || "(none)"}
                 </div>
               </div>
+              {p.is_test && (
+                <span className="rounded-full bg-bengal-red px-2 py-0.5 text-[10px] font-black tracking-widest text-white">
+                  TEST
+                </span>
+              )}
               <div className="font-bold text-forest-ink">{money(p.amount)}</div>
               <span
                 className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold tracking-wide ${badge[p.match_status]}`}

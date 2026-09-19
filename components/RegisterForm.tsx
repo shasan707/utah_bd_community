@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Alpona from "@/components/Alpona";
+import { getSupabase, supabaseConfigured } from "@/lib/supabase";
 import Icon from "@/components/Icon";
 import RegistrationTracker, { type TrackerStatus } from "@/components/RegistrationTracker";
 import ZelleLogo from "@/components/ZelleLogo";
@@ -128,9 +129,29 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
   const [doneEmail, setDoneEmail] = useState("");
   const [live, setLive] = useState<TrackerStatus | null>(null);
   const [copied, setCopied] = useState(false);
+  // Only a signed-in admin sees the test switch, and only their token makes
+  // the server honour it. A member never sees any of this.
+  const [adminToken, setAdminToken] = useState<string | null>(null);
+  const [isTest, setIsTest] = useState(false);
 
   useEffect(() => {
     setStartedAt(Date.now());
+  }, []);
+
+  useEffect(() => {
+    if (!supabaseConfigured) return;
+    let cancelled = false;
+    getSupabase()
+      .auth.getSession()
+      .then(({ data }) => {
+        if (!cancelled) setAdminToken(data.session?.access_token ?? null);
+      })
+      .catch(() => {
+        /* not signed in, which is the normal case */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const set = (patch: Partial<typeof form>) =>
@@ -169,15 +190,20 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
     setBusy(true);
     setError("");
     try {
+      const testing = isTest && adminToken !== null;
       const res = await fetch("/api/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(testing ? { Authorization: `Bearer ${adminToken}` } : {}),
+        },
         body: JSON.stringify({
           ...form,
           coupons_qty: totalCoupons,
           donation,
           name: `${form.first_name.trim()} ${form.last_name.trim()}`.trim(),
           started_at: startedAt,
+          ...(testing ? { test: true } : {}),
         }),
       });
       const data = await res.json();
@@ -664,6 +690,22 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
             <p className="mt-3 text-center text-xs text-muted-ink">
               No payment is taken here. You get a code, then pay by Zelle.
             </p>
+            {adminToken !== null && (
+              <label className="mt-4 flex items-start gap-3 rounded-2xl border border-dashed border-bengal-red/50 bg-bengal-red/5 px-4 py-3 text-sm text-forest-ink/80">
+                <input
+                  type="checkbox"
+                  checked={isTest}
+                  onChange={(e) => setIsTest(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>
+                  <b className="text-bengal-red">Admin: this is a test.</b> You are signed in,
+                  so this switch is shown to you only. The registration is made exactly as a
+                  member&apos;s would be, including the email and text, but it is hidden from
+                  the lists, never counted, and marked TEST at the desk and on the ticket.
+                </span>
+              </label>
+            )}
           </div>
         </div>
       </form>

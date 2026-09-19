@@ -197,6 +197,15 @@ function errorText(res: EmailResult): string {
   return res.reason;
 }
 
+/**
+ * A rehearsal's messages go out exactly as a member's would, because that is
+ * what is being rehearsed, but each carries a mark so the admin reading
+ * their own inbox can never mistake one for the real thing.
+ */
+function markTest<T extends { subject: string }>(row: RegistrationRow, content: T): T {
+  return row.is_test ? { ...content, subject: `[TEST] ${content.subject}` } : content;
+}
+
 async function deliverPendingEmail(
   row: RegistrationRow,
   s: Settings
@@ -205,7 +214,7 @@ async function deliverPendingEmail(
     await patchRow(row.code, { email_error: "no_email" });
     return { sent: false, reason: "invalid_recipient", detail: "no email" };
   }
-  const content = pendingEmail(row, s);
+  const content = markTest(row, pendingEmail(row, s));
   const res = await sendEmail({
     to: row.email,
     ...content,
@@ -262,7 +271,7 @@ export async function deliverReceipt(
       email: { sent: false, reason: "invalid_recipient", detail: "no email" },
     };
   }
-  const content = receiptEmail(row, s);
+  const content = markTest(row, receiptEmail(row, s));
   const res = await sendEmail({
     to: row.email,
     ...content,
@@ -301,7 +310,8 @@ export async function deliverSms(
 
   let res: SmsResult;
   try {
-    const body = kind === "pending" ? pendingSms(row, s) : receiptSms(row, s);
+    const text = kind === "pending" ? pendingSms(row, s) : receiptSms(row, s);
+    const body = row.is_test ? `TEST: ${text}` : text;
     res = await sendSms(row.phone, body);
   } catch (err) {
     // sendSms is written not to throw, so this only catches a bug in the
@@ -393,7 +403,8 @@ function sameName(a: string, b: string): boolean {
  * into a shortfall.
  */
 export async function findTopUpTarget(
-  input: CleanInput
+  input: CleanInput,
+  isTest = false
 ): Promise<RegistrationRow | null> {
   if (!input.phone) return null;
   const db = getServiceClient();
@@ -406,8 +417,14 @@ export async function findTopUpTarget(
     .limit(20);
   if (error || !data?.length) return null;
 
+  // A rehearsal joins only another rehearsal, and a member only a member.
+  // The admin doing the rehearsing types their own phone number, and
+  // without this line their test order would be added to their own real
+  // registration. Filtered here rather than in the query so a database
+  // that has not had the column added yet still joins real rows.
   const mine = data
     .map((r) => parseRegistration(r))
+    .filter((r) => r.is_test === isTest)
     .filter((r) => sameName(r.name, input.name));
   if (!mine.length) return null;
 
@@ -502,7 +519,13 @@ export async function addToRegistration(
  */
 export async function createRegistration(
   input: CleanInput,
-  opts: { createdBy: string; clientIp?: string | null; notify?: boolean },
+  opts: {
+    createdBy: string;
+    clientIp?: string | null;
+    notify?: boolean;
+    /** A rehearsal. Only set once the caller has verified an admin asked. */
+    isTest?: boolean;
+  },
   settings?: Settings
 ): Promise<{ row: RegistrationRow; email: EmailResult | null; settings: Settings }> {
   const s = settings ?? (await getSettings());
@@ -537,6 +560,10 @@ export async function createRegistration(
         created_by: opts.createdBy,
         announcements_opt_in: input.announcements_opt_in,
         client_ip: opts.clientIp ?? null,
+        // Sent only when true. A real registration never names the column,
+        // so members keep registering even on a database that has not had
+        // supabase/venmo_and_test.sql run yet.
+        ...(opts.isTest ? { is_test: true } : {}),
       })
       .select("*")
       .single();
@@ -554,6 +581,7 @@ export async function createRegistration(
     await audit("system", "REGISTRATION_CREATED", row.code, null, {
       amount_due: amount,
       email: row.email,
+      ...(row.is_test ? { is_test: true } : {}),
     });
   } else {
     await audit(
@@ -838,15 +866,15 @@ export async function mergeInto(
 /** Walk-in or phone registration entered by an admin. */
 export async function createAdminEntry(
   data: Record<string, unknown>,
-  opts: { markPaidNow: boolean; method?: unknown },
+  opts: { markPaidNow: boolean; method?: unknown; isTest?: boolean },
   actor: string
 ): Promise<ActionResult> {
   const input = validateRegistrationInput(data, "admin");
-  input.comment = input.comment || "created by admin";
+  input.comment = input.comment || (opts.isTest ? "test entry" : "created by admin");
   input.announcements_opt_in = false;
   const created = await createRegistration(
     input,
-    { createdBy: actor, notify: !opts.markPaidNow },
+    { createdBy: actor, notify: !opts.markPaidNow, isTest: opts.isTest === true },
     undefined
   );
   if (opts.markPaidNow) {
@@ -928,4 +956,69 @@ export async function expirePending(
     );
   }
   return codes;
+}
+
+/* ------------------------------------------------------------------ */
+/* Test rows                                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Removes every rehearsal row: the test registrations, the payments linked
+ * to them, and their audit trail. Nothing else.
+ *
+ * Belt and braces, because this runs against the live table with members
+ * in it. The rows to delete are listed first by their flag, and every
+ * delete that follows is keyed to that list AND to the flag again, so a
+ * bug in one could not widen the other. The one audit row written
+ * afterwards records what went, under the admin's name.
+ */
+export async function deleteTestData(
+  actor: string
+): Promise<{ registrations: number; payments: number; codes: string[] }> {
+  const db = getServiceClient();
+  const { data, error } = await db.from(TABLE).select("code").eq("is_test", true);
+  if (error) throw new ApiError(500, error.message);
+  const codes = (data ?? []).map((r) => String(r.code));
+  if (codes.length === 0) return { registrations: 0, payments: 0, codes: [] };
+
+  const pays = await db
+    .from("payments")
+    .delete()
+    .eq("is_test", true)
+    .in("linked_code", codes)
+    .select("id");
+  if (pays.error) throw new ApiError(500, pays.error.message);
+
+  // A test payment the admin never linked to a code has no linked_code to
+  // key on, but it is still flagged, so it goes too.
+  const strays = await db
+    .from("payments")
+    .delete()
+    .eq("is_test", true)
+    .is("linked_code", null)
+    .select("id");
+  if (strays.error) throw new ApiError(500, strays.error.message);
+
+  const logs = await db.from("audit_log").delete().in("entity_code", codes);
+  if (logs.error) throw new ApiError(500, logs.error.message);
+
+  const regs = await db
+    .from(TABLE)
+    .delete()
+    .eq("is_test", true)
+    .in("code", codes)
+    .select("code");
+  if (regs.error) throw new ApiError(500, regs.error.message);
+
+  const payments = (pays.data?.length ?? 0) + (strays.data?.length ?? 0);
+  const registrations = regs.data?.length ?? 0;
+  await audit(
+    actor,
+    "TEST_DATA_DELETED",
+    null,
+    { codes },
+    { registrations, payments },
+    `${registrations} test registration(s) and ${payments} test payment(s) removed`
+  );
+  return { registrations, payments, codes };
 }

@@ -173,7 +173,13 @@ export default function AdminCheckin() {
     [run]
   );
 
-  const paid = useMemo(() => rows.filter((r) => r.status === "PAID"), [rows]);
+  // The counts on the board are members only. A rehearsal row still shows
+  // in the list and still scans, badged TEST, so the desk can be practised;
+  // it just never moves the numbers.
+  const paid = useMemo(
+    () => rows.filter((r) => r.status === "PAID" && !r.is_test),
+    [rows]
+  );
   const tickets = useMemo(() => paid.filter((r) => headcount(r) > 0), [paid]);
   const arrived = useMemo(() => tickets.filter((r) => r.checked_in_at), [tickets]);
   const peopleIn = arrived.reduce((n, r) => n + headcount(r), 0);
@@ -302,10 +308,22 @@ export default function AdminCheckin() {
 
   /** A card for one registration, with its controls and its phone-mates. */
   const card = (r: RegistrationRow, opts?: { withSiblings?: boolean }) => (
-    <div key={r.code} className="rounded-2xl border border-sand bg-white px-4 py-3">
+    <div
+      key={r.code}
+      className={`rounded-2xl border bg-white px-4 py-3 ${
+        r.is_test ? "border-bengal-red/50" : "border-sand"
+      }`}
+    >
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="min-w-0 flex-1">
-          <div className="truncate font-semibold text-forest-ink">{r.name}</div>
+          <div className="truncate font-semibold text-forest-ink">
+            {r.is_test && (
+              <span className="mr-2 rounded-full bg-bengal-red px-2 py-0.5 align-middle text-[10px] font-black tracking-widest text-white">
+                TEST
+              </span>
+            )}
+            {r.name}
+          </div>
           <div className="truncate text-xs text-forest-ink/50">
             <span className="font-mono">{r.code}</span> · {party(r)}
             {r.phone ? ` · ${r.phone}` : ""}
@@ -417,7 +435,14 @@ export default function AdminCheckin() {
                 {TITLES[result.outcome]}
               </div>
               {result.row && (
-                <div className="mt-2 text-3xl font-black leading-tight">{result.row.name}</div>
+                <div className="mt-2 text-3xl font-black leading-tight">
+                  {result.row.is_test && (
+                    <span className="mr-3 inline-block rounded-full bg-bengal-red px-3 py-1 align-middle text-sm font-black tracking-[0.3em] text-white">
+                      TEST
+                    </span>
+                  )}
+                  {result.row.name}
+                </div>
               )}
               {result.row && result.outcome !== "unknown" && (
                 <div className="mt-2 text-xl font-bold">{party(result.row)}</div>

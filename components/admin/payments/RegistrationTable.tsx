@@ -163,6 +163,11 @@ export default function RegistrationTable({
               >
                 {r.code}
               </button>
+              {r.is_test && (
+                <span className="rounded-full bg-bengal-red px-2 py-0.5 text-[10px] font-black tracking-widest text-white">
+                  TEST
+                </span>
+              )}
               <div className="min-w-0 flex-1">
                 <div className="truncate font-semibold text-forest-ink">{r.name}</div>
                 <div className="truncate text-xs text-forest-ink/50">

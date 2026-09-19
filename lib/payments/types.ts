@@ -59,7 +59,16 @@ export type RegistrationRow = {
   code_sms_at: string | null;
   ticket_sms_at: string | null;
   sms_error: string | null;
+  /**
+   * A rehearsal by an admin (supabase/venmo_and_test.sql). Never counted,
+   * never listed by default, never merged with a real row, and marked TEST
+   * wherever it is shown so it cannot pass for a member.
+   */
+  is_test: boolean;
 };
+
+export const PROVIDERS = ["zelle", "venmo"] as const;
+export type Provider = (typeof PROVIDERS)[number];
 
 export const MATCH_STATUSES = [
   "UNMATCHED",
@@ -88,6 +97,10 @@ export type PaymentRow = {
   source: PaymentSource;
   message_id: string | null;
   created_at: string;
+  /** Which service carried the money (supabase/venmo_and_test.sql). */
+  provider: Provider;
+  /** Linked to a test registration, so it is a test payment itself. */
+  is_test: boolean;
 };
 
 export function parsePayment(raw: Record<string, unknown>): PaymentRow {
@@ -110,6 +123,8 @@ export function parsePayment(raw: Record<string, unknown>): PaymentRow {
       raw.source === "email" || raw.source === "import" ? raw.source : "admin",
     message_id: strOrNull(raw.message_id),
     created_at: str(raw.created_at),
+    provider: raw.provider === "venmo" ? "venmo" : "zelle",
+    is_test: raw.is_test === true,
   };
 }
 
@@ -215,5 +230,7 @@ export function parseRegistration(raw: Record<string, unknown>): RegistrationRow
     code_sms_at: strOrNull(raw.code_sms_at),
     ticket_sms_at: strOrNull(raw.ticket_sms_at),
     sms_error: strOrNull(raw.sms_error),
+    // Strictly true, so a database without the column reads as all real.
+    is_test: raw.is_test === true,
   };
 }

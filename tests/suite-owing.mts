@@ -33,7 +33,7 @@ try {
   const s = await SET.getSettings();
 
   console.log("== A DONATION, PAID IN CASH AT THE DESK ==");
-  await fetch(`${U}/registrations`, { method: "POST", headers: H, body: JSON.stringify({ code: CODE, name: "Anis Khan", phone: PHONE, email: "", adults: 0, youth: 0, children: 0, coupons_qty: 0, donation: 50, amount_due: 50, status: "PENDING", created_by: "owing-sweep" }) });
+  await fetch(`${U}/registrations`, { method: "POST", headers: H, body: JSON.stringify({ code: CODE, name: "Anis Khan", phone: PHONE, email: "", adults: 0, youth: 0, children: 0, coupons_qty: 0, donation: 50, amount_due: 50, status: "PENDING", created_by: "owing-sweep", is_test: true }) });
   await REG.markPaid(CODE, { method: "cash", amount: 50, note: "" }, ACTOR);
   let row = await read(CODE);
   t("settled", row.status, "PAID");
@@ -55,7 +55,7 @@ try {
   t("coupons refused too", r.outcome, "not_paid");
 
   console.log("\n== A SECOND VISIT JOINS THE SAME CODE, NOT A NEW ONE ==");
-  const target = await REG.findTopUpTarget(order({ youth: 1 }));
+  const target = await REG.findTopUpTarget(order({ youth: 1 }), true);
   t("their owing code is joinable now", target?.code, CODE);
   await REG.addToRegistration(typed(await read(CODE)), order({ youth: 1 }), s, ACTOR);
   row = await read(CODE);
