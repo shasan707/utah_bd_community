@@ -68,7 +68,14 @@ var ALERT_QUERIES = [
   // Venmo's "<name> paid you $x" notifications. Push this line to Google
   // only AFTER the website that reads Venmo emails is deployed: an email
   // the site cannot read is stored once and never looked at again.
-  'from:venmo.com'
+  'from:venmo.com',
+  // The Venmo account belongs to a committee member, so its notifications
+  // land in her inbox and reach this one by forwarding. A forwarded email
+  // carries HER address as the sender, not venmo.com, and the line above
+  // never finds it. These two find it by what it says instead of who sent
+  // it: the subject Venmo always uses, and the word Venmo anywhere in it.
+  'subject:"paid you"',
+  'venmo'
 ];
 
 /** Cheap check before relaying, so statements and marketing are not sent over. */
@@ -86,7 +93,12 @@ function findAlertThreads_() {
   var seen = {};
   var out = [];
   ALERT_QUERIES.forEach(function (q) {
-    var threads = GmailApp.search('(' + q + ') -from:me ' + LOOKBACK, 0, MAX_THREADS_PER_RUN);
+    // in:anywhere looks in Spam and Trash too. A Venmo notification that
+    // reaches this inbox by forwarding is exactly the kind of mail Gmail
+    // likes to file as spam, and a payment sitting in Spam is still a
+    // payment. The website drops anything it has seen and anything that
+    // is not a payment, so the wider net costs nothing.
+    var threads = GmailApp.search('(' + q + ') -from:me in:anywhere ' + LOOKBACK, 0, MAX_THREADS_PER_RUN);
     threads.forEach(function (t) {
       var id = t.getId();
       if (!seen[id]) { seen[id] = true; out.push(t); }

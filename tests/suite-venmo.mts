@@ -55,6 +55,36 @@ const v3 = V.parseVenmoEmail(
 t("no id: the email id keeps the payment unique", v3?.confirmation, "msg-vm3");
 t("link line is not taken as the note", v3?.memo_raw, "no id here");
 
+console.log("\n== FORWARDED FROM THE ACCOUNT HOLDER'S INBOX ==");
+// The Venmo account is a committee member's, so the notification reaches the
+// relay's inbox as a Gmail forward: "Fwd:" on the subject and the original
+// headers at the top of the body. Without care, "To: <address>" is taken as
+// the note and the real code is never seen.
+const forwarded = [
+  "---------- Forwarded message ---------",
+  "From: Venmo <venmo@venmo.com>",
+  "Date: Fri, Sep 19, 2026 at 3:20 PM",
+  "Subject: Qudrat E Alahy Ratul paid you $22.00",
+  "To: <farah@example.com>",
+  "",
+  "",
+  "Qudrat E Alahy Ratul paid You $22.00",
+  "R-4PRS",
+  "Transfer Date and Amount:",
+  "Sep 19, 2026 PDT · + $22.00",
+  "Payment ID: 4234567890123456789",
+  "See transaction: https://venmo.com/story/4234567890123456789",
+  "Venmo is a service of PayPal, Inc.",
+].join("\n");
+const fw = V.parseVenmoEmail(forwarded, "Fwd: Qudrat E Alahy Ratul paid you $22.00", "fw1");
+t("forwarded: amount", fw?.amount, 22);
+t("forwarded: the note, not the To: line", fw?.memo_raw, "R-4PRS");
+t("forwarded: sender with a one-letter middle name", fw?.sender_name, "Qudrat E Alahy Ratul");
+t("forwarded: payment id", fw?.confirmation, "4234567890123456789");
+const fwNoHeaders = V.parseVenmoEmail(forwarded.replace("---------- Forwarded message ---------\n", ""), "FW: Qudrat E Alahy Ratul paid you $22.00", "fw2");
+t("forwarded by another client (FW:, no banner)", fwNoHeaders?.memo_raw, "R-4PRS");
+t("a plain venmo email is unchanged by the stripping", V.parseVenmoEmail(venmoMail, "Rahim Uddin paid you $20.00", "fw3")?.memo_raw, "R-4K7M");
+
 console.log("\n== WHAT IT MUST REFUSE ==");
 t("money going out", V.parseVenmoEmail("You paid Rahim Uddin $20.00\nhttps://venmo.com", "You paid Rahim Uddin $20.00", "vm4"), null);
 t("a request", V.parseVenmoEmail("Rahim Uddin requests $20.00\nhttps://venmo.com", "Rahim Uddin requests $20.00", "vm5"), null);

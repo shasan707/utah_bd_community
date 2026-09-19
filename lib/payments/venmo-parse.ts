@@ -25,9 +25,29 @@ import type { ParsedZelle } from "./zelle-parse";
 const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 const CODE_RE = new RegExp(`\\b([RCD])-?([${CODE_ALPHABET}]{4})\\b`, "gi");
 
-/** "Rahim Uddin paid you $20.00", either capitalisation of "you". */
+/**
+ * "Rahim Uddin paid you $20.00", either capitalisation of "you". A name
+ * word may be a single initial ("Qudrat E Alahy Ratul"), which is why the
+ * word pattern allows one letter.
+ */
 const PAID_YOU_RE =
-  /([A-Z][A-Za-z.'-]+(?:[ \t]+[A-Z][A-Za-z.'-]+){0,4})[ \t]+paid[ \t]+you[ \t]+\$\s?([\d,]+\.\d{2})/i;
+  /([A-Z][A-Za-z.'-]*(?:[ \t]+[A-Z][A-Za-z.'-]*){0,5})[ \t]+paid[ \t]+you[ \t]+\$\s?([\d,]+\.\d{2})/i;
+
+/**
+ * The Venmo account belongs to a committee member, so its notifications
+ * reach the relay's inbox by forwarding. Gmail's forward puts the original
+ * headers at the top of the body ("From:", "Date:", "Subject:", "To:"),
+ * and "Fwd:" on the subject. Those header lines are dropped before the
+ * note is looked for, or "To: <address>" would be taken as the note and
+ * the code in the real note never seen.
+ */
+function stripForwardHeaders(text: string): string {
+  return text
+    .split("\n")
+    .filter((l) => !/^\s*-{2,}\s*forwarded message\s*-{2,}\s*$/i.test(l))
+    .filter((l) => !/^\s*(from|to|cc|bcc|date|sent|subject)\s*:/i.test(l))
+    .join("\n");
+}
 
 const NOT_INCOMING_RE =
   /you paid|you charged|charged you|requests? (?:\$|money|payment)|payment request|you requested|requested \$|you sent/i;
@@ -59,8 +79,8 @@ export function parseVenmoEmail(
   subject = "",
   messageId = ""
 ): ParsedZelle | null {
-  const text = clean(body);
-  const all = `${clean(subject)}\n${text}`;
+  const text = stripForwardHeaders(clean(body));
+  const all = `${clean(subject).replace(/^\s*(fwd?|fw)\s*:\s*/i, "")}\n${text}`;
 
   if (OWN_EMAIL_RE.test(all)) return null;
   if (!/venmo/i.test(all)) return null;
