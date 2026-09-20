@@ -22,7 +22,11 @@ export default function NewEntryForm({
     children: 0,
     coupons_qty: 0,
     donation: 0,
-    mark_paid_now: true,
+    // Off by default. The usual case is registering someone who will then
+    // pay: they get the code email and text, pay with the code in the memo,
+    // and the relay confirms it. Marking paid at creation is for money
+    // already in hand, and sends the ticket at once, so it has to be chosen.
+    mark_paid_now: false,
     method: "cash",
     test: false,
   });
@@ -148,7 +152,13 @@ export default function NewEntryForm({
               checked={form.mark_paid_now}
               onChange={(e) => set({ mark_paid_now: e.target.checked })}
             />
-            Mark as paid now
+            <span>
+              Money already in hand: mark paid now and send the ticket at once.
+              <span className="block text-xs text-forest-ink/55">
+                Leave this off and they get the code with Zelle and Venmo instructions
+                instead; their payment confirms itself and the ticket follows.
+              </span>
+            </span>
           </label>
           <label className="flex items-center gap-2 text-sm text-forest-ink/80 sm:col-span-2">
             <input
@@ -196,7 +206,11 @@ export default function NewEntryForm({
             disabled={busy}
             className="rounded-full bg-forest px-5 py-2 text-sm font-semibold text-cream disabled:opacity-60"
           >
-            {busy ? "Saving..." : form.mark_paid_now ? "Create and mark paid" : "Create pending"}
+            {busy
+              ? "Saving..."
+              : form.mark_paid_now
+                ? "Create, mark paid, send ticket"
+                : "Create and send payment instructions"}
           </button>
         </div>
       </form>
