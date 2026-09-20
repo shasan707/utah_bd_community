@@ -515,9 +515,40 @@ export async function linkPayment(
   const pay = await getPayment(id);
   if (pay.processed_at) throw new ApiError(409, "This payment is already applied.");
   const reg = await getRegistration(code);
-  if (reg.status !== "PENDING" && reg.status !== "EXPIRED") {
+  if (reg.status === "CANCELLED" || reg.status === "REFUNDED") {
     throw new ApiError(409, `${code} is ${reg.status}, so this payment cannot be applied to it.`);
   }
+
+  // Already paid, nothing owing. This happens when the treasurer pressed
+  // Mark paid before the bank email was dealt with: the money is on the
+  // code and the transaction is still sitting under "needs a look". The
+  // honest action is to tie the two together and credit nothing, so the
+  // ledger shows which transaction paid for which code without anyone
+  // being paid twice. Refusing, as this used to, left the row red for ever.
+  if (reg.status === "PAID" && outstanding(reg) === 0) {
+    const now = new Date().toISOString();
+    const recorded = await patchPayment(id, {
+      match_status: "MATCHED",
+      linked_code: reg.code,
+      extracted_code: reg.code,
+      processed_at: now,
+      ...(reg.is_test ? { is_test: true } : {}),
+    });
+    await audit(
+      actor,
+      "LINK_PAYMENT",
+      reg.code,
+      { match_status: pay.match_status },
+      { match_status: "MATCHED", confirmation: pay.confirmation_id, credited: 0 },
+      `${money(pay.amount)} recorded against a code already marked paid by hand; nothing credited`
+    );
+    return {
+      payment: recorded,
+      registration: reg,
+      message: `Recorded ${money(pay.amount)} (${pay.confirmation_id}) against ${reg.code}, which was already marked paid. Nothing was credited twice.`,
+    };
+  }
+
   const linked = await patchPayment(id, {
     match_status: "MATCHED",
     linked_code: reg.code,

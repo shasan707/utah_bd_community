@@ -336,7 +336,7 @@ export default function AdminPayments() {
         setDialog({
           title: `Link ${money(p.amount)} from ${p.sender_name || "unknown sender"}`,
           description:
-            "Enter the registration code this Zelle belongs to. It is marked PAID right away and the receipt goes out.",
+            "Enter the registration code this payment belongs to. It is marked PAID right away and the receipt goes out. If the code was already marked paid by hand, the payment is recorded against it and nothing is credited twice.",
           confirmLabel: "Link and confirm",
           fields: [
             {

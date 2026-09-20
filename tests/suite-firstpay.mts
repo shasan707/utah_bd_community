@@ -27,6 +27,7 @@ const t = (n: string, got: unknown, want: unknown) => {
   console.log(`  ${okk ? "ok  " : "FAIL"} ${n.padEnd(54)} ${JSON.stringify(got)}${okk ? "" : "  want " + JSON.stringify(want)}`);
 };
 const read = async (c: string) => (await (await fetch(`${U}/registrations?code=eq.${c}&select=*`, { headers: H })).json())[0];
+const REG_PAY_link = (id: number) => PAY.linkPayment(id, "R-FPAA", ACTOR);
 const make = async (c: string, o: Record<string, unknown> = {}) => {
   const res = await fetch(`${U}/registrations`, { method: "POST", headers: H, body: JSON.stringify({ code: c, name: "FirstPay Tester", phone: PHONE, email: "", adults: 1, youth: 0, children: 0, coupons_qty: 0, donation: 0, amount_due: 20, status: "PENDING", created_by: "firstpay-sweep", is_test: true, ...o }) });
   if (!res.ok) throw new Error(`${c}: ${await res.text()}`);
@@ -84,6 +85,22 @@ try {
   const res2 = await REG.markPaid("R-FPAC", { method: "cash", amount: 20, note: "paid at the desk" }, ACTOR);
   t("desk payment succeeds", res2.row.status, "PAID");
   t("credited", Number((await read("R-FPAC")).amount_received), 20);
+
+  // The treasurer pressed Mark paid before dealing with the bank email, so
+  // the money is on the code and the transaction is still unmatched. Linking
+  // it must tie the two together and credit nothing, not refuse.
+  console.log("\n== LINKING A PAYMENT TO A CODE ALREADY PAID BY HAND ==");
+  const late = await PAY.recordPayment(
+    { amount: 20, sender_name: "FirstPay Tester", confirmation: `FP3-${Date.now()}`, memo_raw: "" },
+    new Date().toISOString(), "admin", null, s
+  );
+  t("with nothing owing it does not match by itself", late.match_status, "UNMATCHED");
+  const tied = await REG_PAY_link(late.id);
+  t("link is accepted, not refused", /already marked paid/i.test(tied.message), true);
+  t("payment now points at the code", tied.payment.linked_code, "R-FPAA");
+  t("and is closed", !!tied.payment.processed_at, true);
+  t("nothing credited twice", Number((await read("R-FPAA")).amount_received), 20);
+  t("still PAID", (await read("R-FPAA")).status, "PAID");
 
   // The database, not the application, is what stops two people being handed
   // the same code. Checked here because this suite owns a row to collide
