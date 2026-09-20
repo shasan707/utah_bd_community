@@ -6,7 +6,14 @@ import FishPattern from "@/components/FishPattern";
 export default function Footer() {
   return (
     <footer className="river-panel relative overflow-hidden text-cream">
-      <div className="pointer-events-none text-cream/5">
+      {/* The Wasatch ridge across the top of the footer. It is 112px tall on
+          a desktop and was drawn at 5% of cream, which against this green is
+          not far off invisible -- so the footer opened with a band of dead
+          space instead of a picture. The ridge draws its three layers at
+          0.35, 0.6 and 1 of currentColor, so the faintest one was landing at
+          under 2%. At 12% the silhouette reads and the height it occupies is
+          decoration rather than a gap. */}
+      <div className="pointer-events-none text-cream/12">
         <Mountains className="h-20 w-full md:h-28" />
       </div>
       <FishPattern
