@@ -55,6 +55,71 @@ const v3 = V.parseVenmoEmail(
 t("no id: the email id keeps the payment unique", v3?.confirmation, "msg-vm3");
 t("link line is not taken as the note", v3?.memo_raw, "no id here");
 
+console.log("\n== THE REAL EMAIL, CAPTURED 19 SEPTEMBER 2026 ==");
+// Venmo's actual notification as Gmail's text view hands it to the relay:
+// the heading repeats the subject twice, pictures become "[image: ...]",
+// the amount is split over four lines, and the note comes after all that.
+// This is the fixture that matters. If Venmo changes its email, this is
+// what goes red.
+const realVenmo = [
+  "Qudrat E Alahy Ratul paid you $22.00 Qudrat E Alahy Ratul paid you $22.00",
+  "[image: Venmo logo] ",
+  "",
+  "[image: Qudrat E Alahy Ratul image]",
+  "",
+  "Qudrat E Alahy Ratul paid you",
+  "$",
+  "22",
+  ".",
+  "00",
+  "",
+  "R-4PRS",
+  "",
+  "See transaction ",
+  "<https://venmo.com/story/4689940423368210094?k=0432db22-111b-480f-9326-09bec89a5933>",
+  "Money credited to your Venmo account.",
+  "Transaction detailsDate",
+  "",
+  "Sep 19, 2026",
+  "Transaction ID",
+  "",
+  "4689940422218870699",
+  "Sent to",
+  "",
+  "@evue007 ",
+  "[image: Venmo logo] ",
+  "",
+  "For any issues, including the recipient not receiving funds, please contact ",
+  "us at Help Center at help.venmo.com or call 1-855-812-4430 <855-812-4430>.",
+].join("\n");
+const real = V.parseVenmoEmail(realVenmo, "Qudrat E Alahy Ratul paid you $22.00", "real1");
+t("real: amount", real?.amount, 22);
+t("real: sender", real?.sender_name, "Qudrat E Alahy Ratul");
+t("real: the note is R-4PRS, not the image line", real?.memo_raw, "R-4PRS");
+t("real: the transaction id", real?.confirmation, "4689940422218870699");
+t("real: the matcher would find the code", Z.extractCandidates(real?.memo_raw ?? "").has("R4PRS"), true);
+
+// The two one-cent tests from the day before: lower-case sender, a note of
+// R-0000 (not a code: 0 is outside the alphabet), and a transfer-style id
+// made of letters and digits.
+const realCent = realVenmo
+  .replace(/Qudrat E Alahy Ratul paid you \$22\.00/g, "Qudrat e alahy ratul paid you $0.01")
+  .replace("Qudrat E Alahy Ratul paid you\n$\n22\n.\n00", "Qudrat e alahy ratul paid you\n$\n0\n.\n01")
+  .replace("R-4PRS", "R-0000")
+  .replace("4689940422218870699", "6X155121LW9184833");
+const cent = V.parseVenmoEmail(realCent, "Qudrat E Alahy Ratul paid $0.01 to your Venmo account. Leave it in Venmo or transfer it to your bank account.", "real2");
+t("one cent: amount", cent?.amount, 0.01);
+t("one cent: note kept as written", cent?.memo_raw, "R-0000");
+t("one cent: R-0000 is not read as a code", Z.extractCandidates(cent?.memo_raw ?? "").size, 0);
+t("one cent: letters-and-digits id accepted", cent?.confirmation, "6X155121LW9184833");
+
+// An empty note must not turn boilerplate into the memo; the code found
+// elsewhere in the email is still surfaced.
+const noNote = realVenmo.replace("\nR-4PRS\n", "\n\n");
+t("no note: nothing invented from boilerplate", V.parseVenmoEmail(noNote, "Qudrat E Alahy Ratul paid you $22.00", "real3")?.memo_raw, "");
+const noteElsewhere = realVenmo.replace("\nR-4PRS\n", "\nthanks!\n").replace("Sent to", "Sent to (R-4PRS)");
+t("note without the code, code elsewhere: both kept", V.parseVenmoEmail(noteElsewhere, "Qudrat E Alahy Ratul paid you $22.00", "real4")?.memo_raw, "thanks! R-4PRS");
+
 console.log("\n== FORWARDED FROM THE ACCOUNT HOLDER'S INBOX ==");
 // The Venmo account is a committee member's, so the notification reaches the
 // relay's inbox as a Gmail forward: "Fwd:" on the subject and the original

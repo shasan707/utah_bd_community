@@ -21,8 +21,19 @@ clasp push
 ```
 
 `clasp push` replaces the old files in the existing script project with
-`Zelle.gs` and `appsscript.json`. Or skip clasp: open script.google.com, open
-the "BPAU Payments" project, delete the old files, paste `Zelle.gs` in, and
+`Zelle.gs` and `appsscript.json`.
+
+**Which project.** The BPAU Gmail account holds TWO script projects, and only
+one runs: **"BPAU Zelle relay"** (id `10OG8kn-eeZgNbwobAJGpHma81PttnMGgb_-Ih4_nX82xBj9aMMR8pQFy`),
+which is what `.clasp.json` points at. "BPAU Payments" is the dead first
+version; nothing in it runs. On 19 September 2026 `.clasp.json` pointed at
+the dead one, every push for a day landed where nothing ran, and the live
+relay quietly stayed on old code. Before trusting a push, run
+`npx clasp list-scripts` and check the id in `.clasp.json` is the project
+whose Executions page shows the timers firing.
+
+Or skip clasp: open script.google.com, open
+the "BPAU Zelle relay" project, delete the old files, paste `Zelle.gs` in, and
 also replace the manifest: Project Settings, tick "Show appsscript.json
 manifest file in editor", then paste this folder's `appsscript.json` over it
 (it lists the send-mail permission the script needs).

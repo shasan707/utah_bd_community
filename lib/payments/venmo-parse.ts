@@ -63,16 +63,30 @@ function clean(text: string): string {
     .replace(/[ \t]+/g, " ");
 }
 
-/** A line that is a date, a money figure, a link or a label is not the note. */
+/**
+ * A line that is a date, a money figure, a link, an image placeholder or a
+ * label is not the note.
+ *
+ * The real Venmo email (captured 19 September 2026, see the fixture in
+ * tests/suite-venmo.mts) prints the amount as four lines on their own,
+ * "$" then "22" then "." then "00", and Gmail's text view turns every
+ * picture into "[image: ...]". Both sit between the "paid you" line and
+ * the note, so both are named here.
+ */
 function looksLikeNote(line: string): boolean {
   const l = line.trim();
   if (!l || l.length > 300) return false;
-  if (/^https?:\/\//i.test(l)) return false;
+  if (/^<?https?:\/\//i.test(l)) return false;
+  if (/^\[image:/i.test(l)) return false;
   if (/\$\s?[\d,]+\.\d{2}/.test(l)) return false;
-  if (/^(transfer date|transaction|payment id|date|see transaction|view|reply|balance)/i.test(l)) return false;
+  if (/^(\$|\.|\d{1,6})$/.test(l)) return false;
+  if (/^(transfer date|transaction|payment id|date|see transaction|view|reply|balance|sent to|money credited)/i.test(l)) return false;
   if (/^[A-Z][a-z]{2} \d{1,2}, \d{4}/.test(l)) return false;
   return true;
 }
+
+/** Past this line the email is boilerplate; a note is never found after it. */
+const NOTE_ENDS_RE = /^(see transaction|money credited|transaction details)/i;
 
 export function parseVenmoEmail(
   body: string,
@@ -97,25 +111,40 @@ export function parseVenmoEmail(
   let sender = paid[1].trim();
   if (/^(you|venmo)$/i.test(sender)) sender = "";
 
-  // The note: the first plausible line after the "paid you" line in the
-  // body, otherwise any code-shaped token anywhere in the email.
+  // The note: the first plausible line after the LAST "paid you" line in
+  // the body. The email says "paid you" three times, twice in a heading
+  // that repeats the subject and once just above the amount block, and the
+  // note follows that last one. The scan stops at the boilerplate that
+  // follows the note, so an empty note never turns into "Money credited".
   const lines = text.split("\n").map((l) => l.trim());
-  const at = lines.findIndex((l) => /paid you \$/i.test(l));
+  let at = -1;
+  lines.forEach((l, i) => {
+    if (/paid you\b/i.test(l)) at = i;
+  });
   let memo = "";
-  for (let i = at + 1; at >= 0 && i < Math.min(lines.length, at + 6); i++) {
+  for (let i = at + 1; at >= 0 && i < Math.min(lines.length, at + 12); i++) {
+    if (NOTE_ENDS_RE.test(lines[i])) break;
     if (looksLikeNote(lines[i])) {
       memo = lines[i];
       break;
     }
   }
-  if (!memo) {
-    const codes = Array.from(all.toUpperCase().matchAll(CODE_RE), (x) => `${x[1]}-${x[2]}`);
-    memo = Array.from(new Set(codes)).join(" ");
-  }
+  // Any code-shaped token in the email that the note did not carry is added
+  // to it, so the matcher sees the code even if the note was mistaken for
+  // something else. "R-0000" is not a code (0 is not in the alphabet) and is
+  // left alone.
+  const codes = Array.from(all.toUpperCase().matchAll(CODE_RE), (x) => `${x[1]}-${x[2]}`);
+  const missing = Array.from(new Set(codes)).filter(
+    (c) => !memo.toUpperCase().replace(/[^A-Z0-9]/g, "").includes(c.replace("-", ""))
+  );
+  if (missing.length) memo = [memo, ...missing].filter(Boolean).join(" ");
 
-  // Venmo's ids are long runs of digits. Without one, the email id keeps the
-  // payment unique, exactly as the Zelle side does.
-  const c = /(?:transaction|payment)\s*(?:id|number|no\.?|#)?\s*[:#]?\s*(\d{10,25})/i.exec(all);
+  // Venmo's transaction id follows a "Transaction ID" label, on the same
+  // line or the next: a long run of digits for a payment, letters and digits
+  // for a transfer. Without one, the email id keeps the payment unique,
+  // exactly as the Zelle side does.
+  const c =
+    /(?:transaction|payment)\s*(?:id|number|no\.?|#)?\s*[:#]?\s*(?=[A-Z0-9-]*\d)([A-Z0-9][A-Z0-9-]{9,24})\b/i.exec(all);
   const confirmation = c?.[1] ?? (messageId ? `msg-${messageId}` : "");
   if (!confirmation) return null;
 
