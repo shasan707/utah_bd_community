@@ -303,3 +303,42 @@ function testConnection() {
   console.log('Secret check: HTTP ' + probe.getResponseCode() + ' ' + probe.getContentText().substring(0, 200));
   console.log('Emails this account can still send today: ' + MailApp.getRemainingDailyQuota());
 }
+
+/**
+ * Diagnostic. Pick this function in the editor's dropdown, press Run, and
+ * read the Execution log. It answers one question: why a Venmo email that
+ * the Gmail search box can see is not found by the relay's search.
+ *
+ * It runs the Venmo searches with and without the "-from:me" that the relay
+ * adds, and prints what "me" means on this account: the signed-in address
+ * and every alias Gmail treats as the account's own. If a committee
+ * member's address appears among the aliases, her forwarded Venmo emails
+ * count as "from me" and the relay has been throwing them away.
+ */
+function diagnoseVenmo() {
+  console.log('Signed in as: ' + Session.getEffectiveUser().getEmail());
+  console.log('Aliases Gmail treats as "me": ' + JSON.stringify(GmailApp.getAliases()));
+  var queries = [
+    'from:venmo.com',
+    'subject:"paid you"',
+    'venmo'
+  ];
+  queries.forEach(function (q) {
+    [' in:anywhere ', ' -from:me in:anywhere '].forEach(function (extra) {
+      var full = '(' + q + ')' + extra + LOOKBACK;
+      var threads = GmailApp.search(full, 0, MAX_THREADS_PER_RUN);
+      console.log('--- ' + full + ' -> ' + threads.length + ' thread(s)');
+      threads.forEach(function (t) {
+        t.getMessages().forEach(function (m) {
+          var subject = m.getSubject();
+          var passes = looksLikeZelleAlert_(subject, m.getPlainBody().substring(0, MAX_BODY_CHARS));
+          console.log('    ' + m.getDate().toISOString().slice(0, 16) +
+            ' | from: ' + m.getFrom() +
+            ' | to: ' + m.getTo() +
+            ' | ' + subject.substring(0, 60) +
+            ' | relay filter: ' + (passes ? 'PASS' : 'skip'));
+        });
+      });
+    });
+  });
+}
