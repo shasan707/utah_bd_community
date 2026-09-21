@@ -39,9 +39,12 @@ export function pendingSms(row: RegistrationRow, s: Settings): string {
       "Your existing ticket still works. Reply STOP to opt out.",
     ].join(" ");
   }
+  // Four numbered steps in the order they happen, the code twice: once as
+  // the thing to copy, once as the memo. The memo is where people slip, so
+  // it is its own step and the last thing they read.
   return [
     `BAU: ${firstName(row.name)}, your ${shortEvent(s)} code is ${row.code}.`,
-    `Please send Zelle ${money(owed)} to ${s.zelle_recipient}${orVenmo}, use memo ${row.code}.`,
+    `1) Copy the code 2) Open Zelle${orVenmo} 3) Send ${money(owed)} to ${s.zelle_recipient} 4) Paste ${row.code} in the memo.`,
     `${headcount(row) > 0 ? "Ticket" : "Receipt"} follows once confirmed. Reply STOP to opt out.`,
   ].join(" ");
 }

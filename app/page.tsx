@@ -12,6 +12,7 @@ import Mandala from "@/components/Mandala";
 import Icon from "@/components/Icon";
 import Honeycomb from "@/components/Honeycomb";
 import Mountains from "@/components/Mountains";
+import RegisterRibbon from "@/components/RegisterRibbon";
 import { getEvents, getGallery, next } from "@/lib/content";
 import { formatDate, formatTime } from "@/lib/format";
 import { GALLERY_PLACEHOLDER_NOTE } from "@/lib/home-copy";
@@ -38,7 +39,16 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero />
+      <Hero
+        banner={
+          showFees && registration.pricing ? (
+            <RegisterRibbon
+              eventName={registration.pricing.event_name}
+              closes={registration.pricing.registration_closes}
+            />
+          ) : null
+        }
+      />
 
       {/* Stats */}
       <section className="relative overflow-hidden bg-stat-band">

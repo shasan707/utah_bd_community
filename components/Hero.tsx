@@ -14,7 +14,7 @@ import { MEMBERSHIP_HREF } from "@/lib/links";
 
 const headline = ["Rise.", "Celebrate.", "Together."];
 
-export default function Hero() {
+export default function Hero({ banner }: { banner?: React.ReactNode }) {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
 
@@ -42,6 +42,14 @@ export default function Hero() {
       {/* Sunrise sky. Sits beneath every existing layer. */}
       <div className="hero-glow" aria-hidden="true" />
       <div className="hero-sun" aria-hidden="true" />
+
+      {/* A strip just under the fixed navbar, for the registration ribbon
+          while it is open. Above every decorative layer, below the navbar. */}
+      {banner && (
+        <div className="pointer-events-none absolute inset-x-0 top-[5.75rem] z-40 px-5 md:top-[6.5rem]">
+          {banner}
+        </div>
+      )}
 
       {/* Giant watermark that scales up and dissolves as you scroll away */}
       <motion.div
@@ -111,7 +119,11 @@ export default function Hero() {
       {/* Content slides up and fades as the page scrolls past */}
       <motion.div
         style={reduce ? undefined : { y: contentY, opacity: contentOpacity }}
-        className="relative z-10 mx-auto w-full max-w-6xl px-5 pt-24"
+        className={`relative z-10 mx-auto w-full max-w-6xl px-5 ${
+          // Room for the registration ribbon under the navbar while it is
+          // showing, so the opening line is never sitting behind it.
+          banner ? "pt-40 md:pt-44" : "pt-24"
+        }`}
       >
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 20 }}

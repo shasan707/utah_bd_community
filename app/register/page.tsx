@@ -110,13 +110,13 @@ export default async function RegisterPage() {
                   <span className="text-xs font-semibold uppercase tracking-wider text-ivory">
                     Pay with
                   </span>
-                  <ZelleLogo size="sm" pill />
+                  <ZelleLogo size="sm" glass />
                   {pricing.venmo_handle && (
                     <>
                       <span className="text-xs font-semibold uppercase tracking-wider text-ivory">
                         or
                       </span>
-                      <VenmoLogo size="sm" pill />
+                      <VenmoLogo size="sm" glass />
                     </>
                   )}
                 </span>
@@ -135,11 +135,11 @@ export default async function RegisterPage() {
                       {s.title}
                       {"zelle" in s && s.zelle && (
                         <>
-                          <ZelleLogo size="sm" pill />
+                          <ZelleLogo size="sm" glass />
                           {pricing?.venmo_handle && (
                             <>
                               <span className="text-xs font-semibold uppercase text-ivory/80">or</span>
-                              <VenmoLogo size="sm" pill />
+                              <VenmoLogo size="sm" glass />
                             </>
                           )}
                         </>

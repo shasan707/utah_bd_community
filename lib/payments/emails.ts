@@ -185,18 +185,21 @@ export function pendingEmail(row: RegistrationRow, s: Settings): EmailContent {
         ]
       : []),
     "",
-    `Send ${amount} via Zelle to:`,
-    `  ${s.zelle_recipient}`,
-    `  (${s.zelle_recipient_name})`,
+    "How to pay, step by step:",
+    `  1. Copy your code:  ${row.code}`,
+    `  2. Open Zelle${venmo ? " (or Venmo, link below)" : ""}.`,
+    `  3. Send ${amount} to ${s.zelle_recipient}`,
+    `     Zelle will show the name ${s.zelle_recipient_name}. That is us.`,
+    `  4. Paste ${row.code} in the memo or note box.`,
+    "     This is how we match your payment to you. Please do not skip it.",
     ...(venmo
       ? [
           "",
-          `Or via Venmo to @${s.venmo_handle}${s.venmo_name ? ` (${s.venmo_name})` : ""}:`,
+          `Venmo instead? Pay @${s.venmo_handle}${s.venmo_name ? ` (${s.venmo_name})` : ""}, same amount, ${row.code} in the note.`,
+          `Fastest on a phone, amount and note already filled in:`,
           `  ${venmo.pay}`,
         ]
       : []),
-    "",
-    `IMPORTANT: put ${row.code} in the ${venmo ? "memo or note" : "Zelle memo/note field"}.`,
     "",
     "You will get your ticket by email once we confirm the payment.",
     `Track your registration: ${track}`,
@@ -215,17 +218,22 @@ Assalamu alaikum ${esc(firstName(row.name))},<br><br>
 Your registration is saved. One more step: send the payment below and your ticket follows by email.
 </td></tr>`,
     `<tr><td style="padding:8px 32px 20px;">${codeBlock("Your payment code", row.code, amount)}</td></tr>`,
-    `<tr><td style="padding:0 32px 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.forest};font-weight:700;">Now send the Zelle</td></tr>`,
+    `<tr><td style="padding:0 32px 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.forest};font-weight:700;">How to pay, step by step</td></tr>`,
     `<tr><td style="padding:0 32px 16px;">${stepList([
-      `Open your bank app and choose <strong style="color:#6D1ED4;">Zelle</strong>.`,
-      `Send <strong>${esc(amount)}</strong> to <strong>${esc(s.zelle_recipient)}</strong>${
-        s.zelle_recipient_name ? ` <span style="color:${COLORS.muted};">(${esc(s.zelle_recipient_name)})</span>` : ""
+      `Copy your code: <strong style="font-family:Consolas,Menlo,monospace;font-size:17px;letter-spacing:2px;color:${COLORS.red};">${esc(row.code)}</strong> <span style="color:${COLORS.muted};">(press and hold it to copy)</span>`,
+      `Open your bank app and choose <strong style="color:#6D1ED4;">Zelle</strong>${
+        venmo ? `, or use <strong style="color:#008CFF;">Venmo</strong> below` : ""
       }.`,
-      `Type <strong style="color:${COLORS.red};">${esc(row.code)}</strong> in the memo or note field. This is how we match the payment to you.`,
+      `Send <strong>${esc(amount)}</strong> to <strong>${esc(s.zelle_recipient)}</strong>.${
+        s.zelle_recipient_name
+          ? `<br><span style="color:${COLORS.muted};">Zelle will show the name ${esc(s.zelle_recipient_name)}. That is us.</span>`
+          : ""
+      }`,
+      `Paste <strong style="color:${COLORS.red};">${esc(row.code)}</strong> in the <strong>memo or note box</strong> before you send. This is how we match the payment to you. Please do not skip it.`,
     ])}</td></tr>`,
     ...(venmo
       ? [
-          `<tr><td style="padding:4px 32px 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.forest};font-weight:700;">Or send it with Venmo</td></tr>`,
+          `<tr><td style="padding:4px 32px 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.forest};font-weight:700;">Or send it with Venmo, fastest on a phone</td></tr>`,
           `<tr><td style="padding:0 32px 20px;font-size:15px;line-height:1.6;color:${COLORS.ink};">
 Same amount, same code. Open <strong style="color:#008CFF;">Venmo</strong> and pay <strong>@${esc(s.venmo_handle)}</strong>${
             s.venmo_name ? ` <span style="color:${COLORS.muted};">(${esc(s.venmo_name)})</span>` : ""

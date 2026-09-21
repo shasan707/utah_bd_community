@@ -31,23 +31,27 @@ export default function VenmoLogo({
   size = "md",
   onDark = false,
   pill = false,
+  glass = false,
   className = "",
 }: {
   size?: "sm" | "md" | "lg";
   onDark?: boolean;
   pill?: boolean;
+  /** The translucent pill for emerald panels; see ZelleLogo. */
+  glass?: boolean;
   className?: string;
 }) {
   const icon = size === "lg" ? "h-7 w-7" : size === "sm" ? "h-4 w-4" : "h-5 w-5";
   const text =
     size === "lg" ? "text-2xl" : size === "sm" ? "text-sm" : "text-base";
-  const word = pill || !onDark ? "text-[#008CFF]" : "text-ivory";
+  const word = glass || (onDark && !pill) ? "text-ivory" : "text-[#008CFF]";
+  const shell = glass
+    ? "rounded-full border border-white/20 bg-white/10 px-2.5 py-1 backdrop-blur-sm"
+    : pill
+      ? "rounded-full bg-white px-2.5 py-1 shadow-sm"
+      : "";
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 align-middle ${
-        pill ? "rounded-full bg-white px-2.5 py-1 shadow-sm" : ""
-      } ${className}`}
-    >
+    <span className={`inline-flex items-center gap-1.5 align-middle ${shell} ${className}`}>
       <VenmoIcon className={icon} />
       <span className={`font-heading font-black leading-none tracking-tight ${text} ${word}`}>
         Venmo

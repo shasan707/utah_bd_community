@@ -17,7 +17,7 @@ const U = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1`;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const H = { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=representation" };
 const ACTOR = "firstpay-sweep@local";
-const CODES = ["R-FPAA", "R-FPAB", "R-FPAC"];
+const CODES = ["R-FPAA", "R-FPAB", "R-FPAC", "R-FPAD"];
 const PHONE = "5559992222";
 
 let pass = 0, fail = 0;
@@ -85,6 +85,37 @@ try {
   const res2 = await REG.markPaid("R-FPAC", { method: "cash", amount: 20, note: "paid at the desk" }, ACTOR);
   t("desk payment succeeds", res2.row.status, "PAID");
   t("credited", Number((await read("R-FPAC")).amount_received), 20);
+
+  // A member who forgot the memo entirely. Exact amount and the whole name
+  // against exactly one open registration is enough; one shared word is
+  // not. R-FPAB is PAID by now, so a fresh row is needed.
+  console.log("\n== NO MEMO AT ALL: WHOLE NAME AND EXACT AMOUNT CONFIRM ==");
+  // A real row, not a test row, on purpose: the fallback ignores test rows
+  // so that a member's memo-less payment can never land on a rehearsal, and
+  // that rule is what suite-topup proves. To exercise the fallback itself
+  // this row has to be real for the few seconds it exists. It is deleted
+  // with the others at the end.
+  await make("R-FPAD", { name: "Hasanul Mahmud", adults: 1, amount_due: 26, is_test: false });
+  const blindHalf = await PAY.recordPayment(
+    { amount: 26, sender_name: "Mahmud", confirmation: `FP4-${Date.now()}`, memo_raw: "" },
+    new Date().toISOString(), "admin", null, s
+  );
+  t("one word of the name: suggested only", blindHalf.match_status, "UNMATCHED");
+  t("  and it points at the right code", blindHalf.suggested_code, "R-FPAD");
+  const blindWrongAmount = await PAY.recordPayment(
+    { amount: 25, sender_name: "Hasanul Mahmud", confirmation: `FP5-${Date.now()}`, memo_raw: "" },
+    new Date().toISOString(), "admin", null, s
+  );
+  t("whole name but wrong amount: not matched", blindWrongAmount.match_status, "UNMATCHED");
+  const blindFull = await PAY.recordPayment(
+    { amount: 26, sender_name: "HASANUL MAHMUD", confirmation: `FP6-${Date.now()}`, memo_raw: "" },
+    new Date().toISOString(), "admin", null, s
+  );
+  t("whole name, exact amount: matched", blindFull.match_status, "MATCHED");
+  t("  to the right code", blindFull.linked_code, "R-FPAD");
+  const applied2 = await PAY.applyPayment(blindFull, ACTOR, s);
+  t("  and it confirms", applied2?.status, "PAID");
+  t("  with a note saying how", /matched by amount and sender name/i.test((await read("R-FPAD")).notes), true);
 
   // The treasurer pressed Mark paid before dealing with the bank email, so
   // the money is on the code and the transaction is still unmatched. Linking

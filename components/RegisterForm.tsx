@@ -50,11 +50,12 @@ const emptyForm = {
   adults: 1,
   youth: 0,
   children: 0,
-  // The donation is off until it is deliberately switched on, so nobody
-  // gives by accident. Held as text while typing, so the box can be cleared
-  // without a zero jumping back into it.
-  donate: false,
-  donation_text: "",
+  // The donation is on by default at the minimum, the committee's choice:
+  // the total shows it from the first second, so nobody is surprised, and
+  // one tap turns it off. Held as text while typing, so the box can be
+  // cleared without a zero jumping back into it.
+  donate: true,
+  donation_text: String(DONATION_MIN),
   coupons_qty: 0,
   bundles_qty: 0,
   comment: "",
@@ -142,6 +143,12 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
   const [adminToken, setAdminToken] = useState<string | null>(null);
   const [isTest, setIsTest] = useState(false);
   const [testRequested, setTestRequested] = useState(false);
+  // The payment checklist on the confirmation screen: which of its four
+  // steps the person has ticked, whether they copied the Zelle address, and
+  // whether they told us the money is on its way.
+  const [stepDone, setStepDone] = useState<boolean[]>([false, false, false, false]);
+  const [copiedAddr, setCopiedAddr] = useState(false);
+  const [claimedSent, setClaimedSent] = useState(false);
 
   useEffect(() => {
     setStartedAt(Date.now());
@@ -235,11 +242,26 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
     try {
       await navigator.clipboard.writeText(done.code);
       setCopied(true);
+      setStepDone((d) => [true, d[1], d[2], d[3]]);
       setTimeout(() => setCopied(false), 1500);
     } catch {
       /* clipboard unavailable */
     }
   };
+
+  const copyAddress = async () => {
+    if (!done) return;
+    try {
+      await navigator.clipboard.writeText(done.zelle_recipient);
+      setCopiedAddr(true);
+      setTimeout(() => setCopiedAddr(false), 1500);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
+
+  const tick = (i: number) =>
+    setStepDone((d) => d.map((v, k) => (k === i ? !v : v)));
 
   const reset = () => {
     setDone(null);
@@ -247,6 +269,9 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
     setLive(null);
     setForm(emptyForm);
     setStartedAt(Date.now());
+    setStepDone([false, false, false, false]);
+    setCopiedAddr(false);
+    setClaimedSent(false);
   };
 
   if (done) {
@@ -265,17 +290,6 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
     const mailHref = `mailto:?subject=${encodeURIComponent(
       `BPAU - your code ${done.code} (${done.amount})`
     )}&body=${encodeURIComponent(mailBody)}`;
-
-    const payLine = (
-      <>
-        Send <b className="text-forest-ink">{done.amount}</b> to{" "}
-        <b className="text-forest-ink">{done.zelle_recipient}</b>
-        {done.zelle_recipient_name && (
-          <span className="text-muted-ink"> ({done.zelle_recipient_name})</span>
-        )}
-        .
-      </>
-    );
 
     const paid = live?.status === "PAID";
     const trackHref = `/register/status?code=${encodeURIComponent(done.code)}`;
@@ -324,70 +338,158 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
           }`}
         >
           <h2 className="flex flex-wrap items-center gap-2 text-xl font-bold text-forest-ink">
-            Now send with <ZelleLogo size="md" />
-            {venmo && (
-              <>
-                <span className="text-base font-semibold text-muted-ink">or</span>
-                <VenmoLogo size="md" />
-              </>
-            )}
+            How to pay, step by step
           </h2>
-          <ol className="mt-5 space-y-4">
+          <p className="mt-1 text-sm text-muted-ink">
+            Tick each step as you go. The code in the memo is the one people
+            forget, and it is how we know the money is yours.
+          </p>
+
+          {/* The checklist follows the person into the bank app, in the
+              order things happen there: copy the code first, because Zelle
+              has no way to fill it in for them, and the memo is last because
+              it is the last thing they do before pressing Send. */}
+          <ol className="mt-5 space-y-3">
             {[
-              <>
-                Open your bank app and choose <ZelleLogo size="sm" />
-                {venmo && (
+              {
+                title: "Copy your code",
+                body: (
                   <>
-                    , or open <VenmoLogo size="sm" /> (steps below)
+                    <span className="font-heading text-2xl font-black tracking-[0.15em] text-forest-ink">
+                      {done.code}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={copyCode}
+                      className="ml-3 rounded-full bg-forest px-4 py-1.5 text-sm font-bold text-ivory"
+                    >
+                      {copied ? "Copied" : "Copy"}
+                    </button>
+                    <span className="mt-1 block text-sm text-muted-ink">
+                      You will paste it into the memo in step 4.
+                    </span>
                   </>
-                )}
-                .
-              </>,
-              payLine,
-              <>
-                Type <b className="text-bengal-red">{done.code}</b> in the memo
-                or note field. This is how we match the payment to you.
-              </>,
-            ].map((content, i) => (
-              <li key={i} className="flex items-start gap-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-forest font-heading text-sm font-black text-ivory">
-                  {i + 1}
-                </span>
-                <p className="pt-1 leading-relaxed text-forest-ink/80">{content}</p>
+                ),
+              },
+              {
+                title: "Open your bank app and choose Zelle",
+                body: (
+                  <span className="flex flex-wrap items-center gap-2 text-sm text-muted-ink">
+                    <ZelleLogo size="sm" />
+                    {venmo && (
+                      <>
+                        <span>or, fastest on a phone,</span>
+                        <a
+                          href={venmo.pay}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={() => setStepDone([true, true, true, true])}
+                          className="inline-flex items-center gap-2 rounded-full bg-[#008CFF] px-4 py-1.5 text-sm font-bold text-white"
+                        >
+                          Open <VenmoLogo size="sm" onDark /> with everything filled in
+                        </a>
+                      </>
+                    )}
+                  </span>
+                ),
+              },
+              {
+                title: `Send exactly ${done.amount}`,
+                body: (
+                  <>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm text-muted-ink">to</span>
+                      <b className="font-mono text-base text-forest-ink">{done.zelle_recipient}</b>
+                      <button
+                        type="button"
+                        onClick={copyAddress}
+                        className="rounded-full border border-sand px-3 py-1 text-xs font-semibold text-forest"
+                      >
+                        {copiedAddr ? "Copied" : "Copy address"}
+                      </button>
+                    </span>
+                    {done.zelle_recipient_name && (
+                      <span className="mt-1 block text-sm text-muted-ink">
+                        Zelle will show the name <b className="text-forest-ink">{done.zelle_recipient_name}</b>.
+                        That is us.
+                      </span>
+                    )}
+                    {venmo && (
+                      <span className="mt-1 block text-sm text-muted-ink">
+                        On Venmo: <b className="text-forest-ink">@{done.venmo_handle}</b>
+                        {done.venmo_name ? ` (${done.venmo_name})` : ""}.
+                      </span>
+                    )}
+                  </>
+                ),
+              },
+              {
+                title: "Paste the code in the memo box, then send",
+                body: (
+                  <>
+                    {/* What the memo box looks like with the code in it, so
+                        they recognise the field when they see it. */}
+                    <span className="mt-1 block max-w-xs rounded-xl border-2 border-dashed border-bengal-red/50 bg-cream px-4 py-2 text-left">
+                      <span className="block text-[11px] font-semibold uppercase tracking-wider text-muted-ink">
+                        What&apos;s this for? · Memo · Note
+                      </span>
+                      <span className="block font-mono text-lg font-bold text-bengal-red">
+                        {done.code}
+                      </span>
+                    </span>
+                    <span className="mt-1 block text-sm text-muted-ink">
+                      This is how we match the payment to you. Please do not skip it.
+                    </span>
+                  </>
+                ),
+              },
+            ].map((step, i) => (
+              <li
+                key={step.title}
+                className={`flex items-start gap-4 rounded-2xl border px-4 py-3 transition-colors ${
+                  stepDone[i] ? "border-forest/30 bg-forest/5" : "border-sand bg-white"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => tick(i)}
+                  aria-pressed={stepDone[i]}
+                  aria-label={`${stepDone[i] ? "Undo" : "Done"}: ${step.title}`}
+                  className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-heading text-sm font-black transition-colors ${
+                    stepDone[i] ? "bg-forest text-ivory" : "border-2 border-forest/40 text-forest"
+                  }`}
+                >
+                  {stepDone[i] ? <Icon name="check" className="h-4 w-4" /> : i + 1}
+                </button>
+                <div className="min-w-0 flex-1">
+                  <div className={`font-semibold ${stepDone[i] ? "text-forest" : "text-forest-ink"}`}>
+                    {step.title}
+                  </div>
+                  <div className="mt-1">{step.body}</div>
+                </div>
               </li>
             ))}
           </ol>
 
-          {venmo && (
-            <div className="mt-6 rounded-2xl border border-[#008CFF]/30 bg-[#008CFF]/5 px-5 py-4">
-              <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#0074D4]">
-                Or send it with <VenmoLogo size="sm" />
-              </div>
-              <p className="mt-2 text-sm leading-relaxed text-forest-ink/80">
-                Same amount, same code. Pay{" "}
-                <b className="text-forest-ink">@{done.venmo_handle}</b>
-                {done.venmo_name && (
-                  <span className="text-muted-ink"> ({done.venmo_name})</span>
-                )}{" "}
-                and put <b className="text-bengal-red">{done.code}</b> in the note.
+          <div className="mt-5 text-center">
+            {claimedSent ? (
+              <p className="rounded-2xl bg-forest/10 px-5 py-3 text-sm font-semibold text-forest">
+                Thank you. We are watching for it; this page updates by itself and your
+                ticket follows by email the moment it lands.
               </p>
-              <a
-                href={venmo.pay}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-3 inline-block rounded-full bg-[#008CFF] px-5 py-2 text-sm font-bold text-white"
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setClaimedSent(true);
+                  setStepDone([true, true, true, true]);
+                }}
+                className="cta-accent rounded-full px-8 py-3 font-heading text-base font-bold"
               >
-                Open Venmo with the amount and note filled in
-              </a>
-              <p className="mt-2 text-xs text-muted-ink">
-                If that does not open the app, go to{" "}
-                <a href={venmo.profile} target="_blank" rel="noreferrer" className="font-semibold text-forest underline">
-                  venmo.com/u/{done.venmo_handle}
-                </a>{" "}
-                and type them in.
-              </p>
-            </div>
-          )}
+                I have sent it
+              </button>
+            )}
+          </div>
 
           <div className="mt-6 rounded-2xl bg-cream-dim px-5 py-4">
             <div className="text-xs font-bold uppercase tracking-[0.2em] text-forest">
@@ -611,78 +713,98 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
             </div>
           </div>
 
-          <div className="space-y-4 border-t border-sand pt-8">
-            <SectionTitle>Donation</SectionTitle>
-            <label className="flex items-start gap-3 text-sm text-forest-ink">
-              <input
-                type="checkbox"
-                checked={form.donate}
-                onChange={(e) => {
-                  // Clearing the amount on untick means a number typed and
-                  // then thought better of cannot come back with the box.
-                  set(
-                    e.target.checked
-                      ? { donate: true }
-                      : { donate: false, donation_text: "" }
-                  );
-                  setError("");
-                }}
-                className="mt-0.5 h-4 w-4 accent-forest"
-              />
-              <span>
-                <span className="font-semibold">
-                  I would like to add a donation
-                </span>
-                <span className="mt-0.5 block text-muted-ink">
-                  Optional, and it goes towards running the day.
-                </span>
-              </span>
-            </label>
+          <div className="border-t border-sand pt-8">
+            {/* Centred and on by default, the committee's choice. The three
+                quick amounts are what most people give; "other" is the box.
+                One tap on the switch turns it all off. */}
+            <div className="mx-auto max-w-md text-center">
+              <SectionTitle>Donation</SectionTitle>
+              <p className="mt-2 text-sm text-forest-ink/80">
+                Your donation covers the park, the food and the children&apos;s games.
+              </p>
+              <label className="mt-4 inline-flex items-center gap-3 rounded-full border border-sand bg-cream px-4 py-2 text-sm font-semibold text-forest-ink">
+                <input
+                  type="checkbox"
+                  checked={form.donate}
+                  onChange={(e) => {
+                    // Clearing the amount on untick means a number typed and
+                    // then thought better of cannot come back with the box.
+                    set(
+                      e.target.checked
+                        ? { donate: true, donation_text: String(DONATION_MIN) }
+                        : { donate: false, donation_text: "" }
+                    );
+                    setError("");
+                  }}
+                  className="h-4 w-4 accent-forest"
+                />
+                {form.donate ? "Adding a donation" : "No donation this time"}
+              </label>
 
-            {form.donate && (
-              <div>
-                <label htmlFor="reg-donation" className={labelCls}>
-                  Donation amount
-                </label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-semibold text-forest-ink/50">
-                    $
-                  </span>
-                  <input
-                    id="reg-donation"
-                    type="number"
-                    inputMode="decimal"
-                    min={DONATION_MIN}
-                    step="1"
-                    value={form.donation_text}
-                    onChange={(e) => {
-                      set({ donation_text: e.target.value });
-                      setError("");
-                    }}
-                    aria-invalid={donationShort}
-                    aria-describedby="reg-donation-help"
-                    className={`${inputCls} pl-8 ${
-                      donationShort ? "border-bengal-red" : ""
-                    }`}
-                    // A suggestion, not the floor: people give roughly what
-                    // the box hints at, and the minimum is stated below.
-                    placeholder="100"
-                  />
+              {form.donate && (
+                <div className="mt-4">
+                  <div className="flex flex-wrap justify-center gap-2" role="group" aria-label="Donation amount">
+                    {[50, 100, 200].map((n) => {
+                      const on = Number(form.donation_text) === n;
+                      return (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => {
+                            set({ donation_text: String(n) });
+                            setError("");
+                          }}
+                          aria-pressed={on}
+                          className={`rounded-full px-5 py-2 text-sm font-bold transition-colors ${
+                            on
+                              ? "bg-forest text-ivory"
+                              : "border border-sand bg-white text-forest-ink hover:bg-cream"
+                          }`}
+                        >
+                          {money(n)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="relative mx-auto mt-3 max-w-[12rem]">
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-semibold text-forest-ink/50">
+                      $
+                    </span>
+                    <input
+                      id="reg-donation"
+                      type="number"
+                      inputMode="decimal"
+                      min={DONATION_MIN}
+                      step="1"
+                      value={form.donation_text}
+                      onChange={(e) => {
+                        set({ donation_text: e.target.value });
+                        setError("");
+                      }}
+                      aria-label="Other amount"
+                      aria-invalid={donationShort}
+                      aria-describedby="reg-donation-help"
+                      className={`${inputCls} pl-8 text-center ${
+                        donationShort ? "border-bengal-red" : ""
+                      }`}
+                      placeholder="Other"
+                    />
+                  </div>
+                  <p
+                    id="reg-donation-help"
+                    className={
+                      donationShort
+                        ? "mt-1.5 text-sm font-semibold text-bengal-red"
+                        : "mt-1.5 text-xs text-muted-ink"
+                    }
+                  >
+                    {donationShort
+                      ? `Please enter at least ${money(DONATION_MIN)}, or switch the donation off above.`
+                      : `${money(DONATION_MIN)} or more. Thank you.`}
+                  </p>
                 </div>
-                <p
-                  id="reg-donation-help"
-                  className={
-                    donationShort
-                      ? "mt-1.5 text-sm font-semibold text-bengal-red"
-                      : helpCls
-                  }
-                >
-                  {donationShort
-                    ? `Please enter at least ${money(DONATION_MIN)}, or untick the box above.`
-                    : `${money(DONATION_MIN)} or more. Thank you.`}
-                </p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div className="space-y-4 border-t border-sand pt-8">
@@ -767,6 +889,27 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
             )}
           </div>
         </div>
+        {/* Nothing blank while the code is being made: the form dims, the
+            message says what is happening, and the button below is already
+            disabled. Gone the moment the confirmation screen replaces it. */}
+        {busy && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-3xl bg-white/80 backdrop-blur-sm"
+          >
+            <span
+              aria-hidden="true"
+              className="h-10 w-10 animate-spin rounded-full border-4 border-sand border-t-forest"
+            />
+            <p className="mt-4 font-heading text-lg font-black text-forest-ink">
+              Creating your code…
+            </p>
+            <p className="mt-1 text-sm text-muted-ink">
+              A few seconds. Your payment steps come next.
+            </p>
+          </div>
+        )}
       </form>
 
       <aside className="space-y-4 lg:sticky lg:top-28">
@@ -787,11 +930,11 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
             <div className="mt-5 border-t border-white/15 pt-4">
               <div className="flex items-center gap-2">
                 <span className="glass-label text-xs uppercase tracking-widest">Pay with</span>
-                <ZelleLogo size="sm" pill />
+                <ZelleLogo size="sm" glass />
                 {pricing.venmo_handle && (
                   <>
                     <span className="glass-label text-xs uppercase tracking-widest">or</span>
-                    <VenmoLogo size="sm" pill />
+                    <VenmoLogo size="sm" glass />
                   </>
                 )}
               </div>
@@ -801,7 +944,7 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
               </div>
               {pricing.zelle_recipient_name && (
                 <div className="text-xs text-ivory-dim">
-                  {pricing.zelle_recipient_name}
+                  Zelle shows the name {pricing.zelle_recipient_name}
                 </div>
               )}
               {pricing.venmo_handle && (

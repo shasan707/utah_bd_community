@@ -46,6 +46,20 @@ function nameTokens(name: string): string[] {
     .filter((t) => t.length >= 3);
 }
 
+/**
+ * The sender's name and the registered name are the same set of words,
+ * whatever the order, case, punctuation or spacing: "HASANUL MAHMUD" and
+ * "Hasanul Mahmud", "Rana, Md Sohel" and "Md Sohel Rana". Short words such
+ * as "Md" count here, unlike in nameTokens, because this is a whole-name
+ * comparison and not a hint.
+ */
+function wholeNameFits(sender: string, registered: string): boolean {
+  const words = (s: string) =>
+    String(s).toUpperCase().split(/[^A-Z]+/).filter(Boolean).sort().join(" ");
+  const a = words(sender);
+  return a !== "" && a === words(registered);
+}
+
 function cents(n: number): number {
   return Math.round(n * 100);
 }
@@ -201,7 +215,19 @@ export async function recordPayment(
       record.match_status = "MATCHED";
     } else {
       const hits = real.filter((reg) => amountFits(reg) && nameFits(reg));
-      if (hits.length === 1) record.suggested_code = hits[0].code;
+      // No memo at all, but the amount is exact and the WHOLE name agrees
+      // with exactly one open registration: confirmed, and the note written
+      // by applyPayment says it was matched by amount and name. A member
+      // who forgets the code in the memo, which happens, still gets their
+      // ticket without a person having to notice. One shared name token
+      // (a "Md", a family name) is not enough and stays a suggestion.
+      if (hits.length === 1 && wholeNameFits(parsed.sender_name, hits[0].name)) {
+        record.extracted_code = hits[0].code;
+        record.linked_code = hits[0].code;
+        record.match_status = "MATCHED";
+      } else if (hits.length === 1) {
+        record.suggested_code = hits[0].code;
+      }
     }
   }
 
