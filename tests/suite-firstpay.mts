@@ -157,6 +157,11 @@ try {
     await fetch(`${U}/registrations?code=eq.${c}`, { method: "DELETE", headers: H });
   }
   await fetch(`${U}/payments?sender_name=eq.FirstPay%20Tester`, { method: "DELETE", headers: H });
+  // Every payment this suite records carries a confirmation id starting
+  // "FP". Deleting by that, not by sender name, is what stops a row made
+  // under a borrowed real name ("Hasanul Mahmud", above) being left in the
+  // treasurer's "needs a look" list. It happened once.
+  await fetch(`${U}/payments?source=eq.admin&confirmation_id=like.FP*`, { method: "DELETE", headers: H });
   await fetch(`${U}/audit_log?actor=eq.${encodeURIComponent(ACTOR)}`, { method: "DELETE", headers: H });
   const left = await (await fetch(`${U}/registrations?phone=eq.${PHONE}&select=code`, { headers: H })).json();
   t("throwaway rows removed", left.length, 0);

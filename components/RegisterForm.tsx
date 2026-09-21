@@ -5,8 +5,8 @@ import Alpona from "@/components/Alpona";
 import { getSupabase, supabaseConfigured } from "@/lib/supabase";
 import Icon from "@/components/Icon";
 import RegistrationTracker, { type TrackerStatus } from "@/components/RegistrationTracker";
-import ZelleLogo from "@/components/ZelleLogo";
-import VenmoLogo from "@/components/VenmoLogo";
+import ZelleLogo, { ZelleIcon } from "@/components/ZelleLogo";
+import VenmoLogo, { VenmoIcon } from "@/components/VenmoLogo";
 import UsFlag from "@/components/UsFlag";
 import {
   breakdownLines,
@@ -299,19 +299,27 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
         <div className="emerald-panel relative overflow-hidden rounded-3xl p-8 text-center text-ivory md:p-10">
           <Alpona className="floral-soft absolute -right-16 -top-16 h-56 w-56" />
           <div className="relative">
+            {/* Two halves: the money first, a rule, then the code and the
+                copy button. The amount is the thing they type first in the
+                bank app; the code is the thing they paste last. */}
+            <div className="text-xs font-bold uppercase tracking-[0.25em] text-mint">
+              {done.added_to_existing ? "Still to pay" : "Amount to send"}
+            </div>
+            <div className="mt-2 font-heading text-5xl font-black md:text-6xl">
+              {done.amount}
+            </div>
+            <div className="mx-auto my-6 h-px w-28 bg-white/25" aria-hidden="true" />
             <div className="text-xs font-bold uppercase tracking-[0.25em] text-mint">
               {done.added_to_existing ? "Your existing code" : "Your payment code"}
             </div>
-            <div className="font-heading mt-3 text-5xl font-black tracking-[0.15em] md:text-6xl">
+            <div className="font-heading mt-2 text-4xl font-black tracking-[0.15em] md:text-5xl">
               {done.code}
-            </div>
-            <div className="mt-3 text-2xl font-bold text-ivory-dim">
-              {done.amount}
             </div>
             <button
               onClick={copyCode}
-              className="mt-5 rounded-full bg-ivory px-7 py-2.5 font-bold text-forest transition-transform hover:scale-105"
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-ivory px-7 py-2.5 font-bold text-forest transition-transform hover:scale-105"
             >
+              <Icon name={copied ? "check" : "copy"} className="h-4 w-4" />
               {copied ? "Copied" : "Copy code"}
             </button>
             {done.reused && (
@@ -722,7 +730,15 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
               <p className="mt-2 text-sm text-forest-ink/80">
                 Your donation covers the park, the food and the children&apos;s games.
               </p>
-              <label className="mt-4 inline-flex items-center gap-3 rounded-full border border-sand bg-cream px-4 py-2 text-sm font-semibold text-forest-ink">
+              <label
+                className={`mt-4 inline-flex items-center gap-3 rounded-full border px-4 py-2 text-sm font-semibold text-forest-ink ${
+                  // The gentle pulse is the ask. It stops when they switch
+                  // the donation off, so it never nags.
+                  form.donate
+                    ? "attention-pulse border-bengal-red/40 bg-bengal-red/5"
+                    : "border-sand bg-cream"
+                }`}
+              >
                 <input
                   type="checkbox"
                   checked={form.donate}
@@ -928,32 +944,40 @@ export default function RegisterForm({ pricing }: { pricing: Pricing }) {
               )}
             </ul>
             <div className="mt-5 border-t border-white/15 pt-4">
-              <div className="flex items-center gap-2">
-                <span className="glass-label text-xs uppercase tracking-widest">Pay with</span>
-                <ZelleLogo size="sm" glass />
-                {pricing.venmo_handle && (
-                  <>
-                    <span className="glass-label text-xs uppercase tracking-widest">or</span>
-                    <VenmoLogo size="sm" glass />
-                  </>
-                )}
-              </div>
-              <div className="mt-2 glass-label text-xs uppercase tracking-widest">Zelle to</div>
-              <div className="mt-1 font-semibold text-ivory">
-                {pricing.zelle_recipient || "Shown with your code"}
-              </div>
-              {pricing.zelle_recipient_name && (
-                <div className="text-xs text-ivory-dim">
-                  Zelle shows the name {pricing.zelle_recipient_name}
+              <div className="glass-label text-xs uppercase tracking-widest">Pay with</div>
+              {/* One box per way to pay, the mark on the left, a light
+                  travelling round the edge so the eye lands here. Styled in
+                  globals.css as .pay-box. */}
+              <div className="pay-box pay-box-zelle mt-3">
+                <div className="pay-box-inner flex items-center gap-3 px-4 py-3">
+                  <ZelleIcon className="h-9 w-9 shrink-0" />
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-mint">Zelle to</div>
+                    <div className="truncate font-semibold text-ivory">
+                      {pricing.zelle_recipient || "Shown with your code"}
+                    </div>
+                    {pricing.zelle_recipient_name && (
+                      <div className="text-xs text-ivory-dim">
+                        Zelle shows the name {pricing.zelle_recipient_name}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
+              </div>
               {pricing.venmo_handle && (
-                <div className="mt-3 border-t border-white/10 pt-3">
-                  <span className="glass-label text-xs uppercase tracking-widest">Venmo to</span>
-                  <div className="mt-1 font-semibold text-ivory">@{pricing.venmo_handle}</div>
-                  {pricing.venmo_name && (
-                    <div className="text-xs text-ivory-dim">{pricing.venmo_name}</div>
-                  )}
+                <div className="pay-box pay-box-venmo mt-3">
+                  <div className="pay-box-inner flex items-center gap-3 px-4 py-3">
+                    <VenmoIcon className="h-9 w-9 shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-mint">Venmo to</div>
+                      <div className="truncate font-semibold text-ivory">@{pricing.venmo_handle}</div>
+                      {pricing.venmo_name && (
+                        <div className="text-xs text-ivory-dim">
+                          Venmo shows the name {pricing.venmo_name}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

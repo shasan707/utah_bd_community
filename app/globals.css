@@ -391,6 +391,81 @@ body {
   }
 }
 
+/* ---- The two ways to pay, on the emerald total panel ------------------
+
+   One box each. A light travels round the edge: a conic gradient on an
+   oversized square behind the box, spinning, with the box's own fill drawn
+   on top so only the two-pixel rim shows. Zelle's rim is its violet,
+   Venmo's its blue. Off for anyone who has asked the OS for less motion. */
+.pay-box {
+  --glow: #b8cbc4;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1rem;
+  padding: 2px;
+}
+
+.pay-box::before {
+  content: "";
+  position: absolute;
+  inset: -60%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0 62%,
+    var(--glow) 82%,
+    transparent 100%
+  );
+  animation: pay-box-orbit 3.2s linear infinite;
+}
+
+.pay-box-inner {
+  position: relative;
+  z-index: 1;
+  border-radius: calc(1rem - 2px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 48, 38, 0.94);
+}
+
+.pay-box-zelle {
+  --glow: #a78bfa;
+}
+
+.pay-box-venmo {
+  --glow: #5db3ff;
+}
+
+@keyframes pay-box-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The donation switch breathes while the donation is on. A small scale and
+   a soft red halo, once every second and a half: noticed, not shouted. */
+.attention-pulse {
+  animation: attention-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes attention-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(228, 87, 79, 0);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 7px rgba(228, 87, 79, 0.22);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pay-box::before,
+  .attention-pulse {
+    animation: none;
+  }
+}
+
 /* ---- The two assistant orbs -------------------------------------------
    Shared by the voice orb, which is ours, and by the chat button inside
    Retell's widget, which is sent the same rules through its shadow root so
