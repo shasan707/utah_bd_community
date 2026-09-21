@@ -75,8 +75,15 @@ t("three fee bands", has("Adult (16+)") && has("Youth (10 to 16)") && has("Child
 console.log("\n== REGISTER PAGE CONTENT ==");
 const reg = await (await fetch(`${H}/register`)).text();
 const rhas = (s) => reg.includes(s);
-t("donation opt-in", rhas("I would like to add a donation"), true);
-t("amount box hidden until ticked", rhas('id="reg-donation"'), false);
+// Since 21 September the donation is on by default at the minimum, the
+// committee's choice, with the amount and the quick picks showing from the
+// start. Before that it was off and the box hidden; these used to assert
+// that, which is exactly backwards now.
+t("donation on by default", rhas("Adding a donation"), true);
+t("says what it pays for", rhas("Your donation covers the park"), true);
+t("amount box shown from the start", rhas('id="reg-donation"'), true);
+t("quick amounts offered", rhas("$100.00") && rhas("$200.00"), true);
+t("no-memo safety net: nothing on the page promises confirmation without a code", rhas("without the code"), false);
 t("adult band", rhas("16 and over, $20.00"), true);
 t("youth band", rhas("10 to 16, $12.00"), true);
 t("child free", rhas("Under 10, free"), true);
