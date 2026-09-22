@@ -57,6 +57,18 @@ t("pavilion named", has("Pavilion 1"), true);
 t("street address shown", has("4988 S Fork Rd"), true);
 t("no wrong city", has("84604, Salt Lake City"), false);
 t("schedule section", has("Schedule"), true);
+
+// The "people are coming" count on the page must equal the seats on paid,
+// non-test registrations in the database at that moment. Read from both
+// within seconds of each other; the page refreshes every 60 s, so a
+// registration landing in between would show as a small difference.
+const seats = await (await fetch(`${U}/registrations?status=eq.PAID&is_test=eq.false&select=adults,youth,children`, { headers: hdr })).json();
+const dbPeople = seats.reduce((n, r) => n + r.adults + r.youth + r.children, 0);
+const shown = Number((page.match(/data-attendance="(\d+)"/) || [])[1] || 0);
+console.log(`  people coming: page ${shown}, database ${dbPeople}`);
+t("attendance shown when at or above the floor", dbPeople >= 10 ? shown > 0 : shown === 0, true);
+t("attendance on the page matches the database (within 5)", Math.abs(shown - dbPeople) <= 5, true);
+t("attendance wording", dbPeople >= 10 ? has("people are coming so far") : true, true);
 // The running order is published, so "Coming soon" going missing is now the
 // pass rather than the failure. These check the day is really on the page:
 // its first and last blocks, an item from the middle, and the photograph

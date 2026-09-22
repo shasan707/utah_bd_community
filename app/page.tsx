@@ -19,6 +19,7 @@ import { GALLERY_PLACEHOLDER_NOTE } from "@/lib/home-copy";
 import { mapsUrl, placeLine } from "@/lib/address";
 import { feeItems } from "@/lib/payments/pricing";
 import { canRegisterFor, getRegistrationStatus } from "@/lib/payments/settings";
+import { attendance } from "@/lib/payments/attendance";
 
 export const revalidate = 60;
 
@@ -36,6 +37,7 @@ export default async function HomePage() {
   const galleryPreview = (await getGallery()).slice(0, 6);
   const showFees = canRegisterFor(registration, featured.date);
   const fees = registration.pricing ? feeItems(registration.pricing) : [];
+  const coming = showFees ? await attendance() : { people: 0, families: 0 };
 
   return (
     <>
@@ -45,6 +47,7 @@ export default async function HomePage() {
             <RegisterRibbon
               eventName={registration.pricing.event_name}
               closes={registration.pricing.registration_closes}
+              people={coming.people}
             />
           ) : null
         }

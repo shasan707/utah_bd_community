@@ -12,18 +12,27 @@ import Link from "next/link";
 export default function RegisterRibbon({
   eventName,
   closes,
+  people = 0,
 }: {
   eventName: string;
   /** Already formatted, e.g. "Sep 26, 2026". */
   closes: string;
+  /** Seats on paid registrations; zero hides the phrase. */
+  people?: number;
 }) {
   return (
     <div className="pointer-events-auto mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-full border border-forest/15 bg-forest px-4 py-2 text-sm text-ivory shadow-lg shadow-forest/20 sm:px-6">
       <span className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
         <span className="font-bold text-mint">✦</span>
         <span className="font-semibold">{eventName}</span>
+        {people > 0 && (
+          <>
+            <span aria-hidden="true" className="text-ivory/40">·</span>
+            <span className="font-semibold text-mint">{people} people coming</span>
+          </>
+        )}
         <span aria-hidden="true" className="text-ivory/40">·</span>
-        <span className="text-ivory-dim">Registration closes {closes}</span>
+        <span className="text-ivory-dim">Closes {closes}</span>
       </span>
       <Link
         href="/register"
