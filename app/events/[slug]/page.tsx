@@ -242,17 +242,9 @@ export default async function EventDetailPage({
                       {registration.pricing?.venmo_handle ? " or Venmo" : ""}.
                     </p>
                     {coming.people > 0 && (
-                      <dl className="mx-auto mt-6 flex max-w-xs justify-center gap-8 border-t border-white/15 pt-5">
-                        <div>
-                          <dd className="font-heading text-3xl font-black text-ivory">{coming.people}</dd>
-                          <dt className="text-xs font-semibold uppercase tracking-widest text-mint">people coming</dt>
-                        </div>
-                        <div>
-                          <dd className="font-heading text-3xl font-black text-ivory">{coming.families}</dd>
-                          <dt className="text-xs font-semibold uppercase tracking-widest text-mint">
-                            {coming.families === 1 ? "family" : "families"}
-                          </dt>
-                        </div>
+                      <dl className="mx-auto mt-6 max-w-xs border-t border-white/15 pt-5">
+                        <dd className="font-heading text-3xl font-black text-ivory">{coming.people}</dd>
+                        <dt className="text-xs font-semibold uppercase tracking-widest text-mint">people coming</dt>
                       </dl>
                     )}
                   </div>
