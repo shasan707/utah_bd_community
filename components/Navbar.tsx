@@ -8,9 +8,6 @@ import Logo from "@/components/Logo";
 
 const links = [
   { href: "/", label: "Home" },
-  // /event redirects to the current event's page (app/event/route.ts), so
-  // this link never needs editing when the event changes.
-  { href: "/event", label: "Event details" },
   { href: "/events", label: "Events" },
   { href: "/gallery", label: "Gallery" },
   { href: "/blog", label: "Blog" },
@@ -87,9 +84,18 @@ export default function Navbar() {
               </Link>
             );
           })}
+          {/* The two buttons: Event details is the quiet one, the same pill
+              as Register & Pay in outline. /event redirects to the current
+              event's page, so it never needs editing when the event changes. */}
+          <Link
+            href="/event"
+            className="ml-3 rounded-full border-2 border-forest px-5 py-1.5 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-cream"
+          >
+            Event details
+          </Link>
           <Link
             href="/register"
-            className="ml-3 rounded-full bg-bengal-red px-5 py-2 text-sm font-semibold text-white transition-transform hover:scale-105"
+            className="ml-2 rounded-full bg-bengal-red px-5 py-2 text-sm font-semibold text-white transition-transform hover:scale-105"
           >
             Register &amp; Pay
           </Link>
@@ -137,6 +143,12 @@ export default function Navbar() {
                   {l.label}
                 </Link>
               ))}
+              <Link
+                href="/event"
+                className="mt-2 rounded-full border-2 border-forest px-4 py-2 text-center font-semibold text-forest"
+              >
+                Event details
+              </Link>
               <Link
                 href="/register"
                 className="mt-2 rounded-full bg-bengal-red px-4 py-2.5 text-center font-semibold text-white"
