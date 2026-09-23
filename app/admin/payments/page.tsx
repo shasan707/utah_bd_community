@@ -186,11 +186,9 @@ export default function AdminPayments() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const openLabel = (() => {
-    if (settings.registration_open !== "true") return "Paused";
-    if (Date.now() > closesAt(settings.registration_closes || "").getTime()) return "Closed";
-    return "Open";
-  })();
+  // The closing date is a message to members, not a switch: registration
+  // is open while the switch is on, whatever the date says.
+  const openLabel = settings.registration_open !== "true" ? "Paused" : "Open";
   const autoConfirm = settings.auto_confirm === "true";
   const smsOn = settings.sms_enabled === "true";
 

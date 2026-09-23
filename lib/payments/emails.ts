@@ -58,9 +58,13 @@ function questionsLine(s: Settings): string {
 
 /** Event lines shared by both emails. */
 function eventLines(s: Settings): string[] {
+  // Name, date, time and place come from the event itself (see getSettings),
+  // the same values the event page shows, plus the map and the page link.
   const lines = [`Event:  ${s.event_name}`, `Date:   ${formatDateOnly(s.event_date)}`];
   if (s.event_time) lines.push(`Time:   ${s.event_time}`);
   if (s.event_venue) lines.push(`Venue:  ${s.event_venue}`);
+  if (s.event_map_url) lines.push(`Map:    ${s.event_map_url}`);
+  if (s.event_url) lines.push(`Details: ${s.event_url}`);
   return lines;
 }
 
@@ -348,6 +352,20 @@ ${
     `<tr><td style="padding:12px 32px 0;"><div style="border-top:2px dashed ${COLORS.sand};"></div></td></tr>`,
     `<tr><td style="padding:16px 32px 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.forest};font-weight:700;">Event details</td></tr>`,
     `<tr><td style="padding:0 32px 16px;">${rows(eventPairs(s))}</td></tr>`,
+    ...(s.event_map_url || s.event_url
+      ? [
+          `<tr><td style="padding:0 32px 20px;font-size:14px;line-height:1.6;">${[
+            s.event_map_url
+              ? `<a href="${esc(s.event_map_url)}" style="color:${COLORS.forest};font-weight:600;">Open in Maps</a>`
+              : "",
+            s.event_url
+              ? `<a href="${esc(s.event_url)}" style="color:${COLORS.forest};font-weight:600;">Event details and the day's schedule</a>`
+              : "",
+          ]
+            .filter(Boolean)
+            .join(`<span style="color:${COLORS.muted};"> &middot; </span>`)}</td></tr>`,
+        ]
+      : []),
     `<tr><td style="padding:0 32px 20px;"><div style="background:${COLORS.cream};border-radius:14px;padding:14px 18px;">
 <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.forest};font-weight:700;">Receipt</div>
 <div style="margin-top:6px;font-size:14px;line-height:1.7;color:${COLORS.ink};">${lines.map(esc).join("<br>")}<br><strong>Total ${esc(money(row.amount_due))}</strong></div>

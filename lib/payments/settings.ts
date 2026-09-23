@@ -1,6 +1,10 @@
 import "server-only";
 import { ApiError, getServiceClient } from "@/lib/supabase-server";
-import { closesAt, formatDateOnly } from "./dates";
+import { fullAddress, mapsUrl, placeLine } from "@/lib/address";
+import { getEvents, next } from "@/lib/content";
+import { formatTime } from "@/lib/format";
+import { SITE_URL } from "@/lib/site-url";
+import { closesAt, formatDateOnly, isoToEventZoneInput } from "./dates";
 import { DEFAULT_SETTINGS, withDefaults, type SettingKey } from "./defaults";
 import type { Pricing } from "./pricing";
 
@@ -35,6 +39,15 @@ export type Settings = {
   venmo_handle: string;
   venmo_name: string;
   contact_email: string;
+  /**
+   * From the event itself, not from the settings table (see getSettings):
+   * the venue name line, the street address, the map link and the short
+   * link to the event page. Blank when there is no event to read.
+   */
+  event_place: string;
+  event_address: string;
+  event_map_url: string;
+  event_url: string;
   pending_expiry_hours: number;
   auto_confirm: boolean;
   sms_enabled: boolean;
@@ -92,6 +105,11 @@ export function parseSettings(raw: Partial<Record<string, string>>): Settings {
     venmo_handle: cleanHandle(get("venmo_handle")),
     venmo_name: get("venmo_name").trim(),
     contact_email: get("contact_email").trim(),
+    // Filled from the event by getSettings; blank until then.
+    event_place: "",
+    event_address: "",
+    event_map_url: "",
+    event_url: "",
     pending_expiry_hours: toNumber(
       get("pending_expiry_hours"),
       Number(d.pending_expiry_hours)
@@ -110,7 +128,38 @@ export async function getSettings(): Promise<Settings> {
   }
   const raw: Record<string, string> = {};
   for (const row of data ?? []) raw[String(row.key)] = String(row.value ?? "");
-  return parseSettings(raw);
+  return withCurrentEvent(parseSettings(raw));
+}
+
+/**
+ * The event's own name, date, time and place, laid over the four settings
+ * of the same name. This is what makes the register page, both emails,
+ * both texts, the ticket page and the tracker say exactly what the event
+ * page says: they all read these fields, and the event page reads the
+ * event. Before this the messages read the settings table, the page read
+ * the event, and the two drifted (11:00 in one, 10:00 in the other).
+ *
+ * The four settings remain as the fallback for a site with no event yet.
+ * Failure here is never fatal: a bad read leaves the settings as typed.
+ */
+async function withCurrentEvent(s: Settings): Promise<Settings> {
+  try {
+    const ev = next(await getEvents());
+    if (!ev?.date) return s;
+    return {
+      ...s,
+      event_name: ev.title?.trim() || s.event_name,
+      event_date: isoToEventZoneInput(ev.date).slice(0, 10),
+      event_time: formatTime(ev.date),
+      event_venue: fullAddress(ev),
+      event_place: placeLine(ev),
+      event_address: ev.address?.trim() ?? "",
+      event_map_url: mapsUrl(ev),
+      event_url: `${SITE_URL}/event`,
+    };
+  } catch {
+    return s;
+  }
 }
 
 /** The subset of settings the public form may see, with formatted dates. */
@@ -138,9 +187,14 @@ export function publicPricing(s: Settings): Pricing {
 export type OpenState = "open" | "paused" | "closed";
 
 /** paused: the switch is off. closed: the closing date has passed. */
-export function openState(s: Settings, now = new Date()): OpenState {
+/**
+ * paused: the switch is off. Since 23 September 2026 the closing date is a
+ * message, not a switch: registration stays open past it until the admin
+ * turns it off, or the event has started (canRegisterFor checks that). The
+ * pages still say "Registration closes <date>", on purpose, as the nudge.
+ */
+export function openState(s: Settings): OpenState {
   if (!s.registration_open) return "paused";
-  if (now.getTime() > closesAt(s.registration_closes).getTime()) return "closed";
   return "open";
 }
 

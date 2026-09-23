@@ -8,6 +8,9 @@ import Logo from "@/components/Logo";
 
 const links = [
   { href: "/", label: "Home" },
+  // /event redirects to the current event's page (app/event/route.ts), so
+  // this link never needs editing when the event changes.
+  { href: "/event", label: "Event details" },
   { href: "/events", label: "Events" },
   { href: "/gallery", label: "Gallery" },
   { href: "/blog", label: "Blog" },

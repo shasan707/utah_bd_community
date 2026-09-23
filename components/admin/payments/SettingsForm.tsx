@@ -15,8 +15,12 @@ const groups: { title: string; fields: Field[] }[] = [
   {
     title: "Event",
     fields: [
-      { key: "event_name", label: "Event name", type: "text" },
-      { key: "event_date", label: "Event date", type: "date" },
+      // The event's own name, date, time and place come from the event
+      // itself (Admin > Events) and override these four everywhere: the
+      // register page, both emails, both texts, the ticket and the tracker.
+      // These are used only if no event exists.
+      { key: "event_name", label: "Event name (fallback; the event page is the source)", type: "text" },
+      { key: "event_date", label: "Event date (fallback)", type: "date" },
       {
         key: "event_time",
         label: "Event time",

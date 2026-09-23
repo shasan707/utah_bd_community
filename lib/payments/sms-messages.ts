@@ -45,8 +45,14 @@ export function pendingSms(row: RegistrationRow, s: Settings): string {
   return [
     `BAU: ${firstName(row.name)}, your ${shortEvent(s)} code is ${row.code}.`,
     `1) Copy the code 2) Open Zelle${orVenmo} 3) Send ${money(owed)} to ${s.zelle_recipient} 4) Paste ${row.code} in the memo.`,
-    `${headcount(row) > 0 ? "Ticket" : "Receipt"} follows once confirmed. Reply STOP to opt out.`,
+    `${headcount(row) > 0 ? "Ticket" : "Receipt"} follows once confirmed.${details(s)} Reply STOP to opt out.`,
   ].join(" ");
+}
+
+/** " Details: bdutah.jotillabs.com/event", or nothing when there is no event. */
+function details(s: Settings): string {
+  const url = String(s.event_url ?? "").replace(/^https?:\/\//, "");
+  return url ? ` Details: ${url}` : "";
 }
 
 /** Sent when the payment is confirmed: the link to the ticket and its QR. */
@@ -65,5 +71,9 @@ export function receiptSms(row: RegistrationRow, s: Settings): string {
   const tail = links
     ? ` Your ticket: ${links.ticket}`
     : ` Your ticket number is ${row.code}.`;
-  return `BAU: Payment confirmed for ${shortEvent(s)} on ${when}.${tail}`;
+  // Date, time and place come from the event itself (see getSettings), the
+  // same values the event page shows, and the short link opens that page.
+  const at = s.event_time ? ` at ${s.event_time}` : "";
+  const place = s.event_place ? `, ${s.event_place}` : "";
+  return `BAU: Payment confirmed for ${shortEvent(s)}, ${when}${at}${place}.${tail}${details(s)}`;
 }

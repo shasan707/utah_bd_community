@@ -22,7 +22,10 @@ t("child", p.price_child, 0);
 t("coupon single", p.coupon_single, 2);
 t("bundle qty", p.coupon_bundle_qty, 10);
 t("bundle price", p.coupon_bundle_price, 15);
-t("event time", p.event_time, "11:00 AM");
+// Since 23 September the time (and name, date, place) come from the event
+// row, not the settings table, so the messages say what the page says. The
+// check further down compares the two; here only its shape is pinned.
+t("event time is a clock time", /^\d{1,2}:\d{2} (AM|PM)$/.test(p.event_time), true);
 t("registration closes", p.registration_closes, "Sep 26, 2026");
 t("registration open", j.result.registration_open, true);
 t("zelle recipient name", p.zelle_recipient_name, "Md Shamim Ahmmed");

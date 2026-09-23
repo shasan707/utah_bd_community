@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import Countdown from "@/components/Countdown";
+import Counter from "@/components/Counter";
 import Icon from "@/components/Icon";
 import Alpona from "@/components/Alpona";
 import EventMap from "@/components/EventMap";
@@ -115,8 +116,9 @@ export default async function EventDetailPage({
             )}
             {coming.people > 0 && (
               <p className="mt-4 text-sm font-semibold text-white/90" data-attendance={coming.people}>
-                <span className="text-mint">✦</span> {coming.people} people are coming so far.
-                Join them.
+                <span className="text-mint">✦</span>{" "}
+                <Counter to={coming.people} duration={1.4} className="font-heading text-base font-black text-ivory" />{" "}
+                people are coming so far. Join them.
               </p>
             )}
           </Reveal>
@@ -243,7 +245,9 @@ export default async function EventDetailPage({
                     </p>
                     {coming.people > 0 && (
                       <dl className="mx-auto mt-6 max-w-xs border-t border-white/15 pt-5">
-                        <dd className="font-heading text-3xl font-black text-ivory">{coming.people}</dd>
+                        <dd className="font-heading text-3xl font-black text-ivory">
+                          <Counter to={coming.people} />
+                        </dd>
                         <dt className="text-xs font-semibold uppercase tracking-widest text-mint">people coming</dt>
                       </dl>
                     )}
